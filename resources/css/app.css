@@ -1,0 +1,345 @@
+@import 'tailwindcss';
+
+@import 'tw-animate-css';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+
+/*
+  Kotak is light only. The variant stays defined (and never matches, because
+  nothing adds a .dark class) so the dark: classes inside components/ui are
+  inert instead of following the operating system's colour scheme.
+*/
+@custom-variant dark (&:is(.dark *));
+
+/*
+|--------------------------------------------------------------------------
+| Brand tokens ("Express Red")
+|--------------------------------------------------------------------------
+|
+| Every value here becomes a utility (bg-brand, text-ink, border-line...)
+| and a CSS variable (var(--color-brand)). Status colours come in text/tint
+| pairs that meet 4.5:1. Use StatusChip rather than the status colours
+| directly wherever a status is shown.
+|
+*/
+@theme {
+    --color-brand: #d0161e;
+    --color-brand-strong: #a8111a;
+    --color-brand-deep: #7c0d13;
+    --color-brand-tint: #fdecec;
+    --color-brand-edge: #f4b7ba;
+
+    --color-ink: #16181d;
+    --color-ink-2: #3d4350;
+    --color-subtle: #6b7280;
+
+    --color-surface: #f4f5f7;
+    --color-line: #e2e5ea;
+    --color-line-soft: #eef0f3;
+    --color-line-strong: #c9ced6;
+    /* Form field outlines: 3.4:1 on white, 3.1:1 on surface. */
+    --color-field: #858c99;
+
+    /*
+     * Accent yellow, used sparingly: small tags, the van headlight and the
+     * caution button for a step that cannot be undone (-strong is its
+     * hover). Ink text only.
+     */
+    --color-highlight: #ffc53d;
+    --color-highlight-strong: #f2b01e;
+
+    /* Cardboard, for illustrations. */
+    --color-kraft: #d4995a;
+    --color-kraft-light: #e7b97f;
+    --color-kraft-dark: #b98046;
+
+    /* Status pairs: text on tint. */
+    --color-status-neutral: #2f3440;
+    --color-status-neutral-tint: #eef0f3;
+    --color-status-paid: #1d4f9a;
+    --color-status-paid-tint: #eaf1fc;
+    --color-status-failed: #8a4b00;
+    --color-status-failed-tint: #fff1db;
+    --color-status-failed-pip: #c77700;
+    --color-status-delivered: #146c34;
+    --color-status-delivered-tint: #e6f4eb;
+    --color-status-returned-edge: #a9b0bc;
+
+    --font-sans:
+        'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif,
+        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+        'Noto Color Emoji';
+    --font-mono:
+        'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas,
+        monospace;
+
+    /* Headings: ExtraBold with tight tracking. */
+    --tracking-display: -0.035em;
+    --tracking-heading: -0.02em;
+    --tracking-tape: 0.16em;
+
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 10px;
+    --radius-xl: 12px;
+    --radius-2xl: 16px;
+
+    --shadow-card:
+        0 1px 2px rgb(22 24 29 / 0.05), 0 24px 48px -32px rgb(22 24 29 / 0.25);
+    --shadow-float:
+        0 22px 44px -22px rgb(22 24 29 / 0.3), 0 2px 6px rgb(22 24 29 / 0.06);
+    --shadow-tape:
+        inset 0 2px 0 rgb(255 255 255 / 0.16), inset 0 -2px 0 rgb(0 0 0 / 0.12),
+        0 10px 20px -12px rgb(168 17 26 / 0.5);
+    /* Sticky bottom action bars on phones (order form, driver job). */
+    --shadow-bar: 0 -10px 24px -14px rgb(22 24 29 / 0.28);
+}
+
+/* shadcn-vue colour roles, mapped onto the brand (see :root below). */
+@theme inline {
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+
+    --color-card: var(--card);
+    --color-card-foreground: var(--card-foreground);
+
+    --color-popover: var(--popover);
+    --color-popover-foreground: var(--popover-foreground);
+
+    --color-primary: var(--primary);
+    --color-primary-foreground: var(--primary-foreground);
+
+    --color-secondary: var(--secondary);
+    --color-secondary-foreground: var(--secondary-foreground);
+
+    --color-muted: var(--muted);
+    --color-muted-foreground: var(--muted-foreground);
+
+    --color-accent: var(--accent);
+    --color-accent-foreground: var(--accent-foreground);
+
+    --color-destructive: var(--destructive);
+    --color-destructive-foreground: var(--destructive-foreground);
+
+    --color-border: var(--border);
+    --color-input: var(--input);
+    --color-ring: var(--ring);
+
+    --color-chart-1: var(--chart-1);
+    --color-chart-2: var(--chart-2);
+    --color-chart-3: var(--chart-3);
+    --color-chart-4: var(--chart-4);
+    --color-chart-5: var(--chart-5);
+
+    --color-sidebar: var(--sidebar-background);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-ring: var(--sidebar-ring);
+}
+
+:root {
+    color-scheme: light;
+
+    --background: #ffffff;
+    --foreground: #16181d;
+    --card: #ffffff;
+    --card-foreground: #16181d;
+    --popover: #ffffff;
+    --popover-foreground: #16181d;
+
+    /* Kotak red for primary actions, ink for the dark secondary button. */
+    --primary: #d0161e;
+    --primary-foreground: #ffffff;
+    --secondary: #16181d;
+    --secondary-foreground: #ffffff;
+
+    --muted: #f4f5f7;
+    --muted-foreground: #555c69;
+
+    /* Hover and selected fills (nav items, ghost buttons, menu items). */
+    --accent: #fdecec;
+    --accent-foreground: #a8111a;
+
+    --destructive: #a8111a;
+    --destructive-foreground: #ffffff;
+
+    --border: #e2e5ea;
+    --input: #858c99;
+    --ring: #d0161e;
+
+    --chart-1: #d0161e;
+    --chart-2: #1d4f9a;
+    --chart-3: #146c34;
+    --chart-4: #c77700;
+    --chart-5: #3d4350;
+
+    --radius: 0.625rem;
+
+    --sidebar-background: #ffffff;
+    --sidebar: #ffffff;
+    --sidebar-foreground: #3d4350;
+    --sidebar-primary: #d0161e;
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: #fdecec;
+    --sidebar-accent-foreground: #a8111a;
+    --sidebar-border: #e2e5ea;
+    --sidebar-ring: #d0161e;
+}
+
+@layer base {
+    *,
+    ::after,
+    ::before,
+    ::backdrop,
+    ::file-selector-button {
+        border-color: var(--color-line, currentColor);
+    }
+
+    * {
+        @apply border-border outline-ring/50;
+    }
+
+    html {
+        background-color: #ffffff;
+        -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+        @apply bg-background font-sans text-foreground antialiased;
+    }
+
+    h1,
+    h2,
+    h3 {
+        text-wrap: balance;
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+        color: var(--color-subtle);
+        opacity: 1;
+    }
+
+    /* A red focus ring for anything that does not draw its own. */
+    :focus-visible {
+        outline: 3px solid var(--color-brand);
+        outline-offset: 2px;
+    }
+
+    [id] {
+        scroll-margin-top: 6rem;
+    }
+}
+
+/* The page content width: 1280px of content with a 16/24/32px gutter. */
+@utility container-page {
+    margin-inline: auto;
+    width: 100%;
+    max-width: 84rem;
+    padding-inline: 1rem;
+
+    @media (width >= 40rem) {
+        padding-inline: 1.5rem;
+    }
+
+    @media (width >= 64rem) {
+        padding-inline: 2rem;
+    }
+}
+
+/*
+|--------------------------------------------------------------------------
+| Data tables
+|--------------------------------------------------------------------------
+|
+| A grid rather than table layout: each column is as wide as its widest
+| cell, columns are at least 24px apart and the spare width is shared
+| evenly between the gaps, so every gap is the same. Rows keep 20px to the
+| card's edges, and row borders and fills run the full width.
+|
+|   <table role="table" class="data-table [--columns:5] lg:[--columns:7]">
+|     <caption class="sr-only">...</caption>
+|     <thead role="rowgroup" class="data-table__head">
+|       <tr role="row" class="data-table__row">
+|         <th scope="col" role="columnheader">...</th>
+|     <tbody role="rowgroup" class="data-table__body">
+|       <tr role="row" class="data-table__row">
+|         <th scope="row" role="rowheader">...</th> or <td role="cell">
+|       <tr role="row" class="data-table__row data-table__row--full">
+|         <td role="cell" colspan="7">One cell across every column</td>
+|
+| - --columns is the number of visible cells in a row. Where a column is
+|   hidden (hidden lg:block), change --columns at the same breakpoint.
+| - The ARIA roles are required: changing display on table elements can
+|   drop their table semantics.
+| - Cells set vertical padding only. Borders and fills go on rows (or
+|   divide-y on the row group), so they cross the gaps.
+| - Everything is left aligned. Long text that wraps needs a max width on
+|   its cell (e.g. max-w-72), or it takes the spare width.
+| - Show or hide the whole table with hidden md:grid, never md:table.
+|
+*/
+@layer components {
+    /* Positioned, so the sr-only caption and row labels (position:
+       absolute) are held inside the table's scroll wrapper and clipped
+       there, instead of widening the page when the table scrolls. */
+    .data-table {
+        position: relative;
+        display: grid;
+        grid-template-columns: repeat(var(--columns), auto);
+        justify-content: space-between;
+        column-gap: 1.5rem;
+        text-align: left;
+    }
+
+    .data-table__head,
+    .data-table__body,
+    .data-table__row {
+        grid-column: 1 / -1;
+        display: grid;
+        grid-template-columns: subgrid;
+    }
+
+    /* A subgrid's side padding is added to the cells in its first and last
+       columns, and the columns grow to fit it. So whichever column is last
+       at this width, its content ends 20px from the edge. */
+    .data-table__row {
+        align-items: center;
+        padding-inline: 1.25rem;
+    }
+
+    /* A single cell across every column. Its content never widens them. */
+    .data-table__row--full > * {
+        grid-column: 1 / -1;
+        contain: inline-size;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* Printing (receipts): only the page content, on white. */
+@media print {
+    [data-slot='sidebar'],
+    [data-sonner-toaster] {
+        display: none !important;
+    }
+
+    html,
+    body {
+        background: #ffffff !important;
+    }
+}
