@@ -78,6 +78,24 @@ export function formatDimensions(
     return `${lengthCm} × ${widthCm} × ${heightCm} cm`;
 }
 
+/** 2.44 → "2.4", 3 → "3.0": one decimal, e.g. days in statistics. */
+export function formatDecimal(value: number | null | undefined): string {
+    if (value === null || value === undefined || !Number.isFinite(value)) {
+        return EMPTY;
+    }
+
+    return oneDecimal.format(value);
+}
+
+/** 96.4 → "96.4%", 100 → "100%": at most one decimal. */
+export function formatPercent(value: number | null | undefined): string {
+    if (value === null || value === undefined || !Number.isFinite(value)) {
+        return EMPTY;
+    }
+
+    return `${oneDecimal.format(value).replace(/\.0$/, '')}%`;
+}
+
 /** (1, 'parcel') → "1 parcel", (3, 'parcel') → "3 parcels". */
 export function pluralize(
     count: number,

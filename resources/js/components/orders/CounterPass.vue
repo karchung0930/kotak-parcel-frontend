@@ -1,20 +1,24 @@
 <script setup lang="ts">
-import { ScanBarcode } from '@lucide/vue';
+import { CalendarClock, ScanBarcode } from '@lucide/vue';
 import KotakTape from '@/components/brand/KotakTape.vue';
+import Notice from '@/components/Notice.vue';
 import BranchDetails from '@/components/orders/BranchDetails.vue';
 import TrackingBarcode from '@/components/TrackingBarcode.vue';
-import { formatTrackingNumber } from '@/lib/format';
+import { formatTrackingNumber, formatWeekdayDate } from '@/lib/format';
 import type { Branch } from '@/types';
 
 /**
  * "Show this at the counter": the next step for an order waiting to be
  * dropped off. A label-like card with the tracking number as a barcode
  * (staff scan it into the counter search) and in large type (to read
- * out), next to the chosen branch's address and hours.
+ * out), next to the chosen branch's address and hours, with the last
+ * day to drop it off (worked out by the server).
  */
 defineProps<{
     trackingNumber: string;
     branch?: Branch | null;
+    /** "YYYY-MM-DD" (Malaysia): after this day the order is cancelled. */
+    deadline?: string | null;
 }>();
 </script>
 
@@ -46,6 +50,13 @@ defineProps<{
                     or type the number, weigh the parcel and take payment by
                     cash or card.
                 </p>
+                <Notice v-if="deadline" :icon="CalendarClock" class="mt-4">
+                    Drop off by
+                    <strong class="font-bold text-ink">{{
+                        formatWeekdayDate(deadline)
+                    }}</strong>
+                    or this order is cancelled automatically.
+                </Notice>
 
                 <div
                     class="mt-5 rounded-xl border-2 border-dashed border-line-strong bg-white px-3 pt-4 pb-3 text-center sm:px-6 sm:pt-5"

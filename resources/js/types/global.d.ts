@@ -20,7 +20,7 @@ declare module '@inertiajs/core' {
             name: string;
             auth: Auth;
             sidebarOpen: boolean;
-            /** config('kotak.max_failed_attempts'): delivery attempts before a return. */
+            /** The admin setting (default in config/kotak.php): delivery attempts before a return. */
             maxFailedAttempts: number;
             [key: string]: unknown;
         };

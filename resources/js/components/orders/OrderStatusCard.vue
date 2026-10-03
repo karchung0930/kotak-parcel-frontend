@@ -39,7 +39,7 @@ const lastUpdate = computed(
     () => events.value.at(-1)?.created_at ?? props.order.updated_at,
 );
 
-/** The first fact: when it was (or will be) delivered, or why not. */
+/** The first fact: when it was (or will be) delivered, or why not; before drop-off, the deadline. */
 const when = computed((): { label: string; value: string } => {
     const order = props.order;
 
@@ -68,7 +68,13 @@ const when = computed((): { label: string; value: string } => {
                 value: formatWeekdayDate(order.scheduled_for),
             };
         case 'created':
-            return { label: 'Delivery date', value: 'Set after drop-off' };
+            // The most urgent fact while it waits: the server's deadline.
+            return order.drop_off_deadline
+                ? {
+                      label: 'Drop off by',
+                      value: formatWeekdayDate(order.drop_off_deadline),
+                  }
+                : { label: 'Delivery date', value: 'Set after drop-off' };
         default:
             return { label: 'Delivery date', value: 'Being scheduled' };
     }

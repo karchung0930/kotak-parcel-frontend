@@ -137,6 +137,7 @@ const historyFits = useFitsViewport(historyCard, 24);
             v-if="status === 'created'"
             :tracking-number="order.tracking_number"
             :branch="order.branch"
+            :deadline="order.drop_off_deadline"
             class="max-md:order-first"
         />
 

@@ -5,12 +5,14 @@ import {
     PackagePlus,
     Route,
     Settings,
+    SlidersHorizontal,
     Store,
     Truck,
     Users,
 } from '@lucide/vue';
 import { index as adminBranches } from '@/routes/admin/branches';
 import { index as adminOrders } from '@/routes/admin/orders';
+import { edit as adminSettings } from '@/routes/admin/settings';
 import { index as adminUsers } from '@/routes/admin/users';
 import { dispatch } from '@/routes/admin';
 import { index as branchesIndex } from '@/routes/branches';
@@ -91,6 +93,11 @@ export function consoleNav(role: RoleValue): NavGroup[] {
                             title: 'Branches',
                             href: adminBranches(),
                             icon: Building2,
+                        },
+                        {
+                            title: 'Site settings',
+                            href: adminSettings(),
+                            icon: SlidersHorizontal,
                         },
                     ],
                 },

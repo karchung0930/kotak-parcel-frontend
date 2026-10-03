@@ -6,8 +6,10 @@ import assert from 'node:assert/strict';
 import {
     formatDate,
     formatDateTime,
+    formatDecimal,
     formatDimensions,
     formatMoney,
+    formatPercent,
     formatPhone,
     formatShortDate,
     formatShortDateTime,
@@ -64,6 +66,19 @@ const checks: [string, () => void][] = [
             assert.equal(formatDimensions(0, 30, 25), '—');
             assert.equal(pluralize(1, 'parcel'), '1 parcel');
             assert.equal(pluralize(3, 'parcel'), '3 parcels');
+        },
+    ],
+    [
+        'statistics with one decimal',
+        () => {
+            assert.equal(formatDecimal(2.44), '2.4');
+            assert.equal(formatDecimal(3), '3.0');
+            assert.equal(formatDecimal(0.05), '0.1');
+            assert.equal(formatDecimal(null), '—');
+            assert.equal(formatPercent(96.4), '96.4%');
+            assert.equal(formatPercent(100), '100%');
+            assert.equal(formatPercent(0), '0%');
+            assert.equal(formatPercent(undefined), '—');
         },
     ],
     [

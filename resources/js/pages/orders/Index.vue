@@ -13,7 +13,7 @@ import StatusChip from '@/components/StatusChip.vue';
 import TrackingNumber from '@/components/TrackingNumber.vue';
 import { Button } from '@/components/ui/button';
 import Weight from '@/components/Weight.vue';
-import { formatTrackingNumber, pluralize } from '@/lib/format';
+import { formatShortDate, formatTrackingNumber, pluralize } from '@/lib/format';
 import { pricing } from '@/routes';
 import { create, index, show } from '@/routes/orders';
 import type { OrderSummary, OrdersIndexPageProps } from '@/types';
@@ -129,6 +129,12 @@ const th = 'py-2.5 font-bold';
                 <p class="text-sm leading-5 text-muted-foreground">
                     {{ order.city }} {{ order.postcode }} ·
                     {{ order.item_name }}
+                </p>
+                <p
+                    v-if="order.drop_off_deadline"
+                    class="mt-1 text-[13px] leading-5 font-semibold text-brand-strong"
+                >
+                    Drop off by {{ formatShortDate(order.drop_off_deadline) }}
                 </p>
                 <div
                     class="mt-3 flex items-center justify-between gap-3 border-t border-line-soft pt-3 text-[13px] leading-5 text-ink-2"
@@ -275,6 +281,13 @@ const th = 'py-2.5 font-bold';
                         </td>
                         <td role="cell" class="py-3">
                             <StatusChip :status="order.status" size="sm" />
+                            <span
+                                v-if="order.drop_off_deadline"
+                                class="mt-1 block text-xs leading-4 font-semibold text-brand-strong"
+                            >
+                                Drop off by
+                                {{ formatShortDate(order.drop_off_deadline) }}
+                            </span>
                         </td>
                         <td role="cell" class="hidden py-3 text-ink-2 lg:block">
                             <DateTime :value="order.created_at" format="date" />

@@ -6,7 +6,7 @@
  * - Money is an integer in sen (RM 1.00 = 100).
  * - Weight is an integer in grams; dimensions are whole centimetres.
  * - Timestamps are ISO 8601 UTC strings ("2026-09-29T02:15:00Z"); show them in Asia/Kuala_Lumpur.
- * - Dates without a time (scheduled_for) are "YYYY-MM-DD".
+ * - Dates without a time (scheduled_for, drop_off_deadline) are "YYYY-MM-DD".
  * - Enums arrive as { value, label } options.
  */
 
@@ -169,6 +169,11 @@ export type OrderSummary = {
     estimated_price_sen: number;
     final_price_sen: number | null;
     scheduled_for: string | null;
+    /**
+     * While waiting for drop-off: the last day to drop it off (Malaysia),
+     * after which the order is cancelled automatically. Null otherwise.
+     */
+    drop_off_deadline: string | null;
     created_at: string | null;
     updated_at: string | null;
     branch?: BranchSummary;
@@ -447,6 +452,46 @@ export type AdminBranchesIndexPageProps = {
 export type AdminBranchesFormPageProps = {
     branch: Branch | null;
     states: Option<MalaysianStateValue>[];
+};
+
+/** The business rules on the Site settings page (App\Support\Settings::all()). */
+export type BusinessSettings = {
+    /** Days an order may wait for drop-off before it is cancelled. */
+    unclaimed_order_days: number;
+    /** Days before that the customer is reminded; 0 = no reminder. */
+    drop_off_reminder_days_before: number;
+    /** Failed delivery attempts before the parcel must be returned. */
+    max_failed_attempts: number;
+};
+
+/** DropOffTiming::summary(): drop-offs in the last `window_days` days. */
+export type DropOffTiming = {
+    window_days: number;
+    /** The unclaimed-order limit the share is measured against. */
+    limit_days: number;
+    /** Orders dropped off in the window; the statistics are null when 0. */
+    dropped_off: number;
+    /** Malaysian calendar days from the order day to drop-off, one decimal. */
+    median_days: number | null;
+    p90_days: number | null;
+    p95_days: number | null;
+    /** Share dropped off within the limit, one decimal (0–100). */
+    within_limit_percent: number | null;
+    /** Orders cancelled in the window for never being dropped off. */
+    cancelled_unclaimed: number;
+    /** Orders waiting for drop-off now. */
+    waiting: number;
+    /** Of those, the ones the nightly run at midnight cancels. */
+    expiring_tonight: number;
+    /** One line of advice, e.g. "95% drop off within 2.4 days, inside the 7-day limit." */
+    suggestion: string | null;
+};
+
+export type AdminSettingsPageProps = {
+    settings: BusinessSettings;
+    /** The values allowed for each setting. */
+    limits: Record<keyof BusinessSettings, { min: number; max: number }>;
+    timing: DropOffTiming;
 };
 
 export type DriverJobsPageProps = {
