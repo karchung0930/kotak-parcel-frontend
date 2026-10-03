@@ -1,0 +1,438 @@
+{
+    "about": "Price quotes that resources/js/lib/pricing.ts (tests/js/pricing.check.ts) and the backend's App\\Support\\PriceCalculator (tests/Unit/Support/PriceCalculatorTest.php) must both give. Cards are in the array form of App\\Support\\PriceList. Weights are grams, sizes centimetres and prices sen.",
+    "cards": {
+        "flat": {
+            "id": 1,
+            "name": "Standard rates",
+            "effectiveFrom": null,
+            "divisor": 5000,
+            "zones": [
+                {
+                    "code": "malaysia",
+                    "name": "Malaysia",
+                    "states": [
+                        "Johor",
+                        "Kedah",
+                        "Kelantan",
+                        "Melaka",
+                        "Negeri Sembilan",
+                        "Pahang",
+                        "Perak",
+                        "Perlis",
+                        "Pulau Pinang",
+                        "Sabah",
+                        "Sarawak",
+                        "Selangor",
+                        "Terengganu",
+                        "Kuala Lumpur",
+                        "Labuan",
+                        "Putrajaya"
+                    ]
+                }
+            ],
+            "routes": [
+                {
+                    "from": "malaysia",
+                    "to": "malaysia",
+                    "extraKgSen": 200,
+                    "bands": [{ "maxWeightG": 1000, "priceSen": 800 }]
+                }
+            ]
+        },
+        "zoned": {
+            "id": 2,
+            "name": "Zone rates",
+            "effectiveFrom": "2026-10-01T00:00:00Z",
+            "divisor": 6000,
+            "zones": [
+                {
+                    "code": "peninsular-malaysia",
+                    "name": "Peninsular Malaysia",
+                    "states": [
+                        "Johor",
+                        "Kedah",
+                        "Kelantan",
+                        "Melaka",
+                        "Negeri Sembilan",
+                        "Pahang",
+                        "Perak",
+                        "Perlis",
+                        "Pulau Pinang",
+                        "Selangor",
+                        "Terengganu",
+                        "Kuala Lumpur",
+                        "Putrajaya"
+                    ]
+                },
+                {
+                    "code": "east-malaysia",
+                    "name": "East Malaysia",
+                    "states": ["Sabah", "Sarawak", "Labuan"]
+                }
+            ],
+            "routes": [
+                {
+                    "from": "peninsular-malaysia",
+                    "to": "peninsular-malaysia",
+                    "extraKgSen": 200,
+                    "bands": [{ "maxWeightG": 1000, "priceSen": 800 }]
+                },
+                {
+                    "from": "peninsular-malaysia",
+                    "to": "east-malaysia",
+                    "extraKgSen": 500,
+                    "bands": [
+                        { "maxWeightG": 500, "priceSen": 900 },
+                        { "maxWeightG": 1000, "priceSen": 1200 },
+                        { "maxWeightG": 2000, "priceSen": 1700 },
+                        { "maxWeightG": 5000, "priceSen": 3100 }
+                    ]
+                },
+                {
+                    "from": "east-malaysia",
+                    "to": "peninsular-malaysia",
+                    "extraKgSen": 550,
+                    "bands": [
+                        { "maxWeightG": 500, "priceSen": 1000 },
+                        { "maxWeightG": 1000, "priceSen": 1300 },
+                        { "maxWeightG": 2000, "priceSen": 1800 },
+                        { "maxWeightG": 5000, "priceSen": 3300 }
+                    ]
+                },
+                {
+                    "from": "east-malaysia",
+                    "to": "east-malaysia",
+                    "extraKgSen": 250,
+                    "bands": [
+                        { "maxWeightG": 1000, "priceSen": 900 },
+                        { "maxWeightG": 3000, "priceSen": 1300 }
+                    ]
+                }
+            ]
+        }
+    },
+    "cases": [
+        {
+            "name": "the brief's parcel: 4.2 kg in a 40 x 30 x 25 cm box is charged as 6 kg",
+            "card": "flat",
+            "origin": "Selangor",
+            "destination": "Kuala Lumpur",
+            "weightG": 4200,
+            "lengthCm": 40,
+            "widthCm": 30,
+            "heightCm": 25,
+            "quote": {
+                "rateCardId": 1,
+                "originZone": "Malaysia",
+                "destinationZone": "Malaysia",
+                "actualG": 4200,
+                "volumetricG": 6000,
+                "chargeableG": 6000,
+                "bandMaxG": 1000,
+                "bandPriceSen": 800,
+                "extraKg": 5,
+                "extraKgSen": 200,
+                "priceSen": 1800
+            }
+        },
+        {
+            "name": "exactly the band's weight is inside the band",
+            "card": "flat",
+            "origin": "Selangor",
+            "destination": "Johor",
+            "weightG": 1000,
+            "lengthCm": 10,
+            "widthCm": 10,
+            "heightCm": 10,
+            "quote": {
+                "rateCardId": 1,
+                "originZone": "Malaysia",
+                "destinationZone": "Malaysia",
+                "actualG": 1000,
+                "volumetricG": 200,
+                "chargeableG": 1000,
+                "bandMaxG": 1000,
+                "bandPriceSen": 800,
+                "extraKg": 0,
+                "extraKgSen": 200,
+                "priceSen": 800
+            }
+        },
+        {
+            "name": "one gram over the highest band starts an extra kg",
+            "card": "flat",
+            "origin": "Kuala Lumpur",
+            "destination": "Sabah",
+            "weightG": 1001,
+            "lengthCm": 10,
+            "widthCm": 10,
+            "heightCm": 10,
+            "quote": {
+                "rateCardId": 1,
+                "originZone": "Malaysia",
+                "destinationZone": "Malaysia",
+                "actualG": 1001,
+                "volumetricG": 200,
+                "chargeableG": 1001,
+                "bandMaxG": 1000,
+                "bandPriceSen": 800,
+                "extraKg": 1,
+                "extraKgSen": 200,
+                "priceSen": 1000
+            }
+        },
+        {
+            "name": "the lightest parcel costs the first band's price",
+            "card": "flat",
+            "origin": "Selangor",
+            "destination": "Selangor",
+            "weightG": 1,
+            "lengthCm": 1,
+            "widthCm": 1,
+            "heightCm": 1,
+            "quote": {
+                "rateCardId": 1,
+                "originZone": "Malaysia",
+                "destinationZone": "Malaysia",
+                "actualG": 1,
+                "volumetricG": 1,
+                "chargeableG": 1,
+                "bandMaxG": 1000,
+                "bandPriceSen": 800,
+                "extraKg": 0,
+                "extraKgSen": 200,
+                "priceSen": 800
+            }
+        },
+        {
+            "name": "the largest box allowed is charged by its size",
+            "card": "flat",
+            "origin": "Selangor",
+            "destination": "Perlis",
+            "weightG": 30000,
+            "lengthCm": 150,
+            "widthCm": 150,
+            "heightCm": 150,
+            "quote": {
+                "rateCardId": 1,
+                "originZone": "Malaysia",
+                "destinationZone": "Malaysia",
+                "actualG": 30000,
+                "volumetricG": 675000,
+                "chargeableG": 675000,
+                "bandMaxG": 1000,
+                "bandPriceSen": 800,
+                "extraKg": 674,
+                "extraKgSen": 200,
+                "priceSen": 135600
+            }
+        },
+        {
+            "name": "volumetric weight is rounded up to the next gram",
+            "card": "flat",
+            "origin": "Selangor",
+            "destination": "Melaka",
+            "weightG": 1000,
+            "lengthCm": 33,
+            "widthCm": 27,
+            "heightCm": 19,
+            "quote": {
+                "rateCardId": 1,
+                "originZone": "Malaysia",
+                "destinationZone": "Malaysia",
+                "actualG": 1000,
+                "volumetricG": 3386,
+                "chargeableG": 3386,
+                "bandMaxG": 1000,
+                "bandPriceSen": 800,
+                "extraKg": 3,
+                "extraKgSen": 200,
+                "priceSen": 1400
+            }
+        },
+        {
+            "name": "the card's own divisor sets the volumetric weight",
+            "card": "zoned",
+            "origin": "Selangor",
+            "destination": "Johor",
+            "weightG": 4200,
+            "lengthCm": 40,
+            "widthCm": 30,
+            "heightCm": 25,
+            "quote": {
+                "rateCardId": 2,
+                "originZone": "Peninsular Malaysia",
+                "destinationZone": "Peninsular Malaysia",
+                "actualG": 4200,
+                "volumetricG": 5000,
+                "chargeableG": 5000,
+                "bandMaxG": 1000,
+                "bandPriceSen": 800,
+                "extraKg": 4,
+                "extraKgSen": 200,
+                "priceSen": 1600
+            }
+        },
+        {
+            "name": "the smallest band that covers the weight prices it",
+            "card": "zoned",
+            "origin": "Selangor",
+            "destination": "Sabah",
+            "weightG": 1600,
+            "lengthCm": 35,
+            "widthCm": 25,
+            "heightCm": 10,
+            "quote": {
+                "rateCardId": 2,
+                "originZone": "Peninsular Malaysia",
+                "destinationZone": "East Malaysia",
+                "actualG": 1600,
+                "volumetricG": 1459,
+                "chargeableG": 1600,
+                "bandMaxG": 2000,
+                "bandPriceSen": 1700,
+                "extraKg": 0,
+                "extraKgSen": 500,
+                "priceSen": 1700
+            }
+        },
+        {
+            "name": "exactly a band's weight takes that band",
+            "card": "zoned",
+            "origin": "Kuala Lumpur",
+            "destination": "Sarawak",
+            "weightG": 500,
+            "lengthCm": 10,
+            "widthCm": 10,
+            "heightCm": 10,
+            "quote": {
+                "rateCardId": 2,
+                "originZone": "Peninsular Malaysia",
+                "destinationZone": "East Malaysia",
+                "actualG": 500,
+                "volumetricG": 167,
+                "chargeableG": 500,
+                "bandMaxG": 500,
+                "bandPriceSen": 900,
+                "extraKg": 0,
+                "extraKgSen": 500,
+                "priceSen": 900
+            }
+        },
+        {
+            "name": "one gram more takes the next band",
+            "card": "zoned",
+            "origin": "Kuala Lumpur",
+            "destination": "Sarawak",
+            "weightG": 501,
+            "lengthCm": 10,
+            "widthCm": 10,
+            "heightCm": 10,
+            "quote": {
+                "rateCardId": 2,
+                "originZone": "Peninsular Malaysia",
+                "destinationZone": "East Malaysia",
+                "actualG": 501,
+                "volumetricG": 167,
+                "chargeableG": 501,
+                "bandMaxG": 1000,
+                "bandPriceSen": 1200,
+                "extraKg": 0,
+                "extraKgSen": 500,
+                "priceSen": 1200
+            }
+        },
+        {
+            "name": "above the highest band each started kg costs extra",
+            "card": "zoned",
+            "origin": "Selangor",
+            "destination": "Labuan",
+            "weightG": 7200,
+            "lengthCm": 20,
+            "widthCm": 20,
+            "heightCm": 20,
+            "quote": {
+                "rateCardId": 2,
+                "originZone": "Peninsular Malaysia",
+                "destinationZone": "East Malaysia",
+                "actualG": 7200,
+                "volumetricG": 1334,
+                "chargeableG": 7200,
+                "bandMaxG": 5000,
+                "bandPriceSen": 3100,
+                "extraKg": 3,
+                "extraKgSen": 500,
+                "priceSen": 4600
+            }
+        },
+        {
+            "name": "routes are directional",
+            "card": "zoned",
+            "origin": "Sarawak",
+            "destination": "Kuala Lumpur",
+            "weightG": 1600,
+            "lengthCm": 35,
+            "widthCm": 25,
+            "heightCm": 10,
+            "quote": {
+                "rateCardId": 2,
+                "originZone": "East Malaysia",
+                "destinationZone": "Peninsular Malaysia",
+                "actualG": 1600,
+                "volumetricG": 1459,
+                "chargeableG": 1600,
+                "bandMaxG": 2000,
+                "bandPriceSen": 1800,
+                "extraKg": 0,
+                "extraKgSen": 550,
+                "priceSen": 1800
+            }
+        },
+        {
+            "name": "within a zone, above its highest band",
+            "card": "zoned",
+            "origin": "Labuan",
+            "destination": "Sabah",
+            "weightG": 3500,
+            "lengthCm": 10,
+            "widthCm": 10,
+            "heightCm": 10,
+            "quote": {
+                "rateCardId": 2,
+                "originZone": "East Malaysia",
+                "destinationZone": "East Malaysia",
+                "actualG": 3500,
+                "volumetricG": 167,
+                "chargeableG": 3500,
+                "bandMaxG": 3000,
+                "bandPriceSen": 1300,
+                "extraKg": 1,
+                "extraKgSen": 250,
+                "priceSen": 1550
+            }
+        },
+        {
+            "name": "a large, light box is priced by its size on any route",
+            "card": "zoned",
+            "origin": "Pulau Pinang",
+            "destination": "Sabah",
+            "weightG": 800,
+            "lengthCm": 60,
+            "widthCm": 40,
+            "heightCm": 30,
+            "quote": {
+                "rateCardId": 2,
+                "originZone": "Peninsular Malaysia",
+                "destinationZone": "East Malaysia",
+                "actualG": 800,
+                "volumetricG": 12000,
+                "chargeableG": 12000,
+                "bandMaxG": 5000,
+                "bandPriceSen": 3100,
+                "extraKg": 7,
+                "extraKgSen": 500,
+                "priceSen": 6600
+            }
+        }
+    ]
+}

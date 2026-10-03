@@ -14,6 +14,7 @@ import Money from '@/components/Money.vue';
 import Notice from '@/components/Notice.vue';
 import PlateBadge from '@/components/PlateBadge.vue';
 import StatusChip from '@/components/StatusChip.vue';
+import TextLink from '@/components/TextLink.vue';
 import Timeline from '@/components/Timeline.vue';
 import TrackingNumber from '@/components/TrackingNumber.vue';
 import { Button } from '@/components/ui/button';
@@ -30,6 +31,7 @@ import {
 import { journeyTimes } from '@/lib/journey';
 import { track } from '@/routes';
 import { index as ordersIndex, show } from '@/routes/admin/orders';
+import { show as showRateCard } from '@/routes/admin/rates';
 import { show as counterOrder } from '@/routes/staff/orders';
 import { receipt } from '@/routes/staff/payments';
 import type {
@@ -40,6 +42,12 @@ import type {
 } from '@/types';
 
 const props = defineProps<AdminOrdersShowPageProps>();
+
+/** The rate card that set the price shown: the final one once weighed. */
+const pricedWith = computed(
+    () =>
+        props.order.final_rate_card ?? props.order.estimated_rate_card ?? null,
+);
 
 /** " by Aisyah Rahman for drop-off at Bangsar South", after the creation date. */
 const createdContext = computed(() =>
@@ -432,6 +440,14 @@ const nextButton =
                                         order.estimated_price_sen
                                     "
                                 />
+                            </DescriptionItem>
+                            <DescriptionItem
+                                v-if="pricedWith"
+                                label="Priced with"
+                            >
+                                <TextLink :href="showRateCard(pricedWith.id)">
+                                    {{ pricedWith.name }}
+                                </TextLink>
                             </DescriptionItem>
                         </DescriptionList>
 

@@ -3,24 +3,34 @@ import { Banknote, TriangleAlert, Weight } from '@lucide/vue';
 import { computed } from 'vue';
 import KotakTape from '@/components/brand/KotakTape.vue';
 import Notice from '@/components/Notice.vue';
-import { formatMoney, formatWeight } from '@/lib/format';
-import type { ParcelSize, PriceEstimate } from '@/lib/pricing';
+import RouteTitle from '@/components/RouteTitle.vue';
+import { formatKg, formatMoney, formatWeight } from '@/lib/format';
+import {
+    billedWeightGrams,
+    chargedByVolume,
+    lowestPriceSen,
+    routeName,
+} from '@/lib/pricing';
+import type { ParcelSize, PriceQuote } from '@/lib/pricing';
 import type { Pricing } from '@/types';
 
 /**
- * The live price estimate on "Send a parcel": the price, the chargeable
- * weight (the higher of actual and volumetric, tagged) and how the price
- * adds up. Display only; the server prices the order and the branch
- * confirms the final price when it weighs the parcel.
+ * The live price estimate on "Send a parcel": the price, the route it is
+ * priced on, the chargeable weight (the higher of actual and volumetric,
+ * tagged) and how the price adds up from the weight band. Display only;
+ * the server prices the order and the branch confirms the final price
+ * when it weighs the parcel.
  *
  * Not a live region itself: the page announces a short summary instead,
  * so screen readers are not read the whole card on every keystroke.
  */
 const props = defineProps<{
     pricing: Pricing;
-    estimate: PriceEstimate | null;
+    estimate: PriceQuote | null;
     /** What the customer typed, for the volumetric sum and the limits. */
     size: Partial<ParcelSize>;
+    /** What the price still waits for besides the parcel: the receiver's state or a branch. */
+    needs: 'state' | 'branch' | null;
 }>();
 
 const volumeSum = computed(() => {
@@ -29,20 +39,57 @@ const volumeSum = computed(() => {
     return `${lengthCm} × ${widthCm} × ${heightCm} ÷ ${props.pricing.divisor}`;
 });
 
-const breakdown = computed(() => {
-    const first = `${formatMoney(props.pricing.base)} first kg`;
+/** "Within Peninsular Malaysia" or "Peninsular Malaysia → Sarawak". */
+const route = computed(() =>
+    props.estimate
+        ? routeName(props.estimate.originZone, props.estimate.destinationZone)
+        : '',
+);
 
-    if (!props.estimate || props.estimate.extraKg === 0) {
-        return first;
+/**
+ * "RM 8.00 up to 1 kg" and "+ 5 kg × RM 2.00", as in the price estimator,
+ * kept apart so a narrow card wraps between the two parts rather than
+ * inside one.
+ */
+const breakdown = computed(() => {
+    const priced = props.estimate;
+
+    if (!priced) {
+        return null;
     }
 
-    return `${first} + ${props.estimate.extraKg} × ${formatMoney(props.pricing.perKg)}`;
+    return {
+        band: `${formatMoney(priced.bandPriceSen)} up to ${formatKg(priced.bandMaxG)}`,
+        extra:
+            priced.extraKg > 0
+                ? `+ ${priced.extraKg} kg × ${formatMoney(priced.extraKgSen)}`
+                : null,
+    };
 });
 
-/** 4.2 kg is charged as 5 kg: say so when the weight is rounded up. */
-const roundedUp = computed(
-    () => props.estimate !== null && props.estimate.chargeableG % 1000 !== 0,
-);
+/** 4.2 kg is priced as 5 kg: say why when the price stands for more. */
+const roundedUp = computed(() => {
+    const priced = props.estimate;
+
+    if (!priced || billedWeightGrams(priced) === priced.chargeableG) {
+        return null;
+    }
+
+    return priced.extraKg > 0
+        ? `Priced as ${formatKg(billedWeightGrams(priced))}: every started kg counts`
+        : `Priced in the band up to ${formatKg(priced.bandMaxG)}`;
+});
+
+const waitingFor = computed(() => {
+    switch (props.needs) {
+        case 'state':
+            return "Choose the receiver's state in step 1 to see your price.";
+        case 'branch':
+            return 'Choose a drop-off branch in step 3 to see your price.';
+        default:
+            return 'Add the weight and box size to see your price.';
+    }
+});
 
 const limits = computed(() => {
     const problems: string[] = [];
@@ -102,7 +149,7 @@ const limits = computed(() => {
                         <span
                             class="text-4xl leading-[42px] font-extrabold tracking-display"
                         >
-                            {{ formatMoney(pricing.base) }}
+                            {{ formatMoney(lowestPriceSen(pricing)) }}
                         </span>
                     </p>
                 </div>
@@ -115,7 +162,7 @@ const limits = computed(() => {
                         class="size-3.5"
                         :stroke-width="2.2"
                     />
-                    Charged as {{ formatWeight(estimate.chargeableG) }}
+                    Charged as {{ formatKg(billedWeightGrams(estimate)) }}
                 </span>
             </div>
 
@@ -123,10 +170,20 @@ const limits = computed(() => {
                 <div
                     class="flex min-h-9 items-center justify-between gap-3 border-t border-line-soft py-2"
                 >
+                    <dt class="text-muted-foreground">Route</dt>
+                    <dd class="text-right font-bold text-pretty text-ink">
+                        <RouteTitle :title="route" />
+                    </dd>
+                </div>
+                <div
+                    class="flex min-h-9 items-center justify-between gap-3 border-t border-line-soft py-2"
+                >
                     <dt class="text-muted-foreground">Actual weight</dt>
-                    <dd class="flex items-center gap-2 font-bold text-ink">
+                    <dd
+                        class="flex items-center gap-2 font-bold whitespace-nowrap text-ink"
+                    >
                         <span
-                            v-if="!estimate.byVolume"
+                            v-if="!chargedByVolume(estimate)"
                             class="rounded-[4px] bg-brand-tint px-1.5 text-[11.5px] leading-5 font-bold text-brand-strong"
                         >
                             Higher
@@ -143,9 +200,11 @@ const limits = computed(() => {
                             ({{ volumeSum }})
                         </span>
                     </dt>
-                    <dd class="flex items-center gap-2 font-bold text-ink">
+                    <dd
+                        class="flex items-center gap-2 font-bold whitespace-nowrap text-ink"
+                    >
                         <span
-                            v-if="estimate.byVolume"
+                            v-if="chargedByVolume(estimate)"
                             class="rounded-[4px] bg-brand-tint px-1.5 text-[11.5px] leading-5 font-bold text-brand-strong"
                         >
                             Higher
@@ -162,19 +221,34 @@ const limits = computed(() => {
                             v-if="roundedUp"
                             class="block text-[12.5px] font-normal text-muted-foreground"
                         >
-                            Priced as {{ estimate.chargedKg }} kg: every started
-                            kg counts
+                            {{ roundedUp }}
                         </span>
                     </dt>
-                    <dd class="font-extrabold text-brand-strong">
+                    <dd
+                        class="font-extrabold whitespace-nowrap text-brand-strong"
+                    >
                         {{ formatWeight(estimate.chargeableG) }}
                     </dd>
                 </div>
                 <div
                     class="flex min-h-9 items-center justify-between gap-3 border-t border-line-soft py-2"
                 >
-                    <dt class="text-muted-foreground">{{ breakdown }}</dt>
-                    <dd class="font-extrabold text-ink tabular-nums">
+                    <dt
+                        v-if="breakdown"
+                        class="flex flex-wrap gap-x-1 text-muted-foreground"
+                    >
+                        <span class="whitespace-nowrap">{{
+                            breakdown.band
+                        }}</span>
+                        <span
+                            v-if="breakdown.extra"
+                            class="whitespace-nowrap"
+                            >{{ breakdown.extra }}</span
+                        >
+                    </dt>
+                    <dd
+                        class="font-extrabold whitespace-nowrap text-ink tabular-nums"
+                    >
                         {{ formatMoney(estimate.priceSen) }}
                     </dd>
                 </div>
@@ -184,10 +258,9 @@ const limits = computed(() => {
                 v-else
                 class="mt-3 border-t border-line-soft pt-3 text-sm leading-[22px] text-pretty text-muted-foreground"
             >
-                Add the weight and box size to see your price.
-                {{ formatMoney(pricing.base) }} covers the first kg, then
-                {{ formatMoney(pricing.perKg) }} for each extra kg. Big, light
-                boxes are charged by size.
+                {{ waitingFor }}
+                Prices go by weight band, on the route from your branch to the
+                receiver's state. Big, light boxes are charged by size.
             </p>
 
             <Notice

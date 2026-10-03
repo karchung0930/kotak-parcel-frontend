@@ -13,6 +13,7 @@ import TrackingSearch from '@/components/TrackingSearch.vue';
 import { Button } from '@/components/ui/button';
 import { useCanSendParcels } from '@/composables/useCanSendParcels';
 import { formatMoney } from '@/lib/format';
+import { lowestPriceSen } from '@/lib/pricing';
 import { pricing as pricingPage, track } from '@/routes';
 import { create as createOrder } from '@/routes/orders';
 import type { WelcomePageProps } from '@/types';
@@ -30,7 +31,7 @@ const maxAttempts = usePage().props.maxFailedAttempts;
  * in a 580px column); on phones they stack.
  */
 const promises = computed(() => [
-    { icon: Tag, text: `From ${formatMoney(props.pricing.base)}` },
+    { icon: Tag, text: `From ${formatMoney(lowestPriceSen(props.pricing))}` },
     { icon: Banknote, text: 'Pay at the branch, cash or card' },
     { icon: RotateCcw, text: `Up to ${maxAttempts} delivery attempts` },
 ]);
@@ -180,7 +181,7 @@ const sceneTitle =
                     id="pricing-title"
                     eyebrow="Pricing"
                     :icon="Tag"
-                    title="One simple rate, worked out by weight."
+                    title="Priced by weight and where it goes."
                     description="We charge by the higher of your parcel's actual weight and its size weight. Staff confirm it when they weigh it."
                 />
                 <PriceRules
@@ -195,7 +196,12 @@ const sceneTitle =
                     <ArrowRight aria-hidden="true" class="size-[18px]" />
                 </Link>
             </div>
-            <PriceEstimator :pricing="pricing" class="self-start" />
+            <PriceEstimator
+                :pricing="pricing"
+                :branches="branches"
+                :states="states"
+                class="self-start"
+            />
         </div>
     </section>
 

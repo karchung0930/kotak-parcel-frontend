@@ -122,6 +122,15 @@ const phoneClass =
                         Set when weighed
                     </span>
                 </DescriptionItem>
+                <DescriptionItem
+                    v-if="order.final_rate_card ?? order.estimated_rate_card"
+                    label="Priced with"
+                >
+                    {{
+                        (order.final_rate_card ?? order.estimated_rate_card)
+                            ?.name
+                    }}
+                </DescriptionItem>
                 <DescriptionItem v-if="order.branch" label="Branch">
                     {{ order.branch.name }}
                 </DescriptionItem>

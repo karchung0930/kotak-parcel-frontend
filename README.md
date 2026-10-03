@@ -49,13 +49,13 @@ composer dev                  # http://localhost:8000
 
 ## Scripts
 
-| Command               | What it does                                                   |
-| --------------------- | -------------------------------------------------------------- |
-| `npm run dev`         | Vite dev server with hot reload                                |
-| `npm run build`       | Production build into the backend's `public/build`             |
-| `npm run check`       | Lint and format check (`npm run check:fix` to fix)             |
-| `npm run types:check` | vue-tsc                                                        |
-| `npm run test:js`     | Dependency-free checks of the format, phone and branch helpers |
+| Command               | What it does                                                            |
+| --------------------- | ----------------------------------------------------------------------- |
+| `npm run dev`         | Vite dev server with hot reload                                         |
+| `npm run build`       | Production build into the backend's `public/build`                      |
+| `npm run check`       | Lint and format check (`npm run check:fix` to fix)                      |
+| `npm run types:check` | vue-tsc                                                                 |
+| `npm run test:js`     | Dependency-free checks of the format, pricing, phone and branch helpers |
 
 Run `npm run build` once before `check` and `types:check`, so the Wayfinder
 helpers exist.
@@ -73,9 +73,10 @@ resources/
       brand/             the SVG illustrations: van, parcels, packaging tape, JourneyConveyor
       ui/                shadcn-vue primitives
     composables/         useFitsViewport and friends
-    lib/                 formatting (money, weight, dates in Asia/Kuala_Lumpur), pricing, phone
+    lib/                 formatting (money, weight, dates in Asia/Kuala_Lumpur), pricing (rate cards), phone
     types/               page props, typed to match the backend's API Resources
 tests/js/                small checks that run on plain Node
+  fixtures/              price cases shared with the backend's PriceCalculatorTest
 ```
 
 ## Conventions
@@ -91,8 +92,22 @@ tests/js/                small checks that run on plain Node
   be undone. White outline buttons open, switch, cancel or go back. The pale
   red tint marks what is selected.
 - **One component per repeated element**, for example `CloseButton.vue` for
-  every close button in dialogs, sheets and panels, `NativeSelect.vue` for
-  selects, `ChoiceCard.vue` for radio choices shown as cards, `ToneChip.vue`
-  under every status chip, and `ActionDivider.vue` between two kinds of page
-  actions.
+  every close button in dialogs, sheets and panels, `UnitInput.vue` for the
+  short number fields in the estimator and the order, counter and admin
+  forms (weights, box sides, days), `NativeSelect.vue` for selects,
+  `ChoiceCard.vue` for radio choices shown as cards, `ToneChip.vue` under
+  every status chip, `ActionDivider.vue` between two kinds of page actions,
+  `RouteRates.vue` for a route's weight bands (laid out by
+  `RouteRatesGrid.vue`, so cards side by side keep their rows level) on the
+  pricing page and the admin's Rates pages, and `RouteTitle.vue` for a
+  route's name, which wraps after the arrow rather than inside a zone name.
+- **No lone words.** Wrapped text never ends on a single word: `body` sets
+  `text-wrap-style: pretty` (the longhand, so `whitespace-nowrap` still
+  holds), and validation messages wrap balanced. Page and card intros fit on
+  one line from tablet width.
+- **Prices are worked out the server's way.** `lib/pricing.ts` applies the
+  current rate card (zones, routes, weight bands) exactly as the backend's
+  `PriceCalculator` does, for live estimates only; the server sets the
+  price. The cases in `tests/js/fixtures/pricing-cases.json` run on both
+  sides, so add a case there when the rules change.
 - **Light theme only**, with colours from the brand tokens.

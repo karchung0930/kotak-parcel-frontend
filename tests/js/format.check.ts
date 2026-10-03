@@ -1,6 +1,7 @@
 /**
- * A dependency-free self-check for resources/js/lib/format.ts and pricing.ts.
- * Run with `npm run test:format` (Node strips the TypeScript types).
+ * A dependency-free self-check for resources/js/lib/format.ts (prices are
+ * checked in pricing.check.ts). Run with `npm run test:format` (Node strips
+ * the TypeScript types).
  */
 import assert from 'node:assert/strict';
 import {
@@ -8,6 +9,7 @@ import {
     formatDateTime,
     formatDecimal,
     formatDimensions,
+    formatKg,
     formatMoney,
     formatPercent,
     formatPhone,
@@ -21,23 +23,10 @@ import {
     pluralize,
     telHref,
     toLocalDate,
+    toLocalDateTime,
     todayInKualaLumpur,
     toTrackingQuery,
 } from '../../resources/js/lib/format.ts';
-import {
-    estimatePrice,
-    kgToGrams,
-    priceForWeight,
-} from '../../resources/js/lib/pricing.ts';
-
-// config/kotak.php, as PriceCalculator::toArray() sends it.
-const pricing = {
-    base: 800,
-    perKg: 200,
-    divisor: 5000,
-    maxWeightG: 30000,
-    maxDimensionCm: 150,
-};
 
 const checks: [string, () => void][] = [
     [
@@ -57,6 +46,12 @@ const checks: [string, () => void][] = [
             assert.equal(formatWeight(4200), '4.2 kg');
             assert.equal(formatWeight(12000), '12.0 kg');
             assert.equal(formatWeight(undefined), '—');
+            // Weight bands, as people write them.
+            assert.equal(formatKg(500), '0.5 kg');
+            assert.equal(formatKg(1000), '1 kg');
+            assert.equal(formatKg(2250), '2.25 kg');
+            assert.equal(formatKg(30000), '30 kg');
+            assert.equal(formatKg(null), '—');
         },
     ],
     [
@@ -97,6 +92,13 @@ const checks: [string, () => void][] = [
             assert.equal(toLocalDate('2026-09-29T20:30:00Z'), '2026-09-30');
             assert.equal(formatTime('2026-09-29T16:00:00Z'), '00:00');
             assert.equal(todayInKualaLumpur(new Date(paid)), '2026-09-29');
+            // The value of a datetime-local input, in Kuala Lumpur time.
+            assert.equal(toLocalDateTime(paid), '2026-09-29T14:05');
+            assert.equal(
+                toLocalDateTime('2026-10-31T16:00:00Z'),
+                '2026-11-01T00:00',
+            );
+            assert.equal(toLocalDateTime('2026-09-30'), null);
         },
     ],
     [
@@ -141,35 +143,6 @@ const checks: [string, () => void][] = [
             assert.equal(formatPhone('+6591234567'), '+6591234567');
             assert.equal(formatPhone('03-7877 1203'), '03-7877 1203');
             assert.equal(telHref('03-7877 1203'), 'tel:0378771203');
-        },
-    ],
-    [
-        'price estimates match PriceCalculator',
-        () => {
-            // 4.2 kg in a 40 × 30 × 25 cm box: 6.0 kg volumetric, RM 18.00.
-            const estimate = estimatePrice(pricing, {
-                weightG: kgToGrams('4.2'),
-                lengthCm: 40,
-                widthCm: 30,
-                heightCm: 25,
-            });
-
-            assert.deepEqual(estimate, {
-                actualG: 4200,
-                volumetricG: 6000,
-                chargeableG: 6000,
-                chargedKg: 6,
-                extraKg: 5,
-                priceSen: 1800,
-                byVolume: true,
-            });
-            assert.equal(priceForWeight(pricing, 1000), 800);
-            assert.equal(priceForWeight(pricing, 5100), 1800);
-            assert.equal(kgToGrams('0,5'), 500);
-            assert.equal(
-                estimatePrice(pricing, { weightG: 1000, lengthCm: 10 }),
-                null,
-            );
         },
     ],
 ];

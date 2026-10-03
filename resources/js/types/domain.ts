@@ -58,16 +58,94 @@ export type MalaysianStateValue =
     | 'Labuan'
     | 'Putrajaya';
 
-/** Pricing rules from config/kotak.php (PriceCalculator::toArray()). */
-export type Pricing = {
-    /** Price of the first kg, in sen. */
-    base: number;
-    /** Price of each additional started kg, in sen. */
-    perKg: number;
+/** A rate card's group of states priced alike, e.g. "Sabah & Labuan". */
+export type PriceZone = {
+    code: string;
+    name: string;
+    states: MalaysianStateValue[];
+};
+
+/** The price of a route's parcels up to a weight. */
+export type PriceBand = {
+    maxWeightG: number;
+    priceSen: number;
+};
+
+/** The prices from one zone to another (by zone code). Directional. */
+export type PriceRoute = {
+    from: string;
+    to: string;
+    /** For each started kg above the highest band, in sen. */
+    extraKgSen: number;
+    /** Lightest first. */
+    bands: PriceBand[];
+};
+
+/**
+ * A published rate card as prices are worked out from it
+ * (App\Support\PriceList::toArray()). On a published card every state is in
+ * one zone and every ordered pair of zones has a route.
+ */
+export type PriceList = {
+    /** Staff and admin pages only; public and customer pages leave both out. */
+    id?: number;
+    name?: string;
+    /** When it took (or takes) effect, ISO 8601 UTC. */
+    effectiveFrom: string | null;
     /** Volumetric kg = length x width x height (cm) / divisor. */
     divisor: number;
+    zones: PriceZone[];
+    routes: PriceRoute[];
+};
+
+/**
+ * The current rate card with the parcel limits (PriceCalculator::rules(),
+ * or publicRules() without the id and name).
+ */
+export type Pricing = PriceList & {
     maxWeightG: number;
     maxDimensionCm: number;
+};
+
+/** Where a rate card version stands (App\Enums\RateCardPhase). */
+export type RateCardPhaseValue = 'draft' | 'scheduled' | 'current' | 'past';
+
+/** A rate card zone as admins edit it (RateCardResource). */
+export type RateCardZone = {
+    id: number;
+    code: string;
+    name: string;
+    states: MalaysianStateValue[];
+};
+
+/** A rate card route as admins edit it (RateCardResource). */
+export type RateCardRoute = {
+    id: number;
+    origin_zone_id: number;
+    destination_zone_id: number;
+    /** Null while a draft leaves it empty. */
+    extra_kg_sen: number | null;
+    /** Lightest first. */
+    bands: { max_weight_g: number; price_sen: number }[];
+};
+
+/** RateCardResource: one version of the prices, as admins see it. */
+export type RateCard = {
+    id: number;
+    name: string;
+    phase: Option<RateCardPhaseValue>;
+    /** Null for drafts. */
+    effective_from: string | null;
+    volumetric_divisor: number;
+    notes: string | null;
+    published_at: string | null;
+    created_at: string | null;
+    updated_at: string | null;
+    /** Present when loaded; null for the first card, which a migration made. */
+    created_by?: { id: number; name: string } | null;
+    published_by?: { id: number; name: string } | null;
+    zones?: RateCardZone[];
+    routes?: RateCardRoute[];
 };
 
 /** BranchResource */
@@ -208,6 +286,9 @@ export type Order = Omit<OrderSummary, 'branch'> & {
     paid_at: string | null;
     delivered_at: string | null;
     cancelled_at: string | null;
+    /** The rate cards that priced the estimate and the final price: staff and admin views only. */
+    estimated_rate_card?: { id: number; name: string } | null;
+    final_rate_card?: { id: number; name: string } | null;
     branch?: Branch;
     payment?: Payment | null;
     delivery_attempts?: DeliveryAttempt[];
@@ -316,6 +397,7 @@ export type Flash = {
 export type WelcomePageProps = {
     branches: Branch[];
     pricing: Pricing;
+    states: Option<MalaysianStateValue>[];
 };
 
 export type TrackShowPageProps = {
@@ -329,6 +411,11 @@ export type BranchesIndexPageProps = {
 
 export type PricingIndexPageProps = {
     pricing: Pricing;
+    /** When the next rate card takes effect, if one is scheduled. */
+    upcoming: { effectiveFrom: string | null } | null;
+    /** Active branches, by name, for the estimator's "from". */
+    branches: Branch[];
+    states: Option<MalaysianStateValue>[];
 };
 
 export type OrdersIndexPageProps = {
@@ -359,9 +446,15 @@ export type StaffCounterPageProps = {
 };
 
 export type StaffOrderShowPageProps = {
-    /** Has branch, customer, driver, payment (with received_by), latest_attempt and status_events (with branch and actor). */
+    /**
+     * Has branch, customer, driver, payment (with received_by), latest_attempt,
+     * status_events (with branch and actor) and both rate cards.
+     */
     order: Order;
+    /** The card in effect for a parcel still to weigh; the card that set the final price once weighed. */
     pricing: Pricing;
+    /** The state the price runs from: this counter's branch before weighing, the parcel's branch after. */
+    origin: MalaysianStateValue;
     paymentMethods: Option<PaymentMethodValue>[];
 };
 
@@ -492,6 +585,33 @@ export type AdminSettingsPageProps = {
     /** The values allowed for each setting. */
     limits: Record<keyof BusinessSettings, { min: number; max: number }>;
     timing: DropOffTiming;
+};
+
+export type AdminRatesIndexPageProps = {
+    /** Every version: drafts first, then published ones from the last to take effect; each has published_by. */
+    rateCards: RateCard[];
+};
+
+export type AdminRatesShowPageProps = {
+    /** Has zones, routes (with bands), created_by and published_by. */
+    rateCard: RateCard;
+    /** What stops a draft from being published, in plain words; empty otherwise. */
+    problems: string[];
+    states: Option<MalaysianStateValue>[];
+    can: {
+        update: boolean;
+        publish: boolean;
+        withdraw: boolean;
+        delete: boolean;
+    };
+};
+
+export type AdminRatesEditPageProps = {
+    /** A draft, with zones and routes (with bands). */
+    rateCard: RateCard;
+    states: Option<MalaysianStateValue>[];
+    /** The heaviest band allowed, in grams. */
+    maxWeightG: number;
 };
 
 export type DriverJobsPageProps = {

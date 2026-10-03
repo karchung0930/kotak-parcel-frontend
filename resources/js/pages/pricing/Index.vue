@@ -4,29 +4,58 @@ import {
     ArrowRight,
     Banknote,
     Calculator,
+    CalendarClock,
+    MapPinned,
     Package,
     RotateCcw,
     Ruler,
     Store,
     Weight,
 } from '@lucide/vue';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import ParcelBox from '@/components/brand/ParcelBox.vue';
 import ParcelStack from '@/components/brand/ParcelStack.vue';
+import Notice from '@/components/Notice.vue';
 import PriceEstimator from '@/components/public/PriceEstimator.vue';
 import PriceRules from '@/components/public/PriceRules.vue';
 import PublicPageBand from '@/components/public/PublicPageBand.vue';
+import RouteRatesGrid from '@/components/RouteRatesGrid.vue';
+import RouteTitle from '@/components/RouteTitle.vue';
 import SectionHeading from '@/components/SectionHeading.vue';
 import { Button } from '@/components/ui/button';
+import ZoneList from '@/components/ZoneList.vue';
 import { useCanSendParcels } from '@/composables/useCanSendParcels';
-import { formatDimensions, formatMoney, formatWeight } from '@/lib/format';
-import { estimatePrice } from '@/lib/pricing';
-import type { PriceEstimate } from '@/lib/pricing';
+import {
+    formatDate,
+    formatDateTime,
+    formatDimensions,
+    formatKg,
+    formatMoney,
+    formatWeight,
+    toLocalDateTime,
+} from '@/lib/format';
+import {
+    billedWeightGrams,
+    chargedByVolume,
+    homeZone as findHomeZone,
+    lowestExtraKgSen,
+    lowestPriceSen,
+    quote,
+    routeBetween,
+    routeLabel,
+} from '@/lib/pricing';
+import type { PriceQuote } from '@/lib/pricing';
 import { home, pricing as pricingPage } from '@/routes';
 import { index as branchesIndex } from '@/routes/branches';
 import { create as createOrder } from '@/routes/orders';
-import type { PricingIndexPageProps } from '@/types';
+import type { PricingIndexPageProps, PriceZone } from '@/types';
 
+/**
+ * The public pricing page: the rules, a worked example, which states are
+ * in which zone and every route's weight bands, the estimator, everyday
+ * examples and the parcel limits. All from the current rate card; when
+ * new rates are scheduled, the page says from when.
+ */
 const props = defineProps<PricingIndexPageProps>();
 
 const canSend = useCanSendParcels();
@@ -37,6 +66,21 @@ const breadcrumbs = [
     { title: 'Pricing', href: pricingPage() },
 ];
 
+const zones = computed(() => props.pricing.zones);
+const zoned = computed(() => zones.value.length > 1);
+
+/*
+ * The examples and the worked example are priced within the zone most
+ * branches are in (Peninsular Malaysia today), the route most parcels
+ * take, whatever order the zones are listed in.
+ */
+const homeZone = computed<PriceZone | null>(() =>
+    findHomeZone(
+        props.pricing,
+        props.branches.map((branch) => branch.state),
+    ),
+);
+
 type Example = {
     name: string;
     note: string;
@@ -46,7 +90,7 @@ type Example = {
     heightCm: number;
 };
 
-type PricedExample = Example & { estimate: PriceEstimate };
+type PricedExample = Example & { estimate: PriceQuote };
 
 /** Everyday parcels, priced with the current rates. */
 const EXAMPLES: Example[] = [
@@ -60,7 +104,7 @@ const EXAMPLES: Example[] = [
     },
     {
         name: 'Shoebox',
-        note: 'A pair of trainers',
+        note: 'Pair of shoes',
         weightG: 1200,
         lengthCm: 33,
         widthCm: 22,
@@ -83,7 +127,7 @@ const EXAMPLES: Example[] = [
         heightCm: 30,
     },
     {
-        name: 'Small, heavy box',
+        name: 'Heavy box',
         note: 'Books or tools',
         weightG: 12000,
         lengthCm: 35,
@@ -92,17 +136,38 @@ const EXAMPLES: Example[] = [
     },
 ];
 
-const examples = computed<PricedExample[]>(() =>
-    EXAMPLES.filter(
+const examples = computed<PricedExample[]>(() => {
+    const state = homeZone.value?.states[0];
+
+    if (!state) {
+        return [];
+    }
+
+    return EXAMPLES.filter(
         (example) =>
             example.weightG <= props.pricing.maxWeightG &&
             Math.max(example.lengthCm, example.widthCm, example.heightCm) <=
                 props.pricing.maxDimensionCm,
     ).flatMap((example) => {
-        const estimate = estimatePrice(props.pricing, example);
+        const estimate = quote(
+            props.pricing,
+            state,
+            state,
+            example.weightG,
+            example.lengthCm,
+            example.widthCm,
+            example.heightCm,
+        );
 
         return estimate ? [{ ...example, estimate }] : [];
-    }),
+    });
+});
+
+/** "Within Peninsular Malaysia. …" when the card has zones. */
+const examplesNote = computed(() =>
+    zoned.value && homeZone.value
+        ? `Within ${homeZone.value.name}. Your final price is set at the counter.`
+        : 'Worked out with the rates above. Your final price is set at the counter.',
 );
 
 /** The worked example: 4.2 kg in a 40 × 30 × 25 cm box. */
@@ -133,18 +198,69 @@ const workedSteps = computed(() => {
         },
         {
             title: 'Chargeable weight',
-            detail: `The higher of the two, charged as ${estimate.chargedKg} kg`,
+            detail: `The higher of the two, charged as ${formatKg(billedWeightGrams(estimate))}`,
             value: formatWeight(estimate.chargeableG),
         },
         {
             title: 'Price',
             detail:
                 estimate.extraKg > 0
-                    ? `${formatMoney(props.pricing.base)} + ${estimate.extraKg} × ${formatMoney(props.pricing.perKg)}`
-                    : 'First kg rate',
+                    ? `${formatMoney(estimate.bandPriceSen)} + ${estimate.extraKg} × ${formatMoney(estimate.extraKgSen)}`
+                    : `Up to ${formatKg(estimate.bandMaxG)}`,
             value: formatMoney(estimate.priceSen),
         },
     ];
+});
+
+/*
+|--------------------------------------------------------------------------
+| Prices by route
+|--------------------------------------------------------------------------
+|
+| One card per route from the chosen zone. With several zones the visitor
+| picks where the parcel leaves from (pale red marks the chosen zone).
+|
+*/
+
+const fromCode = ref(homeZone.value?.code ?? zones.value[0]?.code ?? '');
+
+const fromZone = computed(
+    () =>
+        zones.value.find((zone) => zone.code === fromCode.value) ??
+        zones.value[0] ??
+        null,
+);
+
+const routeCards = computed(() => {
+    const from = fromZone.value;
+
+    if (!from) {
+        return [];
+    }
+
+    return zones.value.flatMap((to) => {
+        const route = routeBetween(props.pricing, from, to);
+
+        return route
+            ? [
+                  {
+                      key: route.to,
+                      title: routeLabel(from, to),
+                      bands: route.bands,
+                      extraKgSen: route.extraKgSen,
+                  },
+              ]
+            : [];
+    });
+});
+
+/** "1 Nov 2026", with the time only when it is not midnight in Malaysia. */
+const upcomingFrom = computed(() => {
+    const at = props.upcoming?.effectiveFrom ?? null;
+
+    return toLocalDateTime(at)?.endsWith('T00:00')
+        ? formatDate(at)
+        : formatDateTime(at);
 });
 
 const limits = computed(() => [
@@ -176,13 +292,13 @@ const limits = computed(() => [
         <meta
             head-key="description"
             name="description"
-            content="Kotak parcel prices: one rate for the first kg and a small rate for each additional kg, on the higher of actual and volumetric weight. Estimate your price online."
+            content="Kotak parcel prices by weight band and delivery zone, on the higher of actual and volumetric weight. See every route's rates and estimate your price online."
         />
     </Head>
 
     <PublicPageBand
         title="Pricing"
-        description="One simple rate by weight, confirmed when staff weigh your parcel."
+        description="Priced by weight and route, confirmed when staff weigh your parcel."
         :breadcrumbs="breadcrumbs"
         panel-align="stretch"
     >
@@ -193,12 +309,12 @@ const limits = computed(() => [
                 <dt
                     class="text-[13px] leading-[18px] font-semibold text-muted-foreground"
                 >
-                    First kg
+                    Parcels from
                 </dt>
                 <dd
                     class="mt-1 text-[26px] leading-8 font-extrabold tracking-heading text-ink sm:text-[30px] sm:leading-9"
                 >
-                    {{ formatMoney(pricing.base) }}
+                    {{ formatMoney(lowestPriceSen(pricing)) }}
                 </dd>
             </div>
             <div
@@ -207,12 +323,12 @@ const limits = computed(() => [
                 <dt
                     class="text-[13px] leading-[18px] font-semibold text-muted-foreground"
                 >
-                    Each additional kg
+                    Each extra kg from
                 </dt>
                 <dd
                     class="mt-1 text-[26px] leading-8 font-extrabold tracking-heading text-brand-strong sm:text-[30px] sm:leading-9"
                 >
-                    {{ formatMoney(pricing.perKg) }}
+                    {{ formatMoney(lowestExtraKgSen(pricing)) }}
                 </dd>
             </div>
         </dl>
@@ -220,6 +336,17 @@ const limits = computed(() => [
 
     <!-- The rule -->
     <section aria-labelledby="rule-title" class="pt-12 pb-16 sm:pt-16 sm:pb-20">
+        <div v-if="upcoming" class="container-page mb-10">
+            <Notice
+                tone="brand"
+                :icon="CalendarClock"
+                :title="`New rates from ${upcomingFrom}`"
+            >
+                Parcels weighed at the counter from then on are priced with the
+                new rates.
+            </Notice>
+        </div>
+
         <!-- grid-cols-1 keeps the worked example inside narrow phones. The
              card is 440px wide at 1024-1279px, so the rules keep room. -->
         <div
@@ -263,6 +390,12 @@ const limits = computed(() => [
                                 }}&nbsp;box</span
                             >
                         </p>
+                        <p
+                            v-if="zoned && homeZone"
+                            class="text-sm leading-5 text-muted-foreground"
+                        >
+                            <RouteTitle :title="`Within ${homeZone.name}`" />
+                        </p>
                     </div>
                     <ParcelBox class="w-23 flex-none sm:w-28" />
                 </div>
@@ -287,13 +420,13 @@ const limits = computed(() => [
                             <p class="text-[15px] leading-5 font-bold text-ink">
                                 {{ step.title }}
                             </p>
-                            <!-- The price sum ("RM 8.00 + 5 × RM 2.00") stays on one line from 360px; narrower, it wraps. -->
+                            <!-- The price sum ("RM 8.00 + 5 × RM 2.00") stays on one line from 360px; narrower, it wraps. The other notes wrap balanced. -->
                             <p
                                 :class="[
                                     'mt-0.5 text-[13px] leading-5 text-muted-foreground',
                                     index === workedSteps.length - 1
                                         ? 'min-[360px]:whitespace-nowrap'
-                                        : '',
+                                        : 'text-balance',
                                 ]"
                             >
                                 {{ step.detail }}
@@ -315,6 +448,93 @@ const limits = computed(() => [
         </div>
     </section>
 
+    <!-- Zones and every route's weight bands -->
+    <section
+        aria-labelledby="rates-title"
+        class="border-t border-line-soft pt-14 pb-16 sm:pt-16 sm:pb-20"
+    >
+        <div class="container-page">
+            <SectionHeading
+                id="rates-title"
+                size="md"
+                eyebrow="Rates"
+                :icon="MapPinned"
+                :title="
+                    zoned ? 'Prices by route' : 'One price list for Malaysia'
+                "
+                :description="
+                    zoned
+                        ? 'Find the zone your branch is in and the zone the parcel goes to.'
+                        : 'The same rates from every branch to every state.'
+                "
+            />
+
+            <template v-if="zoned">
+                <h3
+                    class="mt-8 text-base leading-6 font-extrabold tracking-heading text-ink"
+                >
+                    Which states are in which zone
+                </h3>
+                <ZoneList
+                    :zones="zones"
+                    :states="states"
+                    heading-level="h4"
+                    class="mt-3"
+                />
+
+                <h3
+                    id="routes-from-title"
+                    class="mt-10 text-base leading-6 font-extrabold tracking-heading text-ink"
+                >
+                    Rates from
+                </h3>
+                <!-- Toggle chips: the chosen zone is pale red. -->
+                <div
+                    role="group"
+                    aria-labelledby="routes-from-title"
+                    class="mt-3 flex flex-wrap gap-2"
+                >
+                    <button
+                        v-for="zone in zones"
+                        :key="zone.code"
+                        type="button"
+                        :aria-pressed="zone.code === fromZone?.code"
+                        :class="[
+                            'h-10 rounded-lg border px-3.5 text-sm font-bold transition-colors pointer-coarse:h-11',
+                            zone.code === fromZone?.code
+                                ? 'border-brand bg-brand-tint text-brand-strong'
+                                : 'border-line-strong bg-white text-ink-2 hover:border-ink-2',
+                        ]"
+                        @click="fromCode = zone.code"
+                    >
+                        {{ zone.name }}
+                    </button>
+                </div>
+            </template>
+
+            <!-- Choosing a zone says so once, not every table again. -->
+            <p v-if="zoned" class="sr-only" aria-live="polite">
+                Showing rates from {{ fromZone?.name }}
+            </p>
+            <RouteRatesGrid
+                :routes="routeCards"
+                :heading-level="zoned ? 'h4' : 'h3'"
+                class="mt-6"
+            />
+
+            <p
+                class="mt-5 flex items-start gap-2 text-[13px] leading-5 text-muted-foreground"
+            >
+                <Ruler
+                    aria-hidden="true"
+                    class="mt-0.5 size-4 flex-none text-brand"
+                />
+                Weights are chargeable weights: the actual weight or the size
+                weight (L × W × H ÷ {{ pricing.divisor }}), whichever is higher.
+            </p>
+        </div>
+    </section>
+
     <!-- The calculator: the card spans the full container width, so its
          edges line up with the sections above and below. -->
     <section
@@ -325,9 +545,10 @@ const limits = computed(() => [
         <div class="container-page">
             <PriceEstimator
                 :pricing="pricing"
+                :branches="branches"
+                :states="states"
                 heading-level="h2"
                 title="Estimate your price"
-                description="Enter the parcel weight and box size. The price updates as you type."
             />
         </div>
     </section>
@@ -345,7 +566,7 @@ const limits = computed(() => [
                 eyebrow="Examples"
                 :icon="Package"
                 title="What everyday parcels cost"
-                description="Worked out with the rates above. Your final price is set at the counter."
+                :description="examplesNote"
             />
 
             <!-- Phones: one card per parcel -->
@@ -402,9 +623,15 @@ const limits = computed(() => [
                         <div>
                             <dt class="text-muted-foreground">Charged as</dt>
                             <dd class="font-semibold text-ink">
-                                {{ example.estimate.chargedKg }} kg
                                 {{
-                                    example.estimate.byVolume ? '(by size)' : ''
+                                    formatKg(
+                                        billedWeightGrams(example.estimate),
+                                    )
+                                }}
+                                {{
+                                    chargedByVolume(example.estimate)
+                                        ? '(by size)'
+                                        : ''
                                 }}
                             </dd>
                         </div>
@@ -528,19 +755,23 @@ const limits = computed(() => [
                                 role="cell"
                                 class="py-4 font-semibold text-ink tabular-nums"
                             >
-                                {{ example.estimate.chargedKg }} kg
+                                {{
+                                    formatKg(
+                                        billedWeightGrams(example.estimate),
+                                    )
+                                }}
                             </td>
                             <td role="cell" class="py-4">
                                 <span
                                     :class="[
                                         'inline-block rounded-[4px] px-1.5 text-[11px] leading-[18px] font-bold whitespace-nowrap',
-                                        example.estimate.byVolume
+                                        chargedByVolume(example.estimate)
                                             ? 'bg-highlight text-ink'
                                             : 'bg-line-soft text-ink-2',
                                     ]"
                                 >
                                     {{
-                                        example.estimate.byVolume
+                                        chargedByVolume(example.estimate)
                                             ? 'By size'
                                             : 'By weight'
                                     }}

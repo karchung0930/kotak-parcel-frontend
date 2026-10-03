@@ -24,7 +24,9 @@ const parts = computed(() => (props.message ?? '').split(/(\d[\d.,\- ]*\d)/));
         class="flex items-start gap-1.5 text-sm leading-5 font-medium text-brand-strong"
     >
         <CircleAlert aria-hidden="true" class="mt-0.5 size-4 flex-none" />
-        <span>
+        <!-- Balanced, so a message in a narrow column never leaves its
+             last word alone ("The city field / is required."). -->
+        <span class="text-balance">
             <template v-for="(part, index) in parts" :key="index">
                 <span v-if="index % 2 === 1" class="whitespace-nowrap">{{
                     part

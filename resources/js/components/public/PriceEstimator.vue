@@ -1,28 +1,47 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import { ArrowRight, Circle, CircleCheck, Info, Store } from '@lucide/vue';
+import {
+    ArrowRight,
+    Circle,
+    CircleCheck,
+    Info,
+    MapPin,
+    Store,
+} from '@lucide/vue';
 import { useDebounceFn } from '@vueuse/core';
 import { computed, reactive, ref, useId, watch } from 'vue';
 import InputError from '@/components/InputError.vue';
+import NativeSelect from '@/components/NativeSelect.vue';
+import RouteTitle from '@/components/RouteTitle.vue';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import UnitInput from '@/components/UnitInput.vue';
 import { useCanSendParcels } from '@/composables/useCanSendParcels';
-import { formatMoney, formatWeight } from '@/lib/format';
-import { estimatePrice, kgToGrams } from '@/lib/pricing';
+import { formatKg, formatMoney, formatWeight } from '@/lib/format';
+import {
+    billedWeightGrams,
+    chargedByVolume,
+    estimatePrice,
+    kgToGrams,
+    lowestPriceSen,
+    routeName,
+    zoneFor,
+} from '@/lib/pricing';
 import { create as createOrder } from '@/routes/orders';
-import type { Pricing } from '@/types';
+import type { Branch, MalaysianStateValue, Option, Pricing } from '@/types';
 
 /**
- * "Quick price estimate": the parcel weight and the box size (length ×
- * width × height) in, the estimated price out, worked out in the browser
- * with the same formula as PriceCalculator.php.
+ * "Quick price estimate": the drop-off branch and the delivery state, the
+ * parcel weight and the box size (length × width × height) in, the
+ * estimated price out, worked out in the browser with the same rules as
+ * PriceCalculator.php and the current rate card.
  *
- * The price is the one big result. Under it, quietly, is why: a parcel is
- * charged on whichever is higher, its actual weight or its size weight
- * (L × W × H ÷ divisor, also called volumetric weight), rounded up to a
- * full kg. Values are checked against the parcel limits as the visitor
- * types; screen readers hear the price once they pause.
+ * The price is the one big result. Under it, quietly, is why: the route
+ * between the two zones, and the weight it is charged on: whichever is
+ * higher, the actual weight or the size weight (L × W × H ÷ divisor, also
+ * called volumetric weight), rounded up to the route's weight band. Values
+ * are checked against the parcel limits as the visitor types; screen
+ * readers hear the price once they pause.
  *
  * Laid out with container queries, so the same card fits the narrow column
  * on the home page and the full container width on the pricing page. When
@@ -30,13 +49,17 @@ import type { Pricing } from '@/types';
  * side from a common top line; narrower, they stack. The two weights read
  * like a price list, with a dotted leader from each label to its value.
  *
- * "Send this parcel" passes the size on to the order form as
- * ?declared_weight_g=&length_cm=&width_cm=&height_cm=, which pre-fills the
- * parcel step. Signed-in staff, drivers and admins do not see the button.
+ * "Send this parcel" passes everything on to the order form as
+ * ?branch_id=&state=&declared_weight_g=&length_cm=&width_cm=&height_cm=,
+ * which pre-fills it. Signed-in staff, drivers and admins do not see the
+ * button.
  */
 const props = withDefaults(
     defineProps<{
         pricing: Pricing;
+        /** Active branches, by name: where the parcel can be dropped off. */
+        branches: Branch[];
+        states: Option<MalaysianStateValue>[];
         headingLevel?: 'h2' | 'h3';
         title?: string;
         description?: string;
@@ -44,7 +67,8 @@ const props = withDefaults(
     {
         headingLevel: 'h3',
         title: 'Quick price estimate',
-        description: 'Enter the parcel weight and the box size in centimetres.',
+        description:
+            'Choose the branch and state, then enter the weight and box size.',
     },
 );
 
@@ -61,7 +85,10 @@ const sides: { key: Side; label: string }[] = [
     { key: 'height', label: 'Height' },
 ];
 
-// The worked example from the design: 4.2 kg in a 40 × 30 × 25 cm box.
+// The worked example from the design: 4.2 kg in a 40 × 30 × 25 cm box,
+// from the first branch to an address in its own state.
+const firstBranch = props.branches.at(0);
+
 const values = reactive<Record<Field, string>>({
     weight: '4.2',
     length: '40',
@@ -69,7 +96,18 @@ const values = reactive<Record<Field, string>>({
     height: '25',
 });
 
+const branchId = ref<number | null>(firstBranch?.id ?? null);
+const destination = ref<MalaysianStateValue | ''>(firstBranch?.state ?? '');
+
 const id = `estimate-${useId()}`;
+
+const branch = computed(
+    () => props.branches.find((item) => item.id === branchId.value) ?? null,
+);
+
+const originZone = computed(() =>
+    branch.value ? zoneFor(props.pricing, branch.value.state) : null,
+);
 
 function weightError(value: string): string | undefined {
     if (value.trim() === '') {
@@ -132,13 +170,27 @@ const estimate = computed(() => {
         return null;
     }
 
-    return estimatePrice(props.pricing, {
-        weightG: kgToGrams(values.weight.trim()),
-        lengthCm: Number(values.length),
-        widthCm: Number(values.width),
-        heightCm: Number(values.height),
-    });
+    return estimatePrice(
+        props.pricing,
+        {
+            origin: branch.value?.state,
+            destination: destination.value || null,
+        },
+        {
+            weightG: kgToGrams(values.weight.trim()),
+            lengthCm: Number(values.length),
+            widthCm: Number(values.width),
+            heightCm: Number(values.height),
+        },
+    );
 });
+
+/** "Peninsular Malaysia → Sarawak", or "Within Sarawak". */
+const route = computed(() =>
+    estimate.value
+        ? routeName(estimate.value.originZone, estimate.value.destinationZone)
+        : null,
+);
 
 /** "40 × 30 × 25 ÷ 5000": how the size weight is worked out. */
 const sizeSum = computed(() =>
@@ -147,19 +199,33 @@ const sizeSum = computed(() =>
         : `L × W × H ÷ ${props.pricing.divisor}`,
 );
 
-/** How the price adds up, on one line: "RM 8.00 first kg + 5 kg × RM 2.00". */
+/** How the price adds up: "RM 8.00 up to 1 kg" and "+ 5 kg × RM 2.00". */
 const breakdown = computed(() => {
-    if (!estimate.value) {
-        return invalid.value
-            ? 'Fix the value marked in red to see your price.'
-            : 'Fill in the weight and all three sides.';
+    const priced = estimate.value;
+
+    if (!priced) {
+        return null;
     }
 
-    const first = formatMoney(props.pricing.base);
+    return {
+        band: `${formatMoney(priced.bandPriceSen)} up to ${formatKg(priced.bandMaxG)}`,
+        extra:
+            priced.extraKg > 0
+                ? `+ ${priced.extraKg} kg × ${formatMoney(priced.extraKgSen)}`
+                : null,
+    };
+});
 
-    return estimate.value.extraKg > 0
-        ? `${first} first kg + ${estimate.value.extraKg} kg × ${formatMoney(props.pricing.perKg)}`
-        : `${first} for the first kg`;
+const missing = computed(() => {
+    if (invalid.value) {
+        return 'Fix the value marked in red to see your price.';
+    }
+
+    if (!branch.value || !destination.value) {
+        return 'Choose the branch and the state it goes to.';
+    }
+
+    return 'Fill in the weight and all three sides.';
 });
 
 /** The two weights, with the higher one (the one charged) ticked. */
@@ -170,34 +236,54 @@ const weights = computed(() => {
         return [];
     }
 
+    const bySize = chargedByVolume(result);
+
     return [
         {
             key: 'actual',
             label: 'Actual weight',
             sum: null,
             value: formatWeight(result.actualG),
-            used: !result.byVolume,
+            used: !bySize,
         },
         {
             key: 'size',
             label: 'Size weight',
             sum: sizeSum.value,
             value: formatWeight(result.volumetricG),
-            used: result.byVolume,
+            used: bySize,
         },
     ];
 });
 
-/** 4.2 kg is charged as 5 kg: say so when the weight is rounded up. */
-const roundedUp = computed(
-    () => estimate.value !== null && estimate.value.chargeableG % 1000 !== 0,
-);
+/** The weight the price stands for, and why it can be more than the parcel. */
+const charged = computed(() => {
+    const result = estimate.value;
+
+    if (!result) {
+        return null;
+    }
+
+    const billed = billedWeightGrams(result);
+
+    return {
+        weight: formatKg(billed),
+        note:
+            billed === result.chargeableG
+                ? 'the higher of these two:'
+                : result.extraKg > 0
+                  ? 'the higher of these two, rounded up to a full kg:'
+                  : 'the higher of these two, rounded up to its weight band:',
+    };
+});
 
 const orderLink = computed(() =>
     createOrder(
         estimate.value
             ? {
                   query: {
+                      branch_id: branchId.value ?? undefined,
+                      state: destination.value || undefined,
                       declared_weight_g: estimate.value.actualG,
                       length_cm: Number(values.length),
                       width_cm: Number(values.width),
@@ -214,8 +300,8 @@ const orderLink = computed(() =>
  */
 const announcement = ref('');
 const summary = computed(() => {
-    if (estimate.value) {
-        return `Estimated price ${formatMoney(estimate.value.priceSen)}, charged as ${estimate.value.chargedKg} kg.`;
+    if (estimate.value && charged.value) {
+        return `Estimated price ${formatMoney(estimate.value.priceSen)}, ${route.value}, charged as ${charged.value.weight}.`;
     }
 
     return FIELDS.map((field) => errors.value[field]).find(Boolean) ?? '';
@@ -225,6 +311,8 @@ const announce = useDebounceFn((text: string) => {
 }, 800);
 
 watch(summary, (text) => announce(text));
+
+const labelClass = 'mb-1.5 text-[13px] leading-[19px] font-semibold text-ink';
 </script>
 
 <template>
@@ -264,43 +352,68 @@ watch(summary, (text) => announce(text));
         <div
             class="mt-6 grid gap-6 @6xl/estimator:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] @6xl/estimator:items-center @6xl/estimator:gap-8"
         >
-            <!-- What the visitor types: the weight, then the box size -->
-            <div class="@container/inputs">
-                <div
-                    class="flex flex-col gap-5 @lg/inputs:flex-row @lg/inputs:gap-6"
-                >
-                    <div class="min-w-0 @lg/inputs:w-40 @lg/inputs:flex-none">
-                        <Label
-                            :for="`${id}-weight`"
-                            class="mb-1.5 text-[13px] leading-[19px] font-semibold text-ink"
+            <!-- What the visitor chooses and types: the route, then the
+                 weight and the box size -->
+            <div class="@container/inputs grid gap-5">
+                <div class="grid gap-5 @lg/inputs:grid-cols-2">
+                    <div class="min-w-0">
+                        <Label :for="`${id}-branch`" :class="labelClass">
+                            From branch
+                        </Label>
+                        <NativeSelect
+                            :id="`${id}-branch`"
+                            v-model="branchId"
+                            size="lg"
                         >
+                            <option
+                                v-for="item in branches"
+                                :key="item.id"
+                                :value="item.id"
+                            >
+                                {{ item.name }}
+                            </option>
+                        </NativeSelect>
+                    </div>
+                    <div class="min-w-0">
+                        <Label :for="`${id}-state`" :class="labelClass">
+                            To state
+                        </Label>
+                        <NativeSelect
+                            :id="`${id}-state`"
+                            v-model="destination"
+                            size="lg"
+                        >
+                            <option value="" disabled>Choose a state</option>
+                            <option
+                                v-for="state in states"
+                                :key="state.value"
+                                :value="state.value"
+                            >
+                                {{ state.label }}
+                            </option>
+                        </NativeSelect>
+                    </div>
+                </div>
+
+                <div class="flex flex-col gap-5 @lg/inputs:flex-row">
+                    <div class="min-w-0 @lg/inputs:w-40 @lg/inputs:flex-none">
+                        <Label :for="`${id}-weight`" :class="labelClass">
                             Parcel weight
                             <span class="sr-only">in kilograms</span>
                         </Label>
-                        <div class="relative">
-                            <Input
-                                :id="`${id}-weight`"
-                                v-model="values.weight"
-                                type="text"
-                                inputmode="decimal"
-                                autocomplete="off"
-                                :aria-invalid="
-                                    errors.weight ? 'true' : undefined
-                                "
-                                :aria-describedby="
-                                    errors.weight
-                                        ? `${id}-weight-error`
-                                        : undefined
-                                "
-                                class="h-[50px] rounded-lg bg-white pr-11 pl-3.5 text-[17px] font-bold text-ink md:text-[17px]"
-                            />
-                            <span
-                                aria-hidden="true"
-                                class="pointer-events-none absolute top-1/2 right-3.5 -translate-y-1/2 text-sm font-semibold text-muted-foreground"
-                            >
-                                kg
-                            </span>
-                        </div>
+                        <UnitInput
+                            :id="`${id}-weight`"
+                            v-model="values.weight"
+                            unit="kg"
+                            size="lg"
+                            type="text"
+                            inputmode="decimal"
+                            autocomplete="off"
+                            :aria-invalid="errors.weight ? 'true' : undefined"
+                            :aria-describedby="
+                                errors.weight ? `${id}-weight-error` : undefined
+                            "
+                        />
                         <InputError
                             :id="`${id}-weight-error`"
                             :message="errors.weight"
@@ -313,10 +426,7 @@ watch(summary, (text) => announce(text));
                         :aria-labelledby="`${id}-size-label`"
                         class="min-w-0 flex-1"
                     >
-                        <p
-                            :id="`${id}-size-label`"
-                            class="mb-1.5 text-[13px] leading-[19px] font-semibold text-ink"
-                        >
+                        <p :id="`${id}-size-label`" :class="labelClass">
                             Box size
                             <span class="font-medium text-muted-foreground">
                                 in cm
@@ -330,14 +440,16 @@ watch(summary, (text) => announce(text));
                                 <span
                                     v-if="index > 0"
                                     aria-hidden="true"
-                                    class="flex h-[50px] flex-none items-center text-base font-semibold text-muted-foreground"
+                                    class="flex h-12 flex-none items-center text-base font-semibold text-muted-foreground"
                                 >
                                     ×
                                 </span>
                                 <div class="min-w-0 flex-1">
-                                    <Input
+                                    <UnitInput
                                         :id="`${id}-${side.key}`"
                                         v-model="values[side.key]"
+                                        size="lg"
+                                        align="center"
                                         type="text"
                                         inputmode="numeric"
                                         autocomplete="off"
@@ -351,7 +463,6 @@ watch(summary, (text) => announce(text));
                                                 ? `${id}-${side.key}-error`
                                                 : undefined
                                         "
-                                        class="h-[50px] rounded-lg bg-white px-2 text-center text-[17px] font-bold text-ink md:text-[17px]"
                                     />
                                     <Label
                                         :for="`${id}-${side.key}`"
@@ -384,10 +495,9 @@ watch(summary, (text) => announce(text));
             <!-- The result: one price, with the reasoning quietly beside it
                  (under it when the panel is narrow). Side by side, the two
                  columns share a top line and a full-height divider. The
-                 price column is at least as wide as its longest everyday
-                 sum ("… + 29 kg × RM 2.00"), so the divider stays put as
-                 the visitor types, including across 1 kg, where the sum
-                 gets shorter. -->
+                 price column keeps at least 200px, so the divider stays put
+                 as the visitor types; its two-part sum wraps between the
+                 band and the extra kg in a narrow panel. -->
             <div class="@container/result rounded-xl bg-surface p-4 sm:p-5">
                 <div
                     class="flex flex-col gap-4 @lg/result:flex-row @lg/result:gap-6"
@@ -408,34 +518,55 @@ watch(summary, (text) => announce(text));
                                 >
                                     From
                                 </span>
-                                {{ formatMoney(pricing.base) }}
+                                {{
+                                    formatMoney(
+                                        lowestPriceSen(
+                                            pricing,
+                                            originZone?.code,
+                                        ),
+                                    )
+                                }}
                             </template>
                         </p>
                         <p
-                            :class="[
-                                'mt-0.5 text-[13px] leading-5 text-muted-foreground',
-                                estimate
-                                    ? 'whitespace-nowrap tabular-nums'
-                                    : '',
-                            ]"
+                            v-if="breakdown"
+                            class="mt-0.5 flex flex-wrap gap-x-1 text-[13px] leading-5 text-muted-foreground tabular-nums"
                         >
-                            {{ breakdown }}
+                            <span class="whitespace-nowrap">{{
+                                breakdown.band
+                            }}</span>
+                            <span
+                                v-if="breakdown.extra"
+                                class="whitespace-nowrap"
+                                >{{ breakdown.extra }}</span
+                            >
+                        </p>
+                        <p
+                            v-else
+                            class="mt-0.5 text-[13px] leading-5 text-muted-foreground"
+                        >
+                            {{ missing }}
                         </p>
                     </div>
 
                     <div
                         class="min-w-0 flex-1 border-t border-line pt-4 text-[13px] leading-5 @lg/result:border-t-0 @lg/result:border-l @lg/result:pt-0 @lg/result:pl-6"
                     >
-                        <template v-if="estimate">
+                        <template v-if="estimate && charged">
+                            <p
+                                class="mb-2 flex items-start gap-1.5 font-semibold text-ink"
+                            >
+                                <MapPin
+                                    aria-hidden="true"
+                                    class="mt-0.5 size-4 flex-none text-brand"
+                                />
+                                <RouteTitle :title="route ?? ''" />
+                            </p>
                             <p class="text-ink-2">
                                 <span class="font-bold text-ink">
-                                    Charged as {{ estimate.chargedKg }} kg</span
+                                    Charged as {{ charged.weight }}</span
                                 >,
-                                {{
-                                    roundedUp
-                                        ? 'the higher of these two, rounded up to a full kg:'
-                                        : 'the higher of these two:'
-                                }}
+                                {{ charged.note }}
                             </p>
                             <!-- Read like a price list: a dotted leader runs
                                  from each label (and the size sum) to its
@@ -508,9 +639,11 @@ watch(summary, (text) => announce(text));
                             </ul>
                         </template>
                         <p v-else class="text-muted-foreground">
-                            We charge whichever is higher: the actual weight or
-                            the size weight ({{ sizeSum }}), rounded up to a
-                            full kg.
+                            The price depends on the route from the branch's
+                            zone to the delivery state's zone, and on whichever
+                            is higher: the actual weight or the size weight ({{
+                                sizeSum
+                            }}).
                         </p>
                     </div>
                 </div>

@@ -174,9 +174,10 @@ const announcedChange = refDebounced(
         </div>
 
         <div v-else class="grid gap-2">
+            <!-- block: a plain space before (optional), not the flex gap -->
             <Label
                 for="cash-received"
-                class="text-sm leading-5 font-bold text-ink"
+                class="block text-sm leading-5 font-bold text-ink"
             >
                 Cash received
                 <span class="font-medium text-muted-foreground">

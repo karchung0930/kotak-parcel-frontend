@@ -166,7 +166,11 @@ const visible = computed(() => {
                                         away ·
                                     </template>
                                     {{ option.branch.city }} ·
-                                    {{ option.branch.opening_hours }}
+                                    <!-- The hours wrap as one piece, not a
+                                         lone time on the next line. -->
+                                    <span class="inline-block">{{
+                                        option.branch.opening_hours
+                                    }}</span>
                                 </span>
                             </span>
                         </ChoiceCard>

@@ -8,10 +8,11 @@ import Notice from '@/components/Notice.vue';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
+import UnitInput from '@/components/UnitInput.vue';
 import { formatDimensions, formatWeight } from '@/lib/format';
 import { kgToGrams } from '@/lib/pricing';
 import { dropOff } from '@/routes/staff/orders';
-import type { Order, Pricing } from '@/types';
+import type { MalaysianStateValue, Order, Pricing } from '@/types';
 
 /**
  * Step 1 at the counter: weigh the parcel, correct the box size if it is
@@ -19,7 +20,10 @@ import type { Order, Pricing } from '@/types';
  */
 const props = defineProps<{
     order: Order;
+    /** The card in effect, with the parcel limits. */
     pricing: Pricing;
+    /** The state of this counter's branch, where the price runs from. */
+    origin: MalaysianStateValue;
 }>();
 
 type Dimension = 'length_cm' | 'width_cm' | 'height_cm';
@@ -179,9 +183,6 @@ function submit(): void {
             ),
     });
 }
-
-const inputClass =
-    'w-full rounded-lg border-[1.5px] border-field bg-white font-bold text-ink tabular-nums outline-none transition-[border-color,box-shadow] placeholder:text-subtle focus-visible:border-brand focus-visible:ring-[3px] focus-visible:ring-brand/25 aria-invalid:border-brand-strong';
 </script>
 
 <template>
@@ -198,39 +199,26 @@ const inputClass =
                 >
                     Weight on the scale
                 </Label>
-                <div class="relative">
-                    <Scale
-                        aria-hidden="true"
-                        class="pointer-events-none absolute top-1/2 left-4 size-6 -translate-y-1/2 text-muted-foreground"
-                    />
-                    <input
-                        id="measured-weight"
-                        v-model="weightKg"
-                        v-focus="focusWeight"
-                        type="text"
-                        inputmode="decimal"
-                        autocomplete="off"
-                        placeholder="0.00"
-                        :aria-invalid="
-                            form.errors.measured_weight_g ? 'true' : undefined
-                        "
-                        :aria-describedby="
-                            form.errors.measured_weight_g
-                                ? 'measured-weight-hint measured-weight-error'
-                                : 'measured-weight-hint'
-                        "
-                        :class="[
-                            inputClass,
-                            'h-16 rounded-xl pr-14 pl-14 font-mono text-[26px]',
-                        ]"
-                    />
-                    <span
-                        aria-hidden="true"
-                        class="pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 text-base font-bold text-muted-foreground"
-                    >
-                        kg
-                    </span>
-                </div>
+                <UnitInput
+                    id="measured-weight"
+                    v-model="weightKg"
+                    v-focus="focusWeight"
+                    unit="kg"
+                    size="xl"
+                    :icon="Scale"
+                    type="text"
+                    inputmode="decimal"
+                    autocomplete="off"
+                    placeholder="0.00"
+                    :aria-invalid="
+                        form.errors.measured_weight_g ? 'true' : undefined
+                    "
+                    :aria-describedby="
+                        form.errors.measured_weight_g
+                            ? 'measured-weight-hint measured-weight-error'
+                            : 'measured-weight-hint'
+                    "
+                />
                 <p
                     id="measured-weight-hint"
                     class="text-[13px] leading-5 text-pretty text-muted-foreground"
@@ -259,9 +247,10 @@ const inputClass =
                         >
                             {{ side.label }}
                         </Label>
-                        <input
+                        <UnitInput
                             :id="side.id"
                             v-model="form[side.key]"
+                            size="lg"
                             type="text"
                             inputmode="numeric"
                             autocomplete="off"
@@ -274,7 +263,6 @@ const inputClass =
                                     ? `box-size-hint ${side.id}-error`
                                     : 'box-size-hint'
                             "
-                            :class="[inputClass, 'h-12 px-3 text-base']"
                         />
                     </div>
                 </div>
@@ -301,7 +289,7 @@ const inputClass =
                     <button
                         v-if="sizeChanged"
                         type="button"
-                        class="-my-1.5 inline-flex h-8 flex-none items-center gap-1.5 rounded-md px-2 text-[13px] font-bold text-brand-strong hover:bg-brand-tint"
+                        class="relative -my-1.5 inline-flex h-8 flex-none items-center gap-1.5 rounded-md px-2 text-[13px] font-bold text-brand-strong hover:bg-brand-tint pointer-coarse:after:absolute pointer-coarse:after:inset-x-0 pointer-coarse:after:-inset-y-1.5"
                         @click="resetSize"
                     >
                         <RotateCcw aria-hidden="true" class="size-3.5" />
@@ -328,6 +316,8 @@ const inputClass =
             <PriceBreakdown
                 :pricing="pricing"
                 :size="size"
+                :origin="origin"
+                :destination="order.state"
                 :estimate-sen="order.estimated_price_sen"
                 :placeholder="pricePlaceholder"
             />

@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import { Plus, Ruler, Weight } from '@lucide/vue';
+import { MapPin, Ruler, Weight } from '@lucide/vue';
 import { computed } from 'vue';
 import { formatMoney } from '@/lib/format';
+import { lowestExtraKgSen, lowestPriceSen } from '@/lib/pricing';
 import type { Pricing } from '@/types';
 
 /**
- * The three pricing rules (first kg, each additional kg, size weight),
- * with the amounts from config/kotak.php. "Size weight" is the friendly
+ * The three pricing rules (where it goes, weight bands, size weight), with
+ * the amounts from the current rate card. "Size weight" is the friendly
  * name for volumetric weight, the same words the price estimate uses.
  */
 const props = defineProps<{
@@ -14,23 +15,33 @@ const props = defineProps<{
 }>();
 
 // \u00a0 (a non-breaking space) keeps each number on the line of its unit.
-const rules = computed(() => [
-    {
-        icon: Weight,
-        title: `${formatMoney(props.pricing.base)} for the first kg`,
-        text: 'Covers any parcel charged as 1\u00a0kg or less.',
-    },
-    {
-        icon: Plus,
-        title: `${formatMoney(props.pricing.perKg)} for each additional kg`,
-        text: 'Every started kg counts, so 5.1\u00a0kg is charged as 6\u00a0kg.',
-    },
-    {
-        icon: Ruler,
-        title: `Size weight = L × W × H ÷ ${props.pricing.divisor}`,
-        text: 'Also called volumetric weight (box size in cm). When it is more than the actual weight, we charge by size.',
-    },
-]);
+const rules = computed(() => {
+    const zones = props.pricing.zones.length;
+
+    return [
+        {
+            icon: MapPin,
+            title:
+                zones > 1
+                    ? `${zones} delivery zones`
+                    : 'One price across Malaysia',
+            text:
+                zones > 1
+                    ? 'The price depends on the zone of your drop-off branch and the zone of the delivery address.'
+                    : 'The same rates from every branch to every state.',
+        },
+        {
+            icon: Weight,
+            title: `Weight bands from ${formatMoney(lowestPriceSen(props.pricing))}`,
+            text: `Each route has its own bands. Above the top band, every started kg costs extra (from ${formatMoney(lowestExtraKgSen(props.pricing))}), so 5.1\u00a0kg counts as 6\u00a0kg.`,
+        },
+        {
+            icon: Ruler,
+            title: `Size weight = L × W × H ÷ ${props.pricing.divisor}`,
+            text: 'Also called volumetric weight (box size in cm). When it is more than the actual weight, we charge by size.',
+        },
+    ];
+});
 </script>
 
 <template>

@@ -319,7 +319,11 @@ const historyFits = useFitsViewport(historyCard, 24);
                         </div>
                     </header>
                     <div class="@container p-4 sm:p-6">
-                        <WeighParcelForm :order="order" :pricing="pricing" />
+                        <WeighParcelForm
+                            :order="order"
+                            :pricing="pricing"
+                            :origin="origin"
+                        />
                     </div>
                 </section>
 
@@ -365,6 +369,8 @@ const historyFits = useFitsViewport(historyCard, 24);
                                 <PriceBreakdown
                                     :pricing="pricing"
                                     :size="parcelSize"
+                                    :origin="origin"
+                                    :destination="order.state"
                                     :price-sen="order.final_price_sen"
                                     :estimate-sen="order.estimated_price_sen"
                                     title="Price to pay"

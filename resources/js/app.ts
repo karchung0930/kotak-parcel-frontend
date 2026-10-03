@@ -36,10 +36,16 @@ void createInertiaApp({
         }
     },
     withApp: (app) => {
+        // On a component (such as UnitInput) it focuses the field inside.
         app.directive('focus', {
             mounted: (el: HTMLElement, shouldFocus) => {
                 if (shouldFocus.value !== false) {
-                    el.focus();
+                    (el.matches('input, textarea, select')
+                        ? el
+                        : el.querySelector<HTMLElement>(
+                              'input, textarea, select',
+                          )
+                    )?.focus();
                 }
             },
         });

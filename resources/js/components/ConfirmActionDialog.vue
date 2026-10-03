@@ -12,9 +12,10 @@ import {
 import { Spinner } from '@/components/ui/spinner';
 
 /**
- * "Are you sure?" before a driver records something that cannot be undone
- * (picked up, delivered, failed). Stays open while the request runs; the
- * default slot can summarise what is about to be saved.
+ * "Are you sure?" before a step that cannot be undone: a driver recording
+ * a pick-up, delivery or failure, or an admin withdrawing or deleting
+ * rates. Stays open while the request runs; the default slot can
+ * summarise what is about to be saved.
  */
 const open = defineModel<boolean>('open', { required: true });
 

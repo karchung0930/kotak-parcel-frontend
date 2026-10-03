@@ -10,7 +10,7 @@
         "check:fix": "vp check --fix",
         "types:check": "vue-tsc --noEmit",
         "test:format": "node --experimental-strip-types --no-warnings tests/js/format.check.ts",
-        "test:js": "npm run test:format && node --experimental-strip-types --no-warnings tests/js/branches.check.ts && node --experimental-strip-types --no-warnings tests/js/phone.check.ts"
+        "test:js": "npm run test:format && node --experimental-strip-types --no-warnings tests/js/pricing.check.ts && node --experimental-strip-types --no-warnings tests/js/branches.check.ts && node --experimental-strip-types --no-warnings tests/js/phone.check.ts"
     },
     "dependencies": {
         "@inertiajs/vite": "^3.0.0",

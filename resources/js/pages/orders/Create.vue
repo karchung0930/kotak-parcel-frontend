@@ -25,10 +25,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
+import UnitInput from '@/components/UnitInput.vue';
 import { useFitsViewport } from '@/composables/useFitsViewport';
 import { directionsUrl } from '@/lib/branches';
 import { formatMoney, formatPhone, formatWeight, telHref } from '@/lib/format';
-import { estimatePrice, kgToGrams } from '@/lib/pricing';
+import { estimatePrice, kgToGrams, zoneFor } from '@/lib/pricing';
 import type { ParcelSize } from '@/lib/pricing';
 import { store } from '@/routes/orders';
 import { edit as editProfile } from '@/routes/profile';
@@ -40,15 +41,18 @@ import type { MalaysianStateValue, OrdersCreatePageProps } from '@/types';
  * D1 mobile design); desktops get the form on the left and the estimate
  * and chosen branch in a sticky column on the right.
  *
- * The estimate mirrors the server's PriceCalculator for display only: the
- * server prices the order, and the branch confirms it after weighing.
+ * The estimate mirrors the server's PriceCalculator for display only, with
+ * the current rate card, from the chosen branch's state to the receiver's
+ * state: the server prices the order, and the branch confirms it after
+ * weighing.
  */
 const props = defineProps<OrdersCreatePageProps>();
 
 /*
  * The home and pricing estimators link here with the parcel they priced
- * (?declared_weight_g=4200&length_cm=40&width_cm=30&height_cm=25), so the
- * parcel step starts filled in. Only whole positive numbers are used.
+ * (?branch_id=3&state=Sabah&declared_weight_g=4200&length_cm=40&width_cm=30&height_cm=25),
+ * so the form starts filled in. Only whole positive numbers, an open
+ * branch and a known state are used.
  */
 const page = usePage();
 const query = new URLSearchParams(page.url.split('?')[1] ?? '');
@@ -60,6 +64,12 @@ function fromQuery(key: string): string {
 }
 
 const pricedGrams = fromQuery('declared_weight_g');
+const pricedBranch = props.branches.find(
+    (branch) => String(branch.id) === fromQuery('branch_id'),
+);
+const pricedState = props.states.find(
+    (state) => state.value === query.get('state'),
+);
 
 const form = useForm({
     receiver_name: '',
@@ -68,7 +78,7 @@ const form = useForm({
     address_line1: '',
     address_line2: '',
     city: '',
-    state: '' as MalaysianStateValue | '',
+    state: (pricedState?.value ?? '') as MalaysianStateValue | '',
     postcode: '',
     item_name: '',
     /** Kilograms as typed ("4.2"); sent as declared_weight_g in grams. */
@@ -76,7 +86,8 @@ const form = useForm({
     length_cm: fromQuery('length_cm'),
     width_cm: fromQuery('width_cm'),
     height_cm: fromQuery('height_cm'),
-    branch_id: (props.branches.length === 1 ? props.branches[0].id : null) as
+    branch_id: (pricedBranch?.id ??
+        (props.branches.length === 1 ? props.branches[0].id : null)) as
         | number
         | null,
 });
@@ -133,7 +144,44 @@ const size = computed<Partial<ParcelSize>>(() => ({
     heightCm: toNumber(form.height_cm),
 }));
 
-const estimate = computed(() => estimatePrice(props.pricing, size.value));
+const selectedBranch = computed(
+    () => props.branches.find((branch) => branch.id === form.branch_id) ?? null,
+);
+
+/*
+ * The price runs from the chosen branch's zone. Until a branch is chosen,
+ * it is known anyway when every branch is in the same zone (all in the
+ * Klang Valley, say), so the estimate shows from the parcel step on.
+ */
+const origin = computed<MalaysianStateValue | null>(() => {
+    if (selectedBranch.value) {
+        return selectedBranch.value.state;
+    }
+
+    const zones = new Set(
+        props.branches.map(
+            (branch) => zoneFor(props.pricing, branch.state)?.code,
+        ),
+    );
+
+    return zones.size === 1 ? (props.branches[0]?.state ?? null) : null;
+});
+
+const estimate = computed(() =>
+    estimatePrice(
+        props.pricing,
+        { origin: origin.value, destination: form.state || null },
+        size.value,
+    ),
+);
+
+const estimateNeeds = computed(() => {
+    if (form.state === '') {
+        return 'state';
+    }
+
+    return origin.value ? null : 'branch';
+});
 
 /** A short sentence for screen readers, once typing pauses. */
 const estimateSummary = computed(() =>
@@ -142,10 +190,6 @@ const estimateSummary = computed(() =>
         : '',
 );
 const announcedEstimate = refDebounced(estimateSummary, 800);
-
-const selectedBranch = computed(
-    () => props.branches.find((branch) => branch.id === form.branch_id) ?? null,
-);
 
 /*
  * On desktops the price and branch column sticks 32px under the site
@@ -581,38 +625,31 @@ const hintClass = 'mt-1.5 text-[12.5px] leading-[18px] text-muted-foreground';
                                 Weight
                                 <span class="sr-only">in kilograms</span>
                             </Label>
-                            <div class="relative">
-                                <Input
-                                    id="weight_kg"
-                                    v-model="form.weight_kg"
-                                    name="weight_kg"
-                                    required
-                                    inputmode="decimal"
-                                    autocomplete="off"
-                                    placeholder="0.0"
-                                    :class="[inputClass, 'pr-11 font-bold']"
-                                    :aria-invalid="
-                                        error('declared_weight_g') ||
-                                        form.errors.weight_kg
-                                            ? true
-                                            : undefined
-                                    "
-                                    :aria-describedby="
-                                        describedBy(
-                                            'weight_kg-hint',
-                                            (error('declared_weight_g') ||
-                                                form.errors.weight_kg) &&
-                                                'weight_kg-error',
-                                        )
-                                    "
-                                />
-                                <span
-                                    aria-hidden="true"
-                                    class="pointer-events-none absolute top-1/2 right-3.5 -translate-y-1/2 text-sm font-semibold text-muted-foreground"
-                                >
-                                    kg
-                                </span>
-                            </div>
+                            <UnitInput
+                                id="weight_kg"
+                                v-model="form.weight_kg"
+                                unit="kg"
+                                size="lg"
+                                name="weight_kg"
+                                required
+                                inputmode="decimal"
+                                autocomplete="off"
+                                placeholder="0.0"
+                                :aria-invalid="
+                                    error('declared_weight_g') ||
+                                    form.errors.weight_kg
+                                        ? true
+                                        : undefined
+                                "
+                                :aria-describedby="
+                                    describedBy(
+                                        'weight_kg-hint',
+                                        (error('declared_weight_g') ||
+                                            form.errors.weight_kg) &&
+                                            'weight_kg-error',
+                                    )
+                                "
+                            />
                             <p id="weight_kg-hint" :class="hintClass">
                                 Up to {{ formatWeight(pricing.maxWeightG) }}
                             </p>
@@ -638,15 +675,15 @@ const hintClass = 'mt-1.5 text-[12.5px] leading-[18px] text-muted-foreground';
                                  "Up to" hint. -->
                             <div class="mt-1.5 grid grid-cols-3 gap-2.5">
                                 <div v-for="side in SIDES" :key="side.key">
-                                    <Input
+                                    <UnitInput
                                         :id="side.key"
                                         v-model="form[side.key]"
+                                        size="lg"
                                         :name="side.key"
                                         required
                                         inputmode="numeric"
                                         autocomplete="off"
                                         :placeholder="side.placeholder"
-                                        :class="[inputClass, 'px-3 font-bold']"
                                         :aria-invalid="
                                             form.errors[side.key]
                                                 ? true
@@ -700,6 +737,7 @@ const hintClass = 'mt-1.5 text-[12.5px] leading-[18px] text-muted-foreground';
                         :pricing="pricing"
                         :estimate="estimate"
                         :size="size"
+                        :needs="estimateNeeds"
                     />
                     <p aria-live="polite" class="sr-only">
                         {{ announcedEstimate }}

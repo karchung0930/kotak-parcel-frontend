@@ -65,6 +65,18 @@ export function formatWeight(grams: number | null | undefined): string {
     return `${oneDecimal.format(grams / 1000)} kg`;
 }
 
+/**
+ * 500 → "0.5 kg", 1000 → "1 kg", 2250 → "2.25 kg": a weight as people
+ * write it, for weight bands and limits.
+ */
+export function formatKg(grams: number | null | undefined): string {
+    if (grams === null || grams === undefined || !Number.isFinite(grams)) {
+        return EMPTY;
+    }
+
+    return `${Number((grams / 1000).toFixed(3))} kg`;
+}
+
 /** (40, 30, 25) → "40 × 30 × 25 cm". */
 export function formatDimensions(
     lengthCm: number | null | undefined,
@@ -274,6 +286,22 @@ export function toLocalDate(
 /** Today in Kuala Lumpur, as "YYYY-MM-DD". */
 export function todayInKualaLumpur(now: Date = new Date()): string {
     return toLocalDate(now) as string;
+}
+
+/**
+ * A moment in Kuala Lumpur time as "YYYY-MM-DDTHH:mm", the value of an
+ * <input type="datetime-local">, which the server reads as Malaysia time.
+ */
+export function toLocalDateTime(
+    value: string | Date | null | undefined,
+): string | null {
+    const parts = toParts(value);
+
+    if (!parts || parts.hour === null || parts.minute === null) {
+        return null;
+    }
+
+    return `${toLocalDate(value)}T${time(parts)}`;
 }
 
 /*

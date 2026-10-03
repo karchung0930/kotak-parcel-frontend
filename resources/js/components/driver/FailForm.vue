@@ -115,7 +115,11 @@ function submit(): void {
         </fieldset>
 
         <div class="grid gap-2">
-            <Label for="fail-note" class="text-sm leading-5 font-bold text-ink">
+            <!-- block: a plain space before (optional), not the flex gap -->
+            <Label
+                for="fail-note"
+                class="block text-sm leading-5 font-bold text-ink"
+            >
                 Note for the office
                 <span
                     v-if="!noteRequired"

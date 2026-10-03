@@ -5,8 +5,8 @@ import type { StatusTone } from '@/lib/status';
 
 /**
  * A status as icon + label in one of the status colour pairs, never colour
- * alone. StatusChip maps the order statuses onto it, and any other chip
- * does the same, so every chip in the app has one shape.
+ * alone. StatusChip (orders) and RateCardPhaseChip (rate cards) map their
+ * values onto it, so every chip in the app has one shape.
  */
 withDefaults(
     defineProps<{

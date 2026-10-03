@@ -209,8 +209,11 @@
         -webkit-text-size-adjust: 100%;
     }
 
+    /* Wrapped text never ends on a lone word. The longhand keeps the wrap
+       mode, so whitespace-nowrap still holds wherever it is set. */
     body {
         @apply bg-background font-sans text-foreground antialiased;
+        text-wrap-style: pretty;
     }
 
     h1,

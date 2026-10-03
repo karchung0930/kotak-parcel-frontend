@@ -2,22 +2,29 @@
 import { refDebounced } from '@vueuse/core';
 import { computed, useId } from 'vue';
 import KotakTape from '@/components/brand/KotakTape.vue';
-import { formatMoney, formatWeight } from '@/lib/format';
-import { estimatePrice } from '@/lib/pricing';
+import RouteTitle from '@/components/RouteTitle.vue';
+import { formatKg, formatMoney, formatWeight } from '@/lib/format';
+import { estimatePrice, routeName } from '@/lib/pricing';
 import type { ParcelSize } from '@/lib/pricing';
-import type { Pricing } from '@/types';
+import type { MalaysianStateValue, Pricing } from '@/types';
 
 /**
  * How a parcel's price is worked out at the counter: the big price, the
- * chargeable weight and the steps behind it (actual vs volumetric weight,
- * first kg + extra kg). Updates live while staff type; the price and
- * chargeable weight are announced politely to screen readers once typing
- * pauses, so each keystroke is not read out.
+ * chargeable weight and the steps behind it: the route between the two
+ * zones, actual vs volumetric weight, then the weight band and any extra
+ * kg above it. Updates live while staff type; the price and chargeable
+ * weight are announced politely to screen readers once typing pauses, so
+ * each keystroke is not read out.
  */
 const props = withDefaults(
     defineProps<{
+        /** The rate card the price comes from, with the parcel limits. */
         pricing: Pricing;
         size: Partial<ParcelSize>;
+        /** The state of the branch the parcel is handed in at. */
+        origin: MalaysianStateValue;
+        /** The delivery address's state. */
+        destination: MalaysianStateValue;
         title?: string;
         /** The price to show instead of the computed one (the server's final price). */
         priceSen?: number | null;
@@ -36,7 +43,13 @@ const props = withDefaults(
 
 const id = `price-${useId()}`;
 
-const estimate = computed(() => estimatePrice(props.pricing, props.size));
+const estimate = computed(() =>
+    estimatePrice(
+        props.pricing,
+        { origin: props.origin, destination: props.destination },
+        props.size,
+    ),
+);
 
 const price = computed(() => props.priceSen ?? estimate.value?.priceSen);
 
@@ -60,6 +73,13 @@ const volumeFormula = computed(() => {
 
     return `${lengthCm} × ${widthCm} × ${heightCm} ÷ ${props.pricing.divisor}`;
 });
+
+/** "Within Peninsular Malaysia" or "Peninsular Malaysia → Sarawak". */
+const route = computed(() =>
+    estimate.value
+        ? routeName(estimate.value.originZone, estimate.value.destinationZone)
+        : '',
+);
 </script>
 
 <template>
@@ -97,6 +117,14 @@ const volumeFormula = computed(() => {
                 <div
                     class="flex min-h-9 items-center justify-between gap-3 border-t border-line-soft py-2"
                 >
+                    <dt class="text-muted-foreground">Route</dt>
+                    <dd class="text-right font-bold text-pretty text-ink">
+                        <RouteTitle :title="route" />
+                    </dd>
+                </div>
+                <div
+                    class="flex min-h-9 items-center justify-between gap-3 border-t border-line-soft py-2"
+                >
                     <dt class="text-muted-foreground">Actual weight</dt>
                     <dd class="font-bold text-ink tabular-nums">
                         {{ formatWeight(estimate.actualG) }}
@@ -128,18 +156,36 @@ const volumeFormula = computed(() => {
                 <div
                     class="flex min-h-9 items-center justify-between gap-3 border-t border-line-soft py-2"
                 >
+                    <dt class="text-muted-foreground">
+                        Band up to {{ formatKg(estimate.bandMaxG) }}
+                    </dt>
+                    <dd class="font-bold text-ink tabular-nums">
+                        {{ formatMoney(estimate.bandPriceSen) }}
+                    </dd>
+                </div>
+                <div
+                    v-if="estimate.extraKg > 0"
+                    class="flex min-h-9 items-center justify-between gap-3 border-t border-line-soft py-2"
+                >
                     <!-- The extra kg part wraps whole, so a price is never
                          left alone on the next line. -->
                     <dt class="text-muted-foreground">
-                        {{ formatMoney(pricing.base) }} first kg
-                        <span
-                            v-if="estimate.extraKg > 0"
-                            class="whitespace-nowrap"
-                        >
-                            + {{ estimate.extraKg }} ×
-                            {{ formatMoney(pricing.perKg) }}
+                        Extra kg over {{ formatKg(estimate.bandMaxG) }}
+                        <span class="whitespace-nowrap">
+                            ({{ estimate.extraKg }} ×
+                            {{ formatMoney(estimate.extraKgSen) }})
                         </span>
                     </dt>
+                    <dd class="font-bold text-ink tabular-nums">
+                        {{
+                            formatMoney(estimate.extraKg * estimate.extraKgSen)
+                        }}
+                    </dd>
+                </div>
+                <div
+                    class="flex min-h-9 items-center justify-between gap-3 border-t border-line-soft py-2"
+                >
+                    <dt class="font-bold text-ink">Price</dt>
                     <dd class="font-extrabold text-ink tabular-nums">
                         {{ formatMoney(estimate.priceSen) }}
                     </dd>
@@ -150,6 +196,13 @@ const volumeFormula = computed(() => {
                 class="mt-3 border-t border-line-soft pt-3 text-sm leading-5 text-muted-foreground"
             >
                 {{ placeholder }}
+            </p>
+
+            <p
+                v-if="estimate && pricing.name"
+                class="mt-3 text-[12.5px] leading-[18px] text-muted-foreground"
+            >
+                Priced with {{ pricing.name }}.
             </p>
 
             <!-- The amount and its difference wrap as one part. -->
