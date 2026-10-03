@@ -7,6 +7,7 @@ import InputError from '@/components/InputError.vue';
 import Notice from '@/components/Notice.vue';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
+import { Textarea } from '@/components/ui/textarea';
 import { returnMethod } from '@/routes/admin/orders';
 import type { OrderSummary } from '@/types';
 
@@ -75,8 +76,7 @@ function submit(): void {
                 :error="errors.note"
             >
                 <template #default="{ describedby, invalid }">
-                    <!-- 16px on phones: iOS zooms in on smaller fields. -->
-                    <textarea
+                    <Textarea
                         :id="noteId"
                         v-model="form.note"
                         rows="4"
@@ -85,7 +85,6 @@ function submit(): void {
                             `${describedby ?? ''} ${noteId}-count`.trim()
                         "
                         :aria-invalid="invalid"
-                        class="w-full resize-y rounded-lg border border-field bg-white px-3 py-2.5 text-base leading-6 text-ink outline-none placeholder:text-subtle focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:border-brand-strong sm:text-[15px]"
                         placeholder="Why the parcel is going back"
                     />
                     <p

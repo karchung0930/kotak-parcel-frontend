@@ -2,7 +2,8 @@
 import { useForm } from '@inertiajs/vue3';
 import { TriangleAlert } from '@lucide/vue';
 import { computed, nextTick, ref } from 'vue';
-import ConfirmActionDialog from '@/components/driver/ConfirmActionDialog.vue';
+import ChoiceCard from '@/components/ChoiceCard.vue';
+import ConfirmActionDialog from '@/components/ConfirmActionDialog.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -96,22 +97,15 @@ function submit(): void {
                 What happened?
             </legend>
             <div class="mt-2 grid gap-2">
-                <label
+                <ChoiceCard
                     v-for="reason in failureReasons"
                     :key="reason.value"
-                    class="flex min-h-[52px] cursor-pointer items-center gap-3 rounded-xl border-[1.5px] border-line bg-white px-4 py-2.5 transition-colors hover:border-line-strong has-checked:border-status-failed-pip has-checked:bg-status-failed-tint/60 has-focus-visible:outline-3 has-focus-visible:outline-offset-2 has-focus-visible:outline-brand"
-                >
-                    <input
-                        v-model="form.reason"
-                        type="radio"
-                        name="fail-reason"
-                        :value="reason.value"
-                        class="size-5 flex-none accent-brand focus-visible:outline-none"
-                    />
-                    <span class="text-[15px] leading-5 font-semibold text-ink">
-                        {{ reason.label }}
-                    </span>
-                </label>
+                    v-model="form.reason"
+                    name="fail-reason"
+                    :value="reason.value"
+                    :title="reason.label"
+                    tone="failed"
+                />
             </div>
             <InputError
                 id="fail-reason-error"

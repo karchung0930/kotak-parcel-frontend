@@ -4,7 +4,7 @@ import { ExternalLink, TriangleAlert } from '@lucide/vue';
 import { computed, nextTick } from 'vue';
 import FormField from '@/components/admin/FormField.vue';
 import FormSection from '@/components/admin/FormSection.vue';
-import NativeSelect from '@/components/admin/NativeSelect.vue';
+import NativeSelect from '@/components/NativeSelect.vue';
 import SwitchField from '@/components/admin/SwitchField.vue';
 import InputError from '@/components/InputError.vue';
 import PageHeader from '@/components/PageHeader.vue';

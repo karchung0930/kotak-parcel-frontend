@@ -6,6 +6,7 @@ import {
     TriangleAlert,
 } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
+import ChoiceCard from '@/components/ChoiceCard.vue';
 import InputError from '@/components/InputError.vue';
 import Notice from '@/components/Notice.vue';
 import { Button } from '@/components/ui/button';
@@ -124,25 +125,15 @@ const visible = computed(() => {
 
                 <ul id="branch-options" class="flex flex-col gap-2">
                     <li v-for="option in visible" :key="option.branch.id">
-                        <label
-                            :for="`branch-${option.branch.id}`"
-                            :class="[
-                                'flex cursor-pointer gap-3 rounded-xl border-[1.5px] p-3.5 transition-colors',
-                                model === option.branch.id
-                                    ? 'border-brand bg-brand-tint/45'
-                                    : error
-                                      ? 'border-brand-edge bg-white'
-                                      : 'border-line bg-white hover:border-line-strong',
-                            ]"
+                        <!-- A red edge on every card while none is chosen
+                             and the form says to choose one. -->
+                        <ChoiceCard
+                            :id="`branch-${option.branch.id}`"
+                            v-model="model"
+                            name="branch_id"
+                            :value="option.branch.id"
+                            :class="error ? 'border-brand-edge' : ''"
                         >
-                            <input
-                                :id="`branch-${option.branch.id}`"
-                                v-model="model"
-                                type="radio"
-                                name="branch_id"
-                                :value="option.branch.id"
-                                class="mt-0.5 size-5 flex-none accent-brand"
-                            />
                             <span class="min-w-0 flex-1">
                                 <span
                                     v-if="
@@ -178,7 +169,7 @@ const visible = computed(() => {
                                     {{ option.branch.opening_hours }}
                                 </span>
                             </span>
-                        </label>
+                        </ChoiceCard>
                     </li>
                 </ul>
             </fieldset>

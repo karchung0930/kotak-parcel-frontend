@@ -4,9 +4,10 @@ import { Lock, Mail } from '@lucide/vue';
 import { computed, nextTick } from 'vue';
 import FormField from '@/components/admin/FormField.vue';
 import FormSection from '@/components/admin/FormSection.vue';
-import NativeSelect from '@/components/admin/NativeSelect.vue';
 import SwitchField from '@/components/admin/SwitchField.vue';
+import ChoiceCard from '@/components/ChoiceCard.vue';
 import InputError from '@/components/InputError.vue';
+import NativeSelect from '@/components/NativeSelect.vue';
 import Notice from '@/components/Notice.vue';
 import PageHeader from '@/components/PageHeader.vue';
 import PhoneInput from '@/components/PhoneInput.vue';
@@ -219,37 +220,16 @@ function submit(): void {
                         Role
                     </legend>
                     <div class="mt-2 grid gap-2 sm:grid-cols-2">
-                        <label
+                        <ChoiceCard
                             v-for="role in roles"
                             :key="role.value"
-                            :class="[
-                                'flex cursor-pointer items-start gap-3 rounded-xl border-[1.5px] p-3.5 transition-colors has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-70 has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-brand',
-                                form.role === role.value
-                                    ? 'border-brand bg-brand-tint/50'
-                                    : 'border-line bg-white hover:border-line-strong',
-                            ]"
-                        >
-                            <input
-                                v-model="form.role"
-                                type="radio"
-                                name="role"
-                                :value="role.value"
-                                :aria-invalid="errors.role ? true : undefined"
-                                class="mt-0.5 size-[18px] flex-none accent-brand outline-none"
-                            />
-                            <span class="min-w-0">
-                                <span
-                                    class="block text-[14.5px] leading-5 font-bold text-ink"
-                                >
-                                    {{ role.label }}
-                                </span>
-                                <span
-                                    class="mt-0.5 block text-[13px] leading-5 text-balance text-muted-foreground"
-                                >
-                                    {{ ROLE_DESCRIPTIONS[role.value] }}
-                                </span>
-                            </span>
-                        </label>
+                            v-model="form.role"
+                            name="role"
+                            :value="role.value"
+                            :title="role.label"
+                            :hint="ROLE_DESCRIPTIONS[role.value]"
+                            :aria-invalid="errors.role ? true : undefined"
+                        />
                     </div>
                     <p
                         v-if="isSelf"

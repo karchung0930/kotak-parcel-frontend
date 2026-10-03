@@ -4,6 +4,7 @@ import type { LucideIcon } from '@lucide/vue';
 import { Banknote, CreditCard, Lock } from '@lucide/vue';
 import { refDebounced } from '@vueuse/core';
 import { computed, ref } from 'vue';
+import ChoiceCard from '@/components/ChoiceCard.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -117,34 +118,16 @@ const announcedChange = refDebounced(
             <!-- Side by side once the step card is 32rem wide, where each
                  tile still has room for its icon and a one-line hint. -->
             <div class="mt-2 grid gap-3 @lg:grid-cols-2">
-                <label
+                <ChoiceCard
                     v-for="option in paymentMethods"
                     :key="option.value"
-                    class="flex min-h-[68px] cursor-pointer items-center gap-3 rounded-xl border-[1.5px] border-line bg-white px-3.5 py-2.5 transition-colors hover:border-line-strong has-checked:border-brand has-checked:bg-brand-tint/45 has-focus-visible:outline-3 has-focus-visible:outline-offset-2 has-focus-visible:outline-brand sm:px-4"
-                >
-                    <input
-                        v-model="method"
-                        type="radio"
-                        name="method"
-                        :value="option.value"
-                        class="size-[18px] flex-none accent-brand focus-visible:outline-none"
-                    />
-                    <component
-                        :is="METHOD_DETAILS[option.value].icon"
-                        aria-hidden="true"
-                        class="size-6 flex-none text-ink-2"
-                    />
-                    <span class="flex min-w-0 flex-col">
-                        <span class="text-[15px] leading-5 font-bold text-ink">
-                            {{ option.label }}
-                        </span>
-                        <span
-                            class="text-[12.5px] leading-[18px] text-muted-foreground"
-                        >
-                            {{ METHOD_DETAILS[option.value].hint }}
-                        </span>
-                    </span>
-                </label>
+                    v-model="method"
+                    name="method"
+                    :value="option.value"
+                    :title="option.label"
+                    :hint="METHOD_DETAILS[option.value].hint"
+                    :icon="METHOD_DETAILS[option.value].icon"
+                />
             </div>
             <InputError :message="errors.method" class="mt-2" />
         </fieldset>

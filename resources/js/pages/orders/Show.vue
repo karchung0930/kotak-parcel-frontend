@@ -2,6 +2,7 @@
 import { Head, Link } from '@inertiajs/vue3';
 import { Banknote, Info, PackagePlus, Receipt } from '@lucide/vue';
 import { computed, useTemplateRef } from 'vue';
+import ActionDivider from '@/components/ActionDivider.vue';
 import DateTime from '@/components/DateTime.vue';
 import DescriptionItem from '@/components/DescriptionItem.vue';
 import DescriptionList from '@/components/DescriptionList.vue';
@@ -111,14 +112,8 @@ const historyFits = useFitsViewport(historyCard, 24);
                 :order-id="order.id"
                 :tracking-number="order.tracking_number"
             />
-            <!-- Cancelling this parcel vs sending a new one. On phones only
-                 the gaps flank it, so both buttons still share a line from
-                 375px; narrower they wrap, and it goes. -->
-            <span
-                v-if="canCancel"
-                aria-hidden="true"
-                class="h-7 w-px bg-line-strong max-[374px]:hidden sm:mx-1"
-            />
+            <!-- Cancelling this parcel vs sending a new one -->
+            <ActionDivider v-if="canCancel" />
             <Button as-child variant="secondary" class="h-11 px-4 font-bold">
                 <Link :href="create()">
                     <PackagePlus aria-hidden="true" />

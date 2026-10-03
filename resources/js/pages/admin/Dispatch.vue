@@ -17,7 +17,7 @@ import { queueRow } from '@/components/admin/dispatch';
 import type { QueueGroup } from '@/components/admin/dispatch';
 import DispatchPanel from '@/components/admin/DispatchPanel.vue';
 import DriverWorkload from '@/components/admin/DriverWorkload.vue';
-import NativeSelect from '@/components/admin/NativeSelect.vue';
+import NativeSelect from '@/components/NativeSelect.vue';
 import QueueList from '@/components/admin/QueueList.vue';
 import QueueTable from '@/components/admin/QueueTable.vue';
 import EmptyState from '@/components/EmptyState.vue';

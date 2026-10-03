@@ -12,10 +12,11 @@ import {
     TriangleAlert,
 } from '@lucide/vue';
 import { computed, ref } from 'vue';
+import ChoiceCard from '@/components/ChoiceCard.vue';
+import ConfirmActionDialog from '@/components/ConfirmActionDialog.vue';
 import DateTime from '@/components/DateTime.vue';
 import DescriptionItem from '@/components/DescriptionItem.vue';
 import DescriptionList from '@/components/DescriptionList.vue';
-import ConfirmActionDialog from '@/components/driver/ConfirmActionDialog.vue';
 import DeliverForm from '@/components/driver/DeliverForm.vue';
 import FailForm from '@/components/driver/FailForm.vue';
 import StatusChip from '@/components/StatusChip.vue';
@@ -295,32 +296,26 @@ const actionLinkClass =
                 <!-- Stacked on phones: side by side, "Couldn't deliver" and
                      its hint would wrap in a half-width tile. -->
                 <div class="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-                    <label
+                    <!-- Green once delivered, amber when it could not be. -->
+                    <ChoiceCard
                         v-for="option in OUTCOMES"
                         :key="option.value"
-                        :class="[
-                            'flex min-h-16 cursor-pointer flex-col justify-center gap-1 rounded-xl border-[1.5px] border-line bg-white px-3.5 py-3 transition-colors hover:border-line-strong has-focus-visible:outline-3 has-focus-visible:outline-offset-2 has-focus-visible:outline-brand sm:min-h-[76px]',
+                        v-model="outcome"
+                        name="outcome"
+                        :value="option.value"
+                        :tone="
                             option.value === 'delivered'
-                                ? 'has-checked:border-status-delivered has-checked:bg-status-delivered-tint'
-                                : 'has-checked:border-status-failed-pip has-checked:bg-status-failed-tint',
-                        ]"
+                                ? 'delivered'
+                                : 'failed'
+                        "
                     >
-                        <span class="flex items-center gap-2.5">
-                            <input
-                                v-model="outcome"
-                                type="radio"
-                                name="outcome"
-                                :value="option.value"
-                                class="size-5 flex-none accent-brand focus-visible:outline-none"
-                            />
-                            <span
-                                class="text-base leading-5 font-extrabold text-ink"
-                            >
-                                {{ option.label }}
-                            </span>
+                        <span
+                            class="text-base leading-5 font-extrabold text-ink"
+                        >
+                            {{ option.label }}
                         </span>
                         <span
-                            class="flex items-start gap-1.5 pl-[30px] text-[13px] leading-5 text-muted-foreground"
+                            class="flex items-start gap-1.5 text-[13px] leading-5 text-muted-foreground"
                         >
                             <component
                                 :is="option.icon"
@@ -329,7 +324,7 @@ const actionLinkClass =
                             />
                             {{ option.hint }}
                         </span>
-                    </label>
+                    </ChoiceCard>
                 </div>
             </fieldset>
 

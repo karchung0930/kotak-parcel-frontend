@@ -91,5 +91,8 @@ tests/js/                small checks that run on plain Node
   be undone. White outline buttons open, switch, cancel or go back. The pale
   red tint marks what is selected.
 - **One component per repeated element**, for example `CloseButton.vue` for
-  every close button in dialogs, sheets and panels.
+  every close button in dialogs, sheets and panels, `NativeSelect.vue` for
+  selects, `ChoiceCard.vue` for radio choices shown as cards, `ToneChip.vue`
+  under every status chip, and `ActionDivider.vue` between two kinds of page
+  actions.
 - **Light theme only**, with colours from the brand tokens.

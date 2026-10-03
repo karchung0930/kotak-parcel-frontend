@@ -2,7 +2,7 @@
 import { useForm } from '@inertiajs/vue3';
 import { PackageCheck, UserRound } from '@lucide/vue';
 import { nextTick, ref } from 'vue';
-import ConfirmActionDialog from '@/components/driver/ConfirmActionDialog.vue';
+import ConfirmActionDialog from '@/components/ConfirmActionDialog.vue';
 import PhotoCapture from '@/components/driver/PhotoCapture.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';

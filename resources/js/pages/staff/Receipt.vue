@@ -2,6 +2,7 @@
 import { Head, Link } from '@inertiajs/vue3';
 import { Printer, ScanLine } from '@lucide/vue';
 import { computed, onMounted, ref } from 'vue';
+import ActionDivider from '@/components/ActionDivider.vue';
 import KotakLogo from '@/components/brand/KotakLogo.vue';
 import PageHeader from '@/components/PageHeader.vue';
 import { Button } from '@/components/ui/button';
@@ -79,7 +80,7 @@ const labelClass = 'text-muted-foreground print:text-black';
                     Print receipt
                 </Button>
                 <!-- Finishing this receipt vs serving the next customer -->
-                <span aria-hidden="true" class="mx-1 h-7 w-px bg-line-strong" />
+                <ActionDivider />
                 <Button
                     variant="outline"
                     as-child

@@ -2,7 +2,7 @@
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { Search, X } from '@lucide/vue';
 import { computed } from 'vue';
-import NativeSelect from '@/components/admin/NativeSelect.vue';
+import NativeSelect from '@/components/NativeSelect.vue';
 import DateTime from '@/components/DateTime.vue';
 import EmptyState from '@/components/EmptyState.vue';
 import Money from '@/components/Money.vue';
