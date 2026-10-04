@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import Breadcrumbs from '@/components/Breadcrumbs.vue';
+import KeepTogether from '@/components/KeepTogether.vue';
 import type { BreadcrumbItem } from '@/types';
 
 /**
@@ -8,9 +9,10 @@ import type { BreadcrumbItem } from '@/types';
  * The actions move under the title on phones, and on wider screens too
  * whenever the title or description would have to wrap to make room for
  * them, so the actions never squeeze the title into a narrow column. A
- * title without spaces breaks anywhere rather than pushing the page
- * sideways; a file name goes in the title slot as a FileName instead, so
- * it breaks between its parts.
+ * date or tracking number in the title (a rate card's name, "Rates from 1
+ * November 2026") stays on one line. A title without spaces breaks
+ * anywhere rather than pushing the page sideways; a file name goes in the
+ * title slot as a FileName instead, so it breaks between its parts.
  *
  * Slots: title (replaces the title text), actions (buttons/links), meta
  * (chips or details under the title).
@@ -41,7 +43,7 @@ withDefaults(
             <h1
                 class="text-2xl leading-8 font-extrabold tracking-display wrap-anywhere text-ink sm:text-[28px] sm:leading-9"
             >
-                <slot name="title">{{ title }}</slot>
+                <slot name="title"><KeepTogether :text="title" /></slot>
             </h1>
             <p
                 v-if="description"

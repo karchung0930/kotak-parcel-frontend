@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { House } from '@lucide/vue';
 import { computed } from 'vue';
+import KeepTogether from '@/components/KeepTogether.vue';
 import { formatShortDate, formatTime } from '@/lib/format';
 import { statusMeta } from '@/lib/status';
 import type { Option, OrderStatusValue, RoleValue } from '@/types';
@@ -187,7 +188,7 @@ const items = computed(() =>
                     v-if="item.note"
                     class="mt-2 rounded-lg bg-surface px-3 py-2 text-[13px] leading-5 text-balance text-ink-2 sm:text-pretty"
                 >
-                    {{ item.note }}
+                    <KeepTogether :text="item.note" />
                 </p>
             </div>
         </li>

@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import InputError from '@/components/InputError.vue';
+import KeepTogether from '@/components/KeepTogether.vue';
 
 /**
  * One form field: its label, the control (default slot), a hint and the
  * server's error message. The slot receives `describedby` (for the
  * control's aria-describedby) and `invalid` (for aria-invalid), so the
- * hint and the error are read out with the field.
+ * hint and the error are read out with the field. A date in the hint
+ * ("e.g. Rates from 1 January 2027") stays on one line.
  */
 const props = withDefaults(
     defineProps<{
@@ -49,7 +51,7 @@ const describedby = computed(
             :id="hintId"
             class="text-[13px] leading-5 text-muted-foreground"
         >
-            {{ hint }}
+            <KeepTogether :text="hint" />
         </p>
         <InputError :id="errorId" :message="error" />
     </div>

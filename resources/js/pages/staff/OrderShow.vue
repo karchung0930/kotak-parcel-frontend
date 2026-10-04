@@ -10,6 +10,7 @@ import RefusePriceDialog from '@/components/counter/RefusePriceDialog.vue';
 import TakePaymentForm from '@/components/counter/TakePaymentForm.vue';
 import WeighParcelForm from '@/components/counter/WeighParcelForm.vue';
 import DateTime from '@/components/DateTime.vue';
+import KeepTogether from '@/components/KeepTogether.vue';
 import Notice from '@/components/Notice.vue';
 import StatusChip from '@/components/StatusChip.vue';
 import Timeline from '@/components/Timeline.vue';
@@ -18,6 +19,7 @@ import { Button } from '@/components/ui/button';
 import { useFitsViewport } from '@/composables/useFitsViewport';
 import {
     formatDateTime,
+    formatDeliveryArea,
     formatMoney,
     formatTrackingNumber,
     formatWeekdayDate,
@@ -217,9 +219,14 @@ const historyFits = useFitsViewport(historyCard, 24);
                                 Deliver to
                             </dt>
                             <dd
-                                class="text-[17px] leading-6 font-bold text-ink"
+                                class="text-[17px] leading-6 font-bold wrap-anywhere text-ink"
                             >
-                                {{ order.city }} {{ order.postcode }}
+                                {{
+                                    formatDeliveryArea(
+                                        order.city,
+                                        order.postcode,
+                                    )
+                                }}
                             </dd>
                         </div>
                         <div class="sm:border-l sm:border-line sm:px-4">
@@ -463,7 +470,7 @@ const historyFits = useFitsViewport(historyCard, 24);
                 >
                     Cancelled on {{ formatDateTime(order.cancelled_at) }}.
                     <template v-if="cancelReason">
-                        Reason: {{ cancelReason }}
+                        Reason: <KeepTogether :text="cancelReason" />
                     </template>
                 </Notice>
             </div>

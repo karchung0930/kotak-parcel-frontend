@@ -5,12 +5,15 @@ import { computed, onMounted, ref } from 'vue';
 import ActionDivider from '@/components/ActionDivider.vue';
 import KotakLogo from '@/components/brand/KotakLogo.vue';
 import PageHeader from '@/components/PageHeader.vue';
+import TrackingNumber from '@/components/TrackingNumber.vue';
 import { Button } from '@/components/ui/button';
 import {
     formatDateTime,
+    formatDeliveryArea,
     formatDimensions,
     formatMoney,
     formatPhone,
+    formatPostcodeCity,
     formatTrackingNumber,
     formatWeight,
 } from '@/lib/format';
@@ -126,8 +129,13 @@ const labelClass = 'text-muted-foreground print:text-black';
                             <template v-if="branch">
                                 <p class="mt-3 font-bold">{{ branch.name }}</p>
                                 <p :class="labelClass">
-                                    {{ branch.address }}, {{ branch.postcode }}
-                                    {{ branch.city }}, {{ branch.state }}
+                                    {{ branch.address }},
+                                    {{
+                                        formatPostcodeCity(
+                                            branch.postcode,
+                                            branch.city,
+                                        )
+                                    }}, {{ branch.state }}
                                 </p>
                                 <p :class="labelClass">
                                     Tel {{ formatPhone(branch.phone) }}
@@ -176,9 +184,12 @@ const labelClass = 'text-muted-foreground print:text-black';
                                     Tracking number
                                 </p>
                                 <p
-                                    class="mt-0.5 font-mono text-[26px] leading-9 font-bold tracking-[0.03em] print:text-[16pt]"
+                                    class="mt-0.5 text-[26px] leading-9 print:text-[16pt]"
                                 >
-                                    {{ trackingNumber }}
+                                    <TrackingNumber
+                                        :value="order.tracking_number"
+                                        size="inline"
+                                    />
                                 </p>
                             </div>
 
@@ -193,7 +204,12 @@ const labelClass = 'text-muted-foreground print:text-black';
                                     <dt :class="labelClass">Deliver to</dt>
                                     <dd class="text-right font-semibold">
                                         {{ order.receiver_name }}<br />
-                                        {{ order.city }} {{ order.postcode }}
+                                        {{
+                                            formatDeliveryArea(
+                                                order.city,
+                                                order.postcode,
+                                            )
+                                        }}
                                     </dd>
                                 </div>
                                 <div :class="rowClass">

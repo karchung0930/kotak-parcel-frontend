@@ -3,6 +3,7 @@ import { Form } from '@inertiajs/vue3';
 import { CircleX } from '@lucide/vue';
 import { ref } from 'vue';
 import InputError from '@/components/InputError.vue';
+import TrackingNumber from '@/components/TrackingNumber.vue';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -17,7 +18,6 @@ import {
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { Textarea } from '@/components/ui/textarea';
-import { formatTrackingNumber } from '@/lib/format';
 import { cancel } from '@/routes/orders';
 
 /**
@@ -25,13 +25,12 @@ import { cancel } from '@/routes/orders';
  * shown while the customer may still cancel (before drop-off); the server
  * confirms with a toast and the page reloads with the new status.
  */
-const props = defineProps<{
+defineProps<{
     orderId: number;
     trackingNumber: string;
 }>();
 
 const open = ref(false);
-const trackingNumber = formatTrackingNumber(props.trackingNumber);
 </script>
 
 <template>
@@ -62,9 +61,11 @@ const trackingNumber = formatTrackingNumber(props.trackingNumber);
                         Cancel this order?
                     </DialogTitle>
                     <DialogDescription class="text-[15px] leading-6">
-                        <span class="font-mono font-bold text-ink">{{
-                            trackingNumber
-                        }}</span>
+                        <TrackingNumber
+                            :value="trackingNumber"
+                            size="inline"
+                            class="text-ink"
+                        />
                         will be cancelled and can't be dropped off. This can't
                         be undone, but you can create a new order any time.
                     </DialogDescription>

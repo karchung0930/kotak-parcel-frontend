@@ -7,12 +7,14 @@ import {
 } from '@/components/admin/dispatch';
 import type { QueueGroup } from '@/components/admin/dispatch';
 import AttemptPips from '@/components/AttemptPips.vue';
+import BranchName from '@/components/BranchName.vue';
 import Pagination from '@/components/Pagination.vue';
 import PlateBadge from '@/components/PlateBadge.vue';
 import StatusChip from '@/components/StatusChip.vue';
 import TrackingNumber from '@/components/TrackingNumber.vue';
 import { Button } from '@/components/ui/button';
 import Weight from '@/components/Weight.vue';
+import { formatDeliveryArea } from '@/lib/format';
 import { show } from '@/routes/admin/orders';
 import type { OrderSummary } from '@/types';
 
@@ -90,7 +92,12 @@ const idPrefix = useId();
                         <StatusChip :status="row.order.status" size="sm" />
                     </div>
                     <p class="mt-2 text-sm leading-5 font-bold text-ink">
-                        {{ row.order.city }} {{ row.order.postcode }}
+                        {{
+                            formatDeliveryArea(
+                                row.order.city,
+                                row.order.postcode,
+                            )
+                        }}
                         <span class="font-medium text-muted-foreground">
                             · {{ row.order.receiver_name }}
                         </span>
@@ -98,7 +105,7 @@ const idPrefix = useId();
                     <p class="mt-0.5 text-[13px] leading-5 text-ink-2">
                         <Weight :grams="row.order.chargeable_weight_g" />
                         <template v-if="row.order.branch">
-                            · from {{ row.order.branch.name }}
+                            · from <BranchName :name="row.order.branch.name" />
                         </template>
                     </p>
                     <p

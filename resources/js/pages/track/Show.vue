@@ -10,6 +10,7 @@ import {
     Store,
 } from '@lucide/vue';
 import { computed, useTemplateRef } from 'vue';
+import BranchName from '@/components/BranchName.vue';
 import DeliveryScene from '@/components/brand/DeliveryScene.vue';
 import EmptyParcel from '@/components/brand/EmptyParcel.vue';
 import JourneyConveyor from '@/components/brand/JourneyConveyor.vue';
@@ -27,6 +28,7 @@ import { useFitsViewport } from '@/composables/useFitsViewport';
 import {
     formatDate,
     formatDateTime,
+    formatDeliveryArea,
     formatTrackingNumber,
     formatWeekdayDate,
     formatWeight,
@@ -337,10 +339,14 @@ const detailsFits = useFitsViewport(detailsCard, 24);
                                     Destination
                                 </dt>
                                 <dd
-                                    class="text-[17px] leading-6 font-bold text-ink"
+                                    class="text-[17px] leading-6 font-bold wrap-anywhere text-ink"
                                 >
-                                    {{ result.destination.city }}
-                                    {{ result.destination.postcode }}
+                                    {{
+                                        formatDeliveryArea(
+                                            result.destination.city,
+                                            result.destination.postcode,
+                                        )
+                                    }}
                                 </dd>
                             </div>
                             <div class="min-w-0 lg:px-5 lg:last:pr-0 xl:px-7">
@@ -455,11 +461,15 @@ const detailsFits = useFitsViewport(detailsCard, 24);
                             {{ formatWeight(result.chargeable_weight_g) }}
                         </DescriptionItem>
                         <DescriptionItem label="Drop-off branch">
-                            {{ result.branch.name }}
+                            <BranchName :name="result.branch.name" />
                         </DescriptionItem>
                         <DescriptionItem label="Destination">
-                            {{ result.destination.city }}
-                            {{ result.destination.postcode }}
+                            {{
+                                formatDeliveryArea(
+                                    result.destination.city,
+                                    result.destination.postcode,
+                                )
+                            }}
                         </DescriptionItem>
                         <DescriptionItem label="Ordered">
                             {{ formatDate(result.created_at) }}
@@ -525,10 +535,11 @@ const detailsFits = useFitsViewport(detailsCard, 24);
                 </h2>
                 <p class="mt-2 text-[15px] leading-6 text-ink-2">
                     No parcel matches
-                    <span class="font-mono font-bold break-all text-ink">{{
-                        formatTrackingNumber(query)
-                    }}</span
-                    >.
+                    <TrackingNumber
+                        :value="query"
+                        size="inline"
+                        class="text-ink"
+                    />.
                 </p>
                 <p
                     class="mx-auto mt-3 max-w-lg text-sm leading-[22px] text-muted-foreground"

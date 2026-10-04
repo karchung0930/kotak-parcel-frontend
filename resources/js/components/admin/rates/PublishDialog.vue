@@ -4,6 +4,7 @@ import { CalendarClock, Pencil, Send, TriangleAlert } from '@lucide/vue';
 import { computed, ref, useId, watch } from 'vue';
 import ChoiceCard from '@/components/ChoiceCard.vue';
 import InputError from '@/components/InputError.vue';
+import KeepTogether from '@/components/KeepTogether.vue';
 import Notice from '@/components/Notice.vue';
 import { Button } from '@/components/ui/button';
 import {
@@ -28,6 +29,8 @@ import type { RateCard } from '@/types';
  * published: the dialog lists them and leads to the editor instead (the
  * server checks again and lists anything else it finds). While problems
  * remain, the trigger is a white button, as the next step is to edit.
+ * A date in the rates' name ("Rates from 1 November 2026") stays on one
+ * line.
  */
 const props = defineProps<{
     rateCard: RateCard;
@@ -135,7 +138,7 @@ function submit(): void {
                     <DialogTitle
                         class="pr-12 text-xl leading-7 font-extrabold tracking-heading text-ink"
                     >
-                        Publish {{ rateCard.name }}?
+                        Publish <KeepTogether :text="rateCard.name" />?
                     </DialogTitle>
                     <DialogDescription class="text-[15px] leading-6 text-ink-2">
                         Published rates are final. Later changes go in a new
@@ -160,7 +163,9 @@ function submit(): void {
                     </ul>
                 </Notice>
 
-                <fieldset v-else class="grid gap-2">
+                <!-- min-w-0 down to the field: a date and time field is wider
+                     than a 320px phone's dialog until it may shrink. -->
+                <fieldset v-else class="grid min-w-0 gap-2">
                     <legend class="mb-1.5 text-sm leading-5 font-bold text-ink">
                         When do they take effect?
                     </legend>
@@ -175,7 +180,7 @@ function submit(): void {
 
                     <div
                         v-if="form.when === 'scheduled'"
-                        class="mt-3 grid gap-1.5"
+                        class="mt-3 grid min-w-0 gap-1.5"
                     >
                         <label
                             :for="`${id}-at`"
@@ -186,7 +191,7 @@ function submit(): void {
                                 (Malaysia time)
                             </span>
                         </label>
-                        <div class="relative">
+                        <div class="relative min-w-0">
                             <CalendarClock
                                 aria-hidden="true"
                                 class="pointer-events-none absolute top-1/2 left-3 size-[18px] -translate-y-1/2 text-brand"
@@ -221,7 +226,7 @@ function submit(): void {
                         v-if="!errors.effective_at"
                         class="text-[13px] leading-5 text-muted-foreground"
                     >
-                        {{ summary }}
+                        <KeepTogether :text="summary" />
                     </p>
                 </fieldset>
 

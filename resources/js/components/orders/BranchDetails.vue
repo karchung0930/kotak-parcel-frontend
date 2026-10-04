@@ -2,7 +2,7 @@
 import { Clock, ExternalLink, Phone, Store } from '@lucide/vue';
 import { Button } from '@/components/ui/button';
 import { directionsUrl } from '@/lib/branches';
-import { formatPhone, telHref } from '@/lib/format';
+import { formatPhone, formatPostcodeCity, telHref } from '@/lib/format';
 import type { Branch } from '@/types';
 
 /**
@@ -29,8 +29,9 @@ defineProps<{
                     {{ branch.name }}
                 </p>
                 <p class="mt-0.5 text-sm leading-5 text-muted-foreground">
-                    {{ branch.address }}, {{ branch.postcode }}
-                    {{ branch.city }}, {{ branch.state }}
+                    {{ branch.address }},
+                    {{ formatPostcodeCity(branch.postcode, branch.city) }},
+                    {{ branch.state }}
                 </p>
             </div>
         </div>

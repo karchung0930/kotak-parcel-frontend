@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
+import KeepTogether from '@/components/KeepTogether.vue';
 import {
     Breadcrumb,
     BreadcrumbItem,
@@ -10,7 +11,11 @@ import {
 } from '@/components/ui/breadcrumb';
 import type { BreadcrumbItem as BreadcrumbItemType } from '@/types';
 
-/** Breadcrumb trail; the last item is the current page. */
+/**
+ * Breadcrumb trail; the last item is the current page. A tracking number
+ * in a title (a parcel's page) is shown as everywhere else, and it and any
+ * date (a rate card's name) stay on one line.
+ */
 defineProps<{
     breadcrumbs: BreadcrumbItemType[];
 }>();
@@ -32,7 +37,7 @@ defineProps<{
                         class="min-w-0 truncate font-semibold text-ink"
                         :title="item.title"
                     >
-                        {{ item.title }}
+                        <KeepTogether :text="item.title" />
                     </BreadcrumbPage>
                     <!-- A 44px target on touch screens without moving
                          anything: often the only way back on a phone. -->
@@ -41,7 +46,7 @@ defineProps<{
                             :href="item.href"
                             class="tap-target relative hover:text-brand-strong"
                         >
-                            {{ item.title }}
+                            <KeepTogether :text="item.title" />
                         </Link>
                     </BreadcrumbLink>
                 </BreadcrumbItem>

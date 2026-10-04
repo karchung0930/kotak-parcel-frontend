@@ -13,7 +13,7 @@ import StatusChip from '@/components/StatusChip.vue';
 import TrackingNumber from '@/components/TrackingNumber.vue';
 import { Button } from '@/components/ui/button';
 import Weight from '@/components/Weight.vue';
-import { formatShortDate, formatTrackingNumber, pluralize } from '@/lib/format';
+import { formatDeliveryArea, formatShortDate, pluralize } from '@/lib/format';
 import { pricing } from '@/routes';
 import { create, index, show } from '@/routes/orders';
 import type { OrderSummary, OrdersIndexPageProps } from '@/types';
@@ -114,9 +114,12 @@ const th = 'py-2.5 font-bold';
                 <div class="flex items-start justify-between gap-3">
                     <Link
                         :href="show(order.id)"
-                        class="font-mono text-[15px] leading-6 font-bold tracking-[0.02em] text-brand-strong after:absolute after:inset-0 after:rounded-2xl"
+                        class="text-[15px] leading-6 text-brand-strong after:absolute after:inset-0 after:rounded-2xl"
                     >
-                        {{ formatTrackingNumber(order.tracking_number) }}
+                        <TrackingNumber
+                            :value="order.tracking_number"
+                            size="inline"
+                        />
                         <span class="sr-only">
                             , parcel to {{ order.receiver_name }}
                         </span>
@@ -127,7 +130,7 @@ const th = 'py-2.5 font-bold';
                     {{ order.receiver_name }}
                 </p>
                 <p class="text-sm leading-5 text-muted-foreground">
-                    {{ order.city }} {{ order.postcode }} ·
+                    {{ formatDeliveryArea(order.city, order.postcode) }} ·
                     {{ order.item_name }}
                 </p>
                 <p
@@ -253,7 +256,12 @@ const th = 'py-2.5 font-bold';
                             <p
                                 class="text-[12.5px] leading-[17px] text-muted-foreground"
                             >
-                                {{ order.city }} {{ order.postcode }}
+                                {{
+                                    formatDeliveryArea(
+                                        order.city,
+                                        order.postcode,
+                                    )
+                                }}
                             </p>
                         </td>
                         <td

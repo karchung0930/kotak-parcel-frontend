@@ -22,6 +22,7 @@ import {
     formatDateTime,
     formatDimensions,
     formatPhone,
+    formatPostcodeCity,
     formatTrackingNumber,
     formatWeekdayDate,
     telHref,
@@ -371,8 +372,12 @@ const historyFits = useFitsViewport(historyCard, 24);
                                 <template v-if="order.address_line2">
                                     <br />{{ order.address_line2 }}
                                 </template>
-                                <br />{{ order.postcode }} {{ order.city }},
-                                {{ order.state }}
+                                <br />{{
+                                    formatPostcodeCity(
+                                        order.postcode,
+                                        order.city,
+                                    )
+                                }}, {{ order.state }}
                             </span>
                             <!-- A 44px target on touch screens without
                                  moving anything -->

@@ -3,6 +3,7 @@ import { Form } from '@inertiajs/vue3';
 import { CircleX } from '@lucide/vue';
 import { ref } from 'vue';
 import InputError from '@/components/InputError.vue';
+import TrackingNumber from '@/components/TrackingNumber.vue';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -17,7 +18,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { Textarea } from '@/components/ui/textarea';
-import { formatMoney, formatTrackingNumber } from '@/lib/format';
+import { formatMoney } from '@/lib/format';
 import { cancel } from '@/routes/staff/orders';
 import type { Order } from '@/types';
 
@@ -25,12 +26,11 @@ import type { Order } from '@/types';
  * "Customer refused the price": cancels a weighed parcel after a
  * confirmation dialog with an optional reason. Cannot be undone.
  */
-const props = defineProps<{
+defineProps<{
     order: Order;
 }>();
 
 const open = ref(false);
-const trackingNumber = formatTrackingNumber(props.order.tracking_number);
 </script>
 
 <template>
@@ -78,7 +78,11 @@ const trackingNumber = formatTrackingNumber(props.order.tracking_number);
                         <DialogTitle
                             class="pr-12 text-xl leading-7 font-extrabold tracking-heading text-ink"
                         >
-                            Cancel {{ trackingNumber }}?
+                            Cancel
+                            <TrackingNumber
+                                :value="order.tracking_number"
+                                size="inline"
+                            />?
                         </DialogTitle>
                         <DialogDescription
                             class="text-[15px] leading-6 text-ink-2"

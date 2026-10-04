@@ -13,7 +13,7 @@ import TrackingNumber from '@/components/TrackingNumber.vue';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import Weight from '@/components/Weight.vue';
-import { formatTrackingNumber, pluralize, toTrackingQuery } from '@/lib/format';
+import { formatDeliveryArea, pluralize, toTrackingQuery } from '@/lib/format';
 import { counter } from '@/routes/staff';
 import { show } from '@/routes/staff/orders';
 import type { StaffCounterPageProps } from '@/types';
@@ -197,9 +197,7 @@ const STEPS = [
                         <div class="min-w-0">
                             <p class="text-[15px] leading-6 font-bold text-ink">
                                 No parcel matches
-                                <span class="font-mono break-all">{{
-                                    formatTrackingNumber(query)
-                                }}</span>
+                                <TrackingNumber :value="query" size="inline" />
                             </p>
                             <p class="mt-0.5 text-sm leading-5 text-ink-2">
                                 Check the number with the customer and scan
@@ -351,7 +349,12 @@ const STEPS = [
                                     <p
                                         class="leading-[19px] font-bold text-ink"
                                     >
-                                        {{ item.city }} {{ item.postcode }}
+                                        {{
+                                            formatDeliveryArea(
+                                                item.city,
+                                                item.postcode,
+                                            )
+                                        }}
                                     </p>
                                     <p
                                         class="text-[12.5px] leading-[17px] text-muted-foreground"
@@ -417,15 +420,11 @@ const STEPS = [
                                 <span
                                     class="flex flex-wrap items-center justify-between gap-2"
                                 >
-                                    <span
-                                        class="font-mono text-sm font-bold text-brand-strong"
-                                    >
-                                        {{
-                                            formatTrackingNumber(
-                                                item.tracking_number,
-                                            )
-                                        }}
-                                    </span>
+                                    <TrackingNumber
+                                        :value="item.tracking_number"
+                                        size="inline"
+                                        class="text-sm text-brand-strong"
+                                    />
                                     <StatusChip
                                         :status="item.status"
                                         size="sm"
@@ -434,7 +433,12 @@ const STEPS = [
                                 <span
                                     class="mt-1 block text-sm leading-5 font-bold text-ink"
                                 >
-                                    {{ item.city }} {{ item.postcode }}
+                                    {{
+                                        formatDeliveryArea(
+                                            item.city,
+                                            item.postcode,
+                                        )
+                                    }}
                                     <span
                                         class="font-medium text-muted-foreground"
                                     >

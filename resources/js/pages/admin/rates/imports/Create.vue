@@ -9,6 +9,7 @@ import ImportStatusChip from '@/components/admin/rates/imports/ImportStatusChip.
 import LayoutExamples from '@/components/admin/rates/imports/LayoutExamples.vue';
 import DateTime from '@/components/DateTime.vue';
 import FileName from '@/components/FileName.vue';
+import KeepTogether from '@/components/KeepTogether.vue';
 import NativeSelect from '@/components/NativeSelect.vue';
 import PageHeader from '@/components/PageHeader.vue';
 import TextLink from '@/components/TextLink.vue';
@@ -288,7 +289,9 @@ const headingClass =
                                     role="cell"
                                     class="max-w-48 py-3 wrap-anywhere text-ink-2"
                                 >
-                                    {{ item.base_rate_card?.name ?? '—' }}
+                                    <KeepTogether
+                                        :text="item.base_rate_card?.name ?? '—'"
+                                    />
                                 </td>
                                 <td
                                     role="cell"

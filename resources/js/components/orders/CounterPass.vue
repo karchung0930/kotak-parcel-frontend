@@ -4,7 +4,8 @@ import KotakTape from '@/components/brand/KotakTape.vue';
 import Notice from '@/components/Notice.vue';
 import BranchDetails from '@/components/orders/BranchDetails.vue';
 import TrackingBarcode from '@/components/TrackingBarcode.vue';
-import { formatTrackingNumber, formatWeekdayDate } from '@/lib/format';
+import TrackingNumber from '@/components/TrackingNumber.vue';
+import { formatWeekdayDate } from '@/lib/format';
 import type { Branch } from '@/types';
 
 /**
@@ -66,9 +67,9 @@ defineProps<{
                         class="mx-auto h-16 w-full max-w-[440px] sm:h-20"
                     />
                     <p
-                        class="mt-3 font-mono text-[26px] leading-9 font-bold tracking-[0.06em] break-all text-ink sm:text-[34px] sm:leading-[44px]"
+                        class="mt-3 text-[26px] leading-9 text-ink sm:text-[34px] sm:leading-[44px]"
                     >
-                        {{ formatTrackingNumber(trackingNumber) }}
+                        <TrackingNumber :value="trackingNumber" size="inline" />
                     </p>
                 </div>
                 <p

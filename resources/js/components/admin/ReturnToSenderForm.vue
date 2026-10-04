@@ -5,6 +5,7 @@ import { computed, useId } from 'vue';
 import FormField from '@/components/admin/FormField.vue';
 import InputError from '@/components/InputError.vue';
 import Notice from '@/components/Notice.vue';
+import TrackingNumber from '@/components/TrackingNumber.vue';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { Textarea } from '@/components/ui/textarea';
@@ -121,9 +122,11 @@ function submit(): void {
             ]"
         >
             <p class="text-[13px] leading-5 text-ink-2">
-                <span class="font-mono font-bold text-ink">{{
-                    order.tracking_number
-                }}</span>
+                <TrackingNumber
+                    :value="order.tracking_number"
+                    size="inline"
+                    class="text-ink"
+                />
                 goes back to the sender instead of
                 {{ order.receiver_name }}.
             </p>

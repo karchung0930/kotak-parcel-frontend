@@ -3,9 +3,11 @@ import { useForm } from '@inertiajs/vue3';
 import { CalendarDays, Truck } from '@lucide/vue';
 import { useDebounceFn } from '@vueuse/core';
 import { computed, nextTick, onMounted, useId, watch } from 'vue';
+import BranchName from '@/components/BranchName.vue';
 import InputError from '@/components/InputError.vue';
 import PlateBadge from '@/components/PlateBadge.vue';
 import TextLink from '@/components/TextLink.vue';
+import TrackingNumber from '@/components/TrackingNumber.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
@@ -205,7 +207,8 @@ function submit(): void {
                     >
                         {{ formatWeekdayDate(form.scheduled_for) }}
                         <template v-if="order.branch">
-                            · collected from {{ order.branch.name }}
+                            · collected from
+                            <BranchName :name="order.branch.name" />
                         </template>
                     </p>
                     <!-- Toggle chips, not outline Buttons: the chosen day is
@@ -370,14 +373,18 @@ function submit(): void {
                         selectedDriver.name
                     }}</strong>
                     <template v-if="selectedDriver.vehicle_plate">
-                        (van {{ selectedDriver.vehicle_plate }})
+                        (<span class="whitespace-nowrap"
+                            >van {{ selectedDriver.vehicle_plate }}</span
+                        >)
                     </template>
                     will collect
-                    <span class="font-mono font-bold text-ink">{{
-                        order.tracking_number
-                    }}</span>
+                    <TrackingNumber
+                        :value="order.tracking_number"
+                        size="inline"
+                        class="text-ink"
+                    />
                     <template v-if="order.branch">
-                        from {{ order.branch.name }}
+                        from <BranchName :name="order.branch.name" />
                     </template>
                     on {{ formatDate(form.scheduled_for) }}.
                 </template>

@@ -119,14 +119,10 @@ const statusLabel = computed(() =>
     props.status ? statusMeta(props.status).label : '',
 );
 
-/** "29 Sep" stays on one line in the narrow compact columns. */
-function keepDate(text: string): string {
-    return text.replace(/^(\d{1,2}) /, '$1 ');
-}
-
 function detail(stage: JourneyStage, state: JourneyStageState): string {
     const reached = props.times[stage];
-    const when = reached ? keepDate(formatShortDateTime(reached)) : null;
+    // The formatters keep "29 Sep" on one line in the narrow compact columns.
+    const when = reached ? formatShortDateTime(reached) : null;
 
     if (state === 'done') {
         return when ?? 'Done';
@@ -152,7 +148,7 @@ function detail(stage: JourneyStage, state: JourneyStageState): string {
         props.status &&
         tone.value === 'active'
     ) {
-        return `Expected ${keepDate(formatShortDate(props.expectedDelivery))}`;
+        return `Expected ${formatShortDate(props.expectedDelivery)}`;
     }
 
     return '';

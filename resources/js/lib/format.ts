@@ -14,6 +14,9 @@ export const TIME_ZONE = 'Asia/Kuala_Lumpur';
 /** Shown in place of a missing value. */
 export const EMPTY = '—';
 
+/** A no-break space: the words on either side stay on one line. */
+const NBSP = '\u00a0';
+
 const MONTHS = [
     'Jan',
     'Feb',
@@ -35,6 +38,10 @@ const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 |--------------------------------------------------------------------------
 | Money, weight and size
 |--------------------------------------------------------------------------
+|
+| A number keeps its unit on its line: Intl puts a no-break space after
+| "RM", and the weights use one before "kg".
+|
 */
 
 const money = new Intl.NumberFormat('en-MY', {
@@ -62,7 +69,7 @@ export function formatWeight(grams: number | null | undefined): string {
         return EMPTY;
     }
 
-    return `${oneDecimal.format(grams / 1000)} kg`;
+    return `${oneDecimal.format(grams / 1000)}${NBSP}kg`;
 }
 
 /**
@@ -74,7 +81,7 @@ export function formatKg(grams: number | null | undefined): string {
         return EMPTY;
     }
 
-    return `${Number((grams / 1000).toFixed(3))} kg`;
+    return `${Number((grams / 1000).toFixed(3))}${NBSP}kg`;
 }
 
 /** (40, 30, 25) → "40 × 30 × 25 cm". */
@@ -124,6 +131,10 @@ export function pluralize(
 |
 | Built from parts with fixed English month names, so the output is the
 | same in every browser ("29 Sep 2026, 14:05", never "29 Sept 2026").
+|
+| The parts of a date are joined with no-break spaces, so a date never ends
+| a line after its day or month, wherever it is shown; a time after it may
+| still go to the next line.
 |
 */
 
@@ -203,7 +214,10 @@ function toParts(value: string | Date | null | undefined): DateParts | null {
 const pad = (value: number): string => String(value).padStart(2, '0');
 
 const shortDate = (parts: DateParts): string =>
-    `${parts.day} ${MONTHS[parts.month - 1]}`;
+    `${parts.day}${NBSP}${MONTHS[parts.month - 1]}`;
+
+const fullDate = (parts: DateParts): string =>
+    `${shortDate(parts)}${NBSP}${parts.year}`;
 
 const time = (parts: DateParts): string =>
     parts.hour === null || parts.minute === null
@@ -220,7 +234,7 @@ export function formatDateTime(
         return EMPTY;
     }
 
-    const date = `${shortDate(parts)} ${parts.year}`;
+    const date = fullDate(parts);
 
     return parts.hour === null ? date : `${date}, ${time(parts)}`;
 }
@@ -229,7 +243,7 @@ export function formatDateTime(
 export function formatDate(value: string | Date | null | undefined): string {
     const parts = toParts(value);
 
-    return parts ? `${shortDate(parts)} ${parts.year}` : EMPTY;
+    return parts ? fullDate(parts) : EMPTY;
 }
 
 /** "Tue, 29 Sep 2026". */
@@ -239,7 +253,7 @@ export function formatWeekdayDate(
     const parts = toParts(value);
 
     return parts
-        ? `${WEEKDAYS[parts.weekday]}, ${shortDate(parts)} ${parts.year}`
+        ? `${WEEKDAYS[parts.weekday]},${NBSP}${fullDate(parts)}`
         : EMPTY;
 }
 
@@ -411,4 +425,117 @@ export function branchNameParts(name: string): [string, string] {
     return dash < 0
         ? ['', name]
         : [`${name.slice(0, dash)}\u00a0- `, name.slice(dash + 3)];
+}
+
+/*
+|--------------------------------------------------------------------------
+| Addresses
+|--------------------------------------------------------------------------
+|
+| A postcode never ends or starts a line on its own. A short town stays
+| whole with it ("47500 Subang Jaya"); a long one, which customers may type
+| ("43900 Bandar Baru Salak Tinggi"), keeps only the word next to the
+| postcode and wraps between its other words, so it never pushes a card or
+| the page sideways.
+|
+*/
+
+/**
+ * The longest town (or town word) kept on one line with its postcode: 19
+ * characters with it, so "47300 Petaling Jaya" and "Kota Kinabalu 88300"
+ * stay whole, and it still fits the narrowest place a town is shown (the
+ * destination beside its label on a customer's order, on a 320px phone).
+ */
+const SHORT_TOWN = 13;
+
+function joinPostcode(
+    postcode: string,
+    city: string,
+    postcodeFirst: boolean,
+): string {
+    const code = postcode.trim();
+    const words = city.trim().split(/\s+/).filter(Boolean);
+
+    if (code === '' || words.length === 0) {
+        return [...words, code].filter(Boolean).join(' ');
+    }
+
+    const town = words.join(words.join(' ').length <= SHORT_TOWN ? NBSP : ' ');
+    const next = postcodeFirst ? words[0] : words[words.length - 1];
+    const space = next.length <= SHORT_TOWN ? NBSP : ' ';
+
+    return postcodeFirst ? `${code}${space}${town}` : `${town}${space}${code}`;
+}
+
+/** ("47500", "Subang Jaya") → "47500 Subang Jaya": an address's town line. */
+export function formatPostcodeCity(postcode: string, city: string): string {
+    return joinPostcode(postcode, city, true);
+}
+
+/**
+ * ("Subang Jaya", "47500") → "Subang Jaya 47500": where a parcel goes, town
+ * first, as lists and the driver's run sheet show it.
+ */
+export function formatDeliveryArea(city: string, postcode: string): string {
+    return joinPostcode(postcode, city, false);
+}
+
+/*
+|--------------------------------------------------------------------------
+| Text from the server
+|--------------------------------------------------------------------------
+*/
+
+const WEEKDAY_NAME =
+    '(?:Mon(?:day)?|Tue(?:sday)?|Wed(?:nesday)?|Thu(?:rsday)?|Fri(?:day)?|Sat(?:urday)?|Sun(?:day)?)';
+const MONTH_NAME =
+    '(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|June?|July?|Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)';
+
+/** A tracking number, a date ("Sun, 4 Oct 2026", "6 October") or "RM 18.00". */
+const KEEP_TOGETHER = new RegExp(
+    [
+        String.raw`(?<tracking>\bKT-[0-9A-Z]{8}\b)`,
+        String.raw`(?<date>\b(?:${WEEKDAY_NAME},\s+)?\d{1,2}\s+${MONTH_NAME}(?:\s+\d{4})?\b)`,
+        String.raw`(?<money>\bRM\s?\d[\d,]*(?:\.\d{2})?\b)`,
+    ].join('|'),
+    'g',
+);
+
+/** What a piece of text that must stay on one line is. */
+export type KeptKind = 'tracking' | 'date' | 'money';
+
+/** A piece of a sentence: `kind` is null for the text that may wrap. */
+export type TextPart = { text: string; kind: KeptKind | null };
+
+/**
+ * A sentence the server wrote, such as a toast or a history note, split
+ * into the pieces that must stay on one line (tracking numbers, dates and
+ * amounts) and the text around them. KeepTogether.vue shows the pieces
+ * unbroken, so "KT-7Q4M92XD is scheduled with Ravi on 6 Oct 2026." can
+ * wrap between words but never inside the number or the date.
+ */
+export function keepTogetherParts(text: string): TextPart[] {
+    const parts: TextPart[] = [];
+    let last = 0;
+
+    for (const match of text.matchAll(KEEP_TOGETHER)) {
+        if (match.index > last) {
+            parts.push({ text: text.slice(last, match.index), kind: null });
+        }
+
+        const kind: KeptKind = match.groups?.tracking
+            ? 'tracking'
+            : match.groups?.date
+              ? 'date'
+              : 'money';
+
+        parts.push({ text: match[0], kind });
+        last = match.index + match[0].length;
+    }
+
+    if (last < text.length) {
+        parts.push({ text: text.slice(last), kind: null });
+    }
+
+    return parts;
 }

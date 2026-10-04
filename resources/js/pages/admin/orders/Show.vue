@@ -10,6 +10,7 @@ import JourneyConveyor from '@/components/brand/JourneyConveyor.vue';
 import DateTime from '@/components/DateTime.vue';
 import DescriptionItem from '@/components/DescriptionItem.vue';
 import DescriptionList from '@/components/DescriptionList.vue';
+import KeepTogether from '@/components/KeepTogether.vue';
 import Money from '@/components/Money.vue';
 import Notice from '@/components/Notice.vue';
 import PlateBadge from '@/components/PlateBadge.vue';
@@ -24,6 +25,7 @@ import { useFitsViewport } from '@/composables/useFitsViewport';
 import {
     formatDimensions,
     formatPhone,
+    formatPostcodeCity,
     formatTrackingNumber,
     formatWeekdayDate,
     telHref,
@@ -152,10 +154,11 @@ const cardTitle =
 /*
  * The next step's buttons fill the card on phones and in the right-hand
  * column. In one column on a wider page (42 to 56rem, e.g. iPads) they
- * keep a button's width side by side instead of becoming 670px bars.
+ * keep a button's width side by side instead of becoming 670px bars. A
+ * label too long for a 320px phone wraps inside the button.
  */
 const nextButton =
-    'h-12 w-full rounded-lg text-[15px] font-bold @2xl:w-auto @2xl:min-w-56 @2xl:has-[>svg]:px-6 @4xl:w-full';
+    'h-auto min-h-12 w-full rounded-lg py-2.5 text-[15px] font-bold whitespace-normal @2xl:w-auto @2xl:min-w-56 @2xl:has-[>svg]:px-6 @4xl:w-full';
 </script>
 
 <template>
@@ -450,7 +453,7 @@ const nextButton =
                                 label="Priced with"
                             >
                                 <TextLink :href="showRateCard(pricedWith.id)">
-                                    {{ pricedWith.name }}
+                                    <KeepTogether :text="pricedWith.name" />
                                 </TextLink>
                             </DescriptionItem>
                         </DescriptionList>
@@ -480,8 +483,12 @@ const nextButton =
                                     }}
                                 </span>
                                 <span class="block font-medium text-ink-2">
-                                    {{ order.postcode }} {{ order.city }},
-                                    {{ order.state }}
+                                    {{
+                                        formatPostcodeCity(
+                                            order.postcode,
+                                            order.city,
+                                        )
+                                    }}, {{ order.state }}
                                 </span>
                                 <a
                                     :href="telHref(order.receiver_phone)"
@@ -785,10 +792,12 @@ const nextButton =
                             <span class="block">{{
                                 order.branch.address
                             }}</span>
-                            <span class="block">
-                                {{ order.branch.postcode }}
-                                {{ order.branch.city }}
-                            </span>
+                            <span class="block">{{
+                                formatPostcodeCity(
+                                    order.branch.postcode,
+                                    order.branch.city,
+                                )
+                            }}</span>
                         </p>
                         <p
                             class="mt-1 text-[13px] leading-5 text-muted-foreground"

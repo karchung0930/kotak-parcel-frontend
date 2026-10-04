@@ -9,17 +9,20 @@ import {
     formatDate,
     formatDateTime,
     formatDecimal,
+    formatDeliveryArea,
     formatDimensions,
     formatKg,
     formatMoney,
     formatPercent,
     formatPhone,
+    formatPostcodeCity,
     formatShortDate,
     formatShortDateTime,
     formatTime,
     formatTrackingNumber,
     formatWeekdayDate,
     formatWeight,
+    keepTogetherParts,
     normalizeTrackingNumber,
     pluralize,
     telHref,
@@ -43,15 +46,16 @@ const checks: [string, () => void][] = [
     [
         'weight from grams',
         () => {
-            assert.equal(formatWeight(6000), '6.0 kg');
-            assert.equal(formatWeight(4200), '4.2 kg');
-            assert.equal(formatWeight(12000), '12.0 kg');
+            // A no-break space keeps "kg" on the line of its number.
+            assert.equal(formatWeight(6000), '6.0\u00a0kg');
+            assert.equal(formatWeight(4200), '4.2\u00a0kg');
+            assert.equal(formatWeight(12000), '12.0\u00a0kg');
             assert.equal(formatWeight(undefined), '—');
             // Weight bands, as people write them.
-            assert.equal(formatKg(500), '0.5 kg');
-            assert.equal(formatKg(1000), '1 kg');
-            assert.equal(formatKg(2250), '2.25 kg');
-            assert.equal(formatKg(30000), '30 kg');
+            assert.equal(formatKg(500), '0.5\u00a0kg');
+            assert.equal(formatKg(1000), '1\u00a0kg');
+            assert.equal(formatKg(2250), '2.25\u00a0kg');
+            assert.equal(formatKg(30000), '30\u00a0kg');
             assert.equal(formatKg(null), '—');
         },
     ],
@@ -80,14 +84,18 @@ const checks: [string, () => void][] = [
     [
         'timestamps in Kuala Lumpur time',
         () => {
-            // 06:05 UTC is 14:05 in Kuala Lumpur (UTC+8).
+            // 06:05 UTC is 14:05 in Kuala Lumpur (UTC+8). No-break spaces
+            // keep each date on one line; the time may go to the next.
             const paid = '2026-09-29T06:05:00Z';
 
-            assert.equal(formatDateTime(paid), '29 Sep 2026, 14:05');
-            assert.equal(formatDate(paid), '29 Sep 2026');
-            assert.equal(formatWeekdayDate(paid), 'Tue, 29 Sep 2026');
-            assert.equal(formatShortDate(paid), '29 Sep');
-            assert.equal(formatShortDateTime(paid), '29 Sep, 14:05');
+            assert.equal(formatDateTime(paid), '29\u00a0Sep\u00a02026, 14:05');
+            assert.equal(formatDate(paid), '29\u00a0Sep\u00a02026');
+            assert.equal(
+                formatWeekdayDate(paid),
+                'Tue,\u00a029\u00a0Sep\u00a02026',
+            );
+            assert.equal(formatShortDate(paid), '29\u00a0Sep');
+            assert.equal(formatShortDateTime(paid), '29\u00a0Sep, 14:05');
             assert.equal(formatTime(paid), '14:05');
             // 20:30 UTC is already the next day in Kuala Lumpur.
             assert.equal(toLocalDate('2026-09-29T20:30:00Z'), '2026-09-30');
@@ -105,8 +113,11 @@ const checks: [string, () => void][] = [
     [
         'calendar dates have no time zone shift',
         () => {
-            assert.equal(formatWeekdayDate('2026-09-30'), 'Wed, 30 Sep 2026');
-            assert.equal(formatDateTime('2026-09-30'), '30 Sep 2026');
+            assert.equal(
+                formatWeekdayDate('2026-09-30'),
+                'Wed,\u00a030\u00a0Sep\u00a02026',
+            );
+            assert.equal(formatDateTime('2026-09-30'), '30\u00a0Sep\u00a02026');
             assert.equal(formatTime('2026-09-30'), '—');
             assert.equal(formatDate(null), '—');
             assert.equal(formatDate('not a date'), '—');
@@ -163,6 +174,124 @@ const checks: [string, () => void][] = [
                 'Kota Kinabalu-Likas',
             ]);
             assert.deepEqual(branchNameParts('Mid Valley'), ['', 'Mid Valley']);
+        },
+    ],
+    [
+        'a postcode stays on the line of its town',
+        () => {
+            // A short town stays whole with its postcode.
+            assert.equal(
+                formatPostcodeCity('47500', 'Subang Jaya'),
+                '47500\u00a0Subang\u00a0Jaya',
+            );
+            assert.equal(
+                formatPostcodeCity(' 59200 ', 'Kuala  Lumpur'),
+                '59200\u00a0Kuala\u00a0Lumpur',
+            );
+            assert.equal(
+                formatDeliveryArea('George Town', '10200'),
+                'George\u00a0Town\u00a010200',
+            );
+            assert.equal(
+                formatPostcodeCity('47300', 'Petaling Jaya'),
+                '47300\u00a0Petaling\u00a0Jaya',
+            );
+            assert.equal(
+                formatDeliveryArea('Kota Kinabalu', '88300'),
+                'Kota\u00a0Kinabalu\u00a088300',
+            );
+            // A longer town keeps only the word next to the postcode, and
+            // may wrap between its other words.
+            assert.equal(
+                formatDeliveryArea('Seri Kembangan', '43300'),
+                'Seri Kembangan\u00a043300',
+            );
+            assert.equal(
+                formatPostcodeCity('43900', 'Bandar Baru Salak Tinggi'),
+                '43900\u00a0Bandar Baru Salak Tinggi',
+            );
+            assert.equal(
+                formatDeliveryArea('Bandar Baru Salak Tinggi', '43900'),
+                'Bandar Baru Salak Tinggi\u00a043900',
+            );
+            assert.equal(
+                formatDeliveryArea(
+                    'Taman Tun Dr Ismail, Kuala Lumpur',
+                    '60000',
+                ),
+                'Taman Tun Dr Ismail, Kuala Lumpur\u00a060000',
+            );
+            // A town typed as one long word does not take the postcode with it.
+            assert.equal(
+                formatDeliveryArea('Bandarbarusalaktinggi', '43900'),
+                'Bandarbarusalaktinggi 43900',
+            );
+            assert.equal(formatPostcodeCity('47500', ' '), '47500');
+
+            // The longest town a customer can type (100 characters) never
+            // becomes one unbreakable run.
+            const city = 'Kampung Baru Sungai Buloh '.repeat(4).slice(0, 100);
+            const longestRun = (text: string): number =>
+                Math.max(...text.split(' ').map((run) => run.length));
+
+            assert.equal(city.length, 100);
+            assert.ok(longestRun(formatPostcodeCity('47000', city)) <= 19);
+            assert.ok(longestRun(formatDeliveryArea(city, '47000')) <= 19);
+        },
+    ],
+    [
+        'server text keeps tracking numbers, dates and amounts whole',
+        () => {
+            const kept = (text: string): string[] =>
+                keepTogetherParts(text)
+                    .filter((part) => part.kind !== null)
+                    .map((part) => part.text);
+
+            assert.deepEqual(
+                keepTogetherParts(
+                    'KT-00000017 is scheduled with Ahmad Faizal on 6 Oct 2026.',
+                ),
+                [
+                    { text: 'KT-00000017', kind: 'tracking' },
+                    {
+                        text: ' is scheduled with Ahmad Faizal on ',
+                        kind: null,
+                    },
+                    { text: '6 Oct 2026', kind: 'date' },
+                    { text: '.', kind: null },
+                ],
+            );
+            assert.deepEqual(kept('Not dropped off by 29 September 2026.'), [
+                '29 September 2026',
+            ]);
+            assert.deepEqual(kept('Rates scheduled for 12 Oct 2026, 09:00.'), [
+                '12 Oct 2026',
+            ]);
+            assert.deepEqual(kept('Expected on Sun, 4 Oct 2026.'), [
+                'Sun, 4 Oct 2026',
+            ]);
+            assert.deepEqual(
+                keepTogetherParts('The final price is RM 1,234.50.'),
+                [
+                    { text: 'The final price is ', kind: null },
+                    { text: 'RM 1,234.50', kind: 'money' },
+                    { text: '.', kind: null },
+                ],
+            );
+            // A rate card's name, as titles show it.
+            assert.deepEqual(kept('Withdraw Rates from 1 November 2026?'), [
+                '1 November 2026',
+            ]);
+            // Dates the formatters wrote (no-break spaces) are found too.
+            assert.deepEqual(kept(`Due ${formatShortDate('2026-10-06')}`), [
+                '6\u00a0Oct',
+            ]);
+            // Nothing to keep: one plain part, and none for empty text.
+            assert.deepEqual(keepTogetherParts('Draft saved.'), [
+                { text: 'Draft saved.', kind: null },
+            ]);
+            assert.deepEqual(keepTogetherParts(''), []);
+            assert.deepEqual(kept('Branch KT-1 and 12 Market Street'), []);
         },
     ],
 ];

@@ -10,7 +10,7 @@ import {
     kualaLumpurClock,
     parseOpeningHours,
 } from '@/lib/branches';
-import { telHref } from '@/lib/format';
+import { formatPostcodeCity, telHref } from '@/lib/format';
 import type { Branch } from '@/types';
 
 /**
@@ -46,10 +46,9 @@ const today = computed(() =>
 
 const place = computed(() => {
     const { postcode, city, state } = props.branch;
+    const town = formatPostcodeCity(postcode, city);
 
-    return state === city
-        ? `${postcode} ${city}`
-        : `${postcode} ${city}, ${state}`;
+    return state === city ? town : `${town}, ${state}`;
 });
 </script>
 

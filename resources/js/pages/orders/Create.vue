@@ -28,7 +28,13 @@ import { Spinner } from '@/components/ui/spinner';
 import UnitInput from '@/components/UnitInput.vue';
 import { useFitsViewport } from '@/composables/useFitsViewport';
 import { directionsUrl } from '@/lib/branches';
-import { formatMoney, formatPhone, formatWeight, telHref } from '@/lib/format';
+import {
+    formatMoney,
+    formatPhone,
+    formatPostcodeCity,
+    formatWeight,
+    telHref,
+} from '@/lib/format';
 import { estimatePrice, kgToGrams, zoneFor } from '@/lib/pricing';
 import type { ParcelSize } from '@/lib/pricing';
 import { store } from '@/routes/orders';
@@ -769,9 +775,12 @@ const hintClass = 'mt-1.5 text-[12.5px] leading-[18px] text-muted-foreground';
                                     </p>
                                     <p class="mt-0.5 text-muted-foreground">
                                         {{ selectedBranch.address }},
-                                        {{ selectedBranch.postcode }}
-                                        {{ selectedBranch.city }},
-                                        {{ selectedBranch.state }}
+                                        {{
+                                            formatPostcodeCity(
+                                                selectedBranch.postcode,
+                                                selectedBranch.city,
+                                            )
+                                        }}, {{ selectedBranch.state }}
                                     </p>
                                 </div>
                             </div>

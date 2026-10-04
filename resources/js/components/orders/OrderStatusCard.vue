@@ -6,7 +6,12 @@ import ParcelBox from '@/components/brand/ParcelBox.vue';
 import DateTime from '@/components/DateTime.vue';
 import StatusChip from '@/components/StatusChip.vue';
 import TrackingNumber from '@/components/TrackingNumber.vue';
-import { formatDateTime, formatWeekdayDate, formatWeight } from '@/lib/format';
+import {
+    formatDateTime,
+    formatDeliveryArea,
+    formatWeekdayDate,
+    formatWeight,
+} from '@/lib/format';
 import { journeyTimes } from '@/lib/journey';
 import type { Order, OrderStatusValue } from '@/types';
 
@@ -84,7 +89,7 @@ const facts = computed(() => [
     when.value,
     {
         label: 'Destination',
-        value: `${props.order.city} ${props.order.postcode}`,
+        value: formatDeliveryArea(props.order.city, props.order.postcode),
     },
     {
         label: 'Weight',

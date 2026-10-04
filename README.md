@@ -142,6 +142,19 @@ tests/js/                small checks that run on plain Node
   squeeze the title and intro beside them. A name without spaces (a
   spreadsheet's file name, which an imported draft is named after) breaks
   anywhere instead of widening a column, a table or a dialog.
+- **Values never split across lines.** A tracking number is always
+  `TrackingNumber.vue` (size `inline` inside a sentence or on a label), so
+  "KT-" never ends a line. The helpers in `lib/format.ts` join a date's
+  day, month and year, and a weight's number and "kg", with no-break spaces
+  (as Intl does after "RM"). `formatPostcodeCity` and `formatDeliveryArea`
+  keep a short town whole with its postcode ("47500 Subang Jaya"); a long
+  one, typed by a customer, keeps only the word next to the postcode and
+  wraps between the others, so it never widens a card. Text from the
+  server (toasts, history notes), page and dialog titles, breadcrumbs, field
+  hints, rate card names (which often hold a date) and sentences built from
+  strings go through `KeepTogether.vue`, which keeps the tracking numbers,
+  dates and amounts in them whole and shows each tracking number as a
+  `TrackingNumber`.
 - **Prices are worked out the server's way.** `lib/pricing.ts` applies the
   current rate card (zones, routes, weight bands) exactly as the backend's
   `PriceCalculator` does, for live estimates only; the server sets the

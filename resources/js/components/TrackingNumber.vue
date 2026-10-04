@@ -3,10 +3,11 @@ import type { InertiaLinkProps } from '@inertiajs/vue3';
 import { Link } from '@inertiajs/vue3';
 import { Check, Copy } from '@lucide/vue';
 import { createReusableTemplate } from '@vueuse/core';
-import { computed, onBeforeUnmount, ref } from 'vue';
+import { computed, markRaw, onBeforeUnmount, ref } from 'vue';
 import { toast } from 'vue-sonner';
+import KeepTogether from '@/components/KeepTogether.vue';
 import { Button } from '@/components/ui/button';
-import { formatTrackingNumber } from '@/lib/format';
+import { formatTrackingNumber, normalizeTrackingNumber } from '@/lib/format';
 
 /**
  * A tracking number shown as KT-XXXXXXXX in mono, with a copy button that
@@ -19,45 +20,75 @@ import { formatTrackingNumber } from '@/lib/format';
  * ancestor, so give that `relative`): a tap anywhere on it opens the
  * parcel, and the copy button stays on top. Otherwise the link and the
  * button are 44px tap targets on touch screens (tap-target in app.css).
+ *
+ * The number never breaks across lines ("KT- / 7Q4M92XD"). Size `inline`
+ * is for a number inside a sentence, a list row or a printed label: only
+ * the mono face, in the size and colour of the text around it, with no
+ * copy button or link of its own: the props refuse `href`, `stretched`,
+ * `copy-first` and a copy button with it (put it inside a link instead).
+ * Text that is not a tracking number (what someone searched for) may break
+ * anywhere instead, so a long string cannot push the page sideways.
  */
-const props = withDefaults(
-    defineProps<{
-        /** Any accepted form: "KT-7Q4M92XD", "KT7Q4M92XD", "kt 7q4m92xd". */
-        value: string;
-        size?: 'sm' | 'md' | 'lg';
-        copyable?: boolean;
-        copyFirst?: boolean;
-        href?: NonNullable<InertiaLinkProps['href']> | null;
-        stretched?: boolean;
-    }>(),
-    {
-        size: 'md',
-        copyable: true,
-        copyFirst: false,
-        href: null,
-        stretched: false,
-    },
+type Props = {
+    /** Any accepted form: "KT-7Q4M92XD", "KT7Q4M92XD", "kt 7q4m92xd". */
+    value: string;
+} & (
+    | {
+          size?: 'sm' | 'md' | 'lg';
+          copyable?: boolean;
+          copyFirst?: boolean;
+          href?: NonNullable<InertiaLinkProps['href']> | null;
+          stretched?: boolean;
+      }
+    | {
+          size: 'inline';
+          copyable?: false;
+          copyFirst?: false;
+          href?: null;
+          stretched?: false;
+      }
 );
+
+// Defaults by destructuring: withDefaults would merge the two shapes and
+// let any prop through.
+const {
+    value,
+    size = 'md',
+    copyable = true,
+    copyFirst = false,
+    href = null,
+    stretched = false,
+} = defineProps<Props>();
 
 const [DefineCopyButton, CopyButton] = createReusableTemplate();
 
-const display = computed(() => formatTrackingNumber(props.value));
+const display = computed(() => formatTrackingNumber(value));
+const wrap = computed(() =>
+    normalizeTrackingNumber(value) ? 'whitespace-nowrap' : 'break-all',
+);
 const copied = ref(false);
 let resetTimer: ReturnType<typeof setTimeout> | undefined;
+
+/** A toast's description, with the number shown as it is on the page. */
+const describe = (text: string) => ({
+    description: markRaw(KeepTogether),
+    componentProps: { text },
+});
 
 async function copy(): Promise<void> {
     try {
         await navigator.clipboard.writeText(display.value);
     } catch {
-        toast.error('Could not copy the tracking number', {
-            description: `Select ${display.value} and copy it instead.`,
-        });
+        toast.error(
+            'Could not copy the tracking number',
+            describe(`Select ${display.value} and copy it instead.`),
+        );
 
         return;
     }
 
     copied.value = true;
-    toast.success('Tracking number copied', { description: display.value });
+    toast.success('Tracking number copied', describe(display.value));
     clearTimeout(resetTimer);
     resetTimer = setTimeout(() => (copied.value = false), 2000);
 }
@@ -84,7 +115,12 @@ const iconSize = {
 </script>
 
 <template>
-    <span class="inline-flex max-w-full items-center gap-2 align-middle">
+    <span
+        v-if="size === 'inline'"
+        :class="['font-mono font-bold tracking-[0.02em]', wrap]"
+        >{{ display }}</span
+    >
+    <span v-else class="inline-flex max-w-full items-center gap-2 align-middle">
         <!-- Renders nothing: the button, written once, for either side.
              An outline Button, so in a table it lifts off the hovered row
              like every outline button instead of turning the row's grey. -->
@@ -115,7 +151,8 @@ const iconSize = {
             v-if="href"
             :href="href"
             :class="[
-                'font-mono font-bold tracking-[0.02em] whitespace-nowrap text-brand-strong underline-offset-4 hover:text-brand-deep hover:underline',
+                'font-mono font-bold tracking-[0.02em] text-brand-strong underline-offset-4 hover:text-brand-deep hover:underline',
+                wrap,
                 textSize[size],
                 stretched
                     ? 'after:absolute after:inset-0'
@@ -127,7 +164,8 @@ const iconSize = {
         <span
             v-else
             :class="[
-                'font-mono font-bold tracking-[0.02em] whitespace-nowrap text-ink',
+                'font-mono font-bold tracking-[0.02em] text-ink',
+                wrap,
                 textSize[size],
             ]"
         >

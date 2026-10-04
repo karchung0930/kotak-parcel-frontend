@@ -27,6 +27,7 @@ import ImportSteps from '@/components/admin/rates/imports/ImportSteps.vue';
 import MappingForm from '@/components/admin/rates/imports/MappingForm.vue';
 import SheetChooser from '@/components/admin/rates/imports/SheetChooser.vue';
 import FileName from '@/components/FileName.vue';
+import KeepTogether from '@/components/KeepTogether.vue';
 import Notice from '@/components/Notice.vue';
 import PageHeader from '@/components/PageHeader.vue';
 import RouteGroups from '@/components/RouteGroups.vue';
@@ -277,7 +278,12 @@ function uploadAgain(): void {
                     class="min-w-0 text-[13px] font-semibold wrap-anywhere text-ink-2"
                 >
                     Zones from
-                    {{ item.base_rate_card?.name ?? 'rates that were deleted' }}
+                    <KeepTogether
+                        :text="
+                            item.base_rate_card?.name ??
+                            'rates that were deleted'
+                        "
+                    />
                     <template v-if="item.sheet">
                         · sheet {{ item.sheet }}
                     </template>
@@ -503,9 +509,8 @@ function uploadAgain(): void {
                 class="wrap-anywhere"
             >
                 The prices below are now the draft
-                <TextLink :href="showRateCard(item.rate_card.id)">{{
-                    item.rate_card.name
-                }}</TextLink
+                <TextLink :href="showRateCard(item.rate_card.id)"
+                    ><KeepTogether :text="item.rate_card.name" /></TextLink
                 >. Publish it from its page.
             </Notice>
 

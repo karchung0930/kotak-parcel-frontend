@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { LucideIcon } from '@lucide/vue';
+import KeepTogether from '@/components/KeepTogether.vue';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -15,7 +16,9 @@ import { Spinner } from '@/components/ui/spinner';
  * "Are you sure?" before a step that cannot be undone: a driver recording
  * a pick-up, delivery or failure, or an admin withdrawing or deleting
  * rates. Stays open while the request runs; the default slot can
- * summarise what is about to be saved.
+ * summarise what is about to be saved. A tracking number or date in the
+ * title or description (a rate card's name, "Rates from 1 November 2026")
+ * stays on one line.
  */
 const open = defineModel<boolean>('open', { required: true });
 
@@ -74,10 +77,10 @@ const iconTone = {
                         !icon && 'pr-12',
                     ]"
                 >
-                    {{ title }}
+                    <KeepTogether :text="title" />
                 </DialogTitle>
                 <DialogDescription class="text-[15px] leading-6 text-ink-2">
-                    {{ description }}
+                    <KeepTogether :text="description" />
                 </DialogDescription>
             </DialogHeader>
             <div v-if="$slots.default">

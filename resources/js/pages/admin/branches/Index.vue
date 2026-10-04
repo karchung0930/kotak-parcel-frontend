@@ -7,7 +7,7 @@ import EmptyState from '@/components/EmptyState.vue';
 import PageHeader from '@/components/PageHeader.vue';
 import { Button } from '@/components/ui/button';
 import { parseOpeningHours } from '@/lib/branches';
-import { pluralize, telHref } from '@/lib/format';
+import { formatPostcodeCity, pluralize, telHref } from '@/lib/format';
 import { create, edit } from '@/routes/admin/branches';
 import type { AdminBranchesIndexPageProps } from '@/types';
 
@@ -128,8 +128,12 @@ function hoursLines(hours: string): string[] {
                                         branch.address
                                     }}</span>
                                     <span class="block">
-                                        {{ branch.postcode }} {{ branch.city }},
-                                        {{ branch.state }}
+                                        {{
+                                            formatPostcodeCity(
+                                                branch.postcode,
+                                                branch.city,
+                                            )
+                                        }}, {{ branch.state }}
                                     </span>
                                 </p>
                             </td>
@@ -223,8 +227,13 @@ function hoursLines(hours: string): string[] {
                                 class="mt-0.5 size-4 flex-none text-brand"
                             />
                             <span>
-                                {{ branch.address }}, {{ branch.postcode }}
-                                {{ branch.city }}
+                                {{ branch.address }},
+                                {{
+                                    formatPostcodeCity(
+                                        branch.postcode,
+                                        branch.city,
+                                    )
+                                }}
                             </span>
                         </li>
                         <li class="flex gap-2">

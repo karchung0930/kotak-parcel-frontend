@@ -239,10 +239,12 @@ const announcedChange = refDebounced(
         </div>
 
         <div>
+            <!-- The label wraps rather than widening the form on a 320px
+                 phone ("Confirm RM 22.00 cash payment"). -->
             <Button
                 type="submit"
                 :disabled="processing"
-                class="h-12 w-full rounded-lg px-6 text-[15px] font-bold sm:w-auto"
+                class="h-auto min-h-12 w-full rounded-lg px-6 py-2.5 text-[15px] font-bold whitespace-normal sm:w-auto"
             >
                 <Spinner v-if="processing" />
                 Confirm {{ formatMoney(amountSen) }}

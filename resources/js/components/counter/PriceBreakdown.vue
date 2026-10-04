@@ -2,6 +2,7 @@
 import { refDebounced } from '@vueuse/core';
 import { computed, useId } from 'vue';
 import KotakTape from '@/components/brand/KotakTape.vue';
+import KeepTogether from '@/components/KeepTogether.vue';
 import RouteTitle from '@/components/RouteTitle.vue';
 import { formatKg, formatMoney, formatWeight } from '@/lib/format';
 import { estimatePrice, routeName } from '@/lib/pricing';
@@ -202,7 +203,7 @@ const route = computed(() =>
                 v-if="estimate && pricing.name"
                 class="mt-3 text-[12.5px] leading-[18px] text-muted-foreground"
             >
-                Priced with {{ pricing.name }}.
+                Priced with <KeepTogether :text="pricing.name" />.
             </p>
 
             <!-- The amount and its difference wrap as one part. -->

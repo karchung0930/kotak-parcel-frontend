@@ -6,6 +6,7 @@ import NewDraftDialog from '@/components/admin/rates/NewDraftDialog.vue';
 import RateCardPhaseChip from '@/components/admin/RateCardPhaseChip.vue';
 import DateTime from '@/components/DateTime.vue';
 import EmptyState from '@/components/EmptyState.vue';
+import KeepTogether from '@/components/KeepTogether.vue';
 import PageHeader from '@/components/PageHeader.vue';
 import { Button } from '@/components/ui/button';
 import { pluralize } from '@/lib/format';
@@ -42,7 +43,7 @@ const current = computed(
                 >
                     {{ pluralize(rateCards.length, 'version') }}
                     <template v-if="current">
-                        · in effect: {{ current.name }}
+                        · in effect: <KeepTogether :text="current.name" />
                     </template>
                 </p>
             </template>
@@ -143,7 +144,7 @@ const current = computed(
                                 role="rowheader"
                                 class="max-w-72 py-3 text-left font-bold wrap-anywhere text-ink @[52rem]:max-w-96"
                             >
-                                {{ card.name }}
+                                <KeepTogether :text="card.name" />
                             </th>
                             <td role="cell" class="py-3">
                                 <RateCardPhaseChip :phase="card.phase" />
@@ -195,7 +196,7 @@ const current = computed(
                     >
                         <div class="min-w-0 flex-1">
                             <p class="font-bold wrap-anywhere text-ink">
-                                {{ card.name }}
+                                <KeepTogether :text="card.name" />
                             </p>
                             <div
                                 class="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1.5 text-[13px] text-ink-2"

@@ -25,8 +25,10 @@ import { Button } from '@/components/ui/button';
 import Weight from '@/components/Weight.vue';
 import { directionsUrl, mapSearchUrl } from '@/lib/branches';
 import {
+    formatDeliveryArea,
     formatDimensions,
     formatPhone,
+    formatPostcodeCity,
     formatShortDate,
     formatTrackingNumber,
     formatWeekdayDate,
@@ -65,13 +67,16 @@ const addressLines = computed(() =>
     [
         props.order.address_line1,
         props.order.address_line2,
-        `${props.order.postcode} ${props.order.city}`,
+        formatPostcodeCity(props.order.postcode, props.order.city),
         props.order.state,
     ].filter((line): line is string => Boolean(line)),
 );
 
+// Google Maps gets the address with ordinary spaces.
 const addressMapsUrl = computed(() =>
-    mapSearchUrl([...addressLines.value, 'Malaysia'].join(', ')),
+    mapSearchUrl(
+        [...addressLines.value, 'Malaysia'].join(', ').replace(/\u00a0/g, ' '),
+    ),
 );
 
 const branch = computed(() => props.order.branch ?? null);
@@ -142,7 +147,7 @@ const actionLinkClass =
                 {{ order.receiver_name }}
             </h1>
             <p class="mt-1 text-base leading-6 font-semibold text-ink-2">
-                {{ order.city }} {{ order.postcode }}
+                {{ formatDeliveryArea(order.city, order.postcode) }}
             </p>
             <div
                 v-if="
@@ -196,8 +201,8 @@ const actionLinkClass =
                 <address
                     class="mt-1 text-[15px] leading-6 text-pretty text-ink-2 not-italic"
                 >
-                    {{ branch.address }}, {{ branch.postcode }}
-                    {{ branch.city }}
+                    {{ branch.address }},
+                    {{ formatPostcodeCity(branch.postcode, branch.city) }}
                 </address>
                 <p
                     class="mt-1 flex items-center gap-1.5 text-sm leading-5 text-muted-foreground"

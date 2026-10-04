@@ -14,6 +14,7 @@ import StatusChip from '@/components/StatusChip.vue';
 import TrackingNumber from '@/components/TrackingNumber.vue';
 import { Button } from '@/components/ui/button';
 import Weight from '@/components/Weight.vue';
+import { formatDeliveryArea } from '@/lib/format';
 import { show } from '@/routes/admin/orders';
 import type { OrderSummary } from '@/types';
 
@@ -162,7 +163,12 @@ const emit = defineEmits<{
                          width. -->
                     <td role="cell" class="py-2.5">
                         <p class="leading-[19px] font-bold text-ink">
-                            {{ row.order.city }} {{ row.order.postcode }}
+                            {{
+                                formatDeliveryArea(
+                                    row.order.city,
+                                    row.order.postcode,
+                                )
+                            }}
                         </p>
                         <p
                             class="text-[12.5px] leading-[17px] text-muted-foreground"

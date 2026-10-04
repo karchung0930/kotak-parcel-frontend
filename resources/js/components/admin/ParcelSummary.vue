@@ -6,6 +6,7 @@ import PlateBadge from '@/components/PlateBadge.vue';
 import StatusChip from '@/components/StatusChip.vue';
 import TrackingNumber from '@/components/TrackingNumber.vue';
 import Weight from '@/components/Weight.vue';
+import { formatPostcodeCity } from '@/lib/format';
 import { show } from '@/routes/admin/orders';
 import type { OrderSummary } from '@/types';
 
@@ -38,8 +39,8 @@ defineProps<{
 
             <dt class="text-muted-foreground">Deliver to</dt>
             <dd class="font-semibold text-ink">
-                {{ order.address_line1 }}, {{ order.postcode }}
-                {{ order.city }}
+                {{ order.address_line1 }},
+                {{ formatPostcodeCity(order.postcode, order.city) }}
             </dd>
 
             <dt class="text-muted-foreground">Parcel</dt>

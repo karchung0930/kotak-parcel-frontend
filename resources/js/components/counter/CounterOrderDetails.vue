@@ -9,7 +9,12 @@ import PlateBadge from '@/components/PlateBadge.vue';
 import { Button } from '@/components/ui/button';
 import Weight from '@/components/Weight.vue';
 import { useFitsViewport } from '@/composables/useFitsViewport';
-import { formatDimensions, formatPhone, telHref } from '@/lib/format';
+import {
+    formatDimensions,
+    formatPhone,
+    formatPostcodeCity,
+    telHref,
+} from '@/lib/format';
 import type { Order } from '@/types';
 
 /**
@@ -24,7 +29,7 @@ const address = computed(() =>
     [
         props.order.address_line1,
         props.order.address_line2,
-        `${props.order.postcode} ${props.order.city}`,
+        formatPostcodeCity(props.order.postcode, props.order.city),
         props.order.state,
     ].filter((line): line is string => Boolean(line)),
 );

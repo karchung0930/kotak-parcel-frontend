@@ -13,7 +13,7 @@ import TrackingNumber from '@/components/TrackingNumber.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
-import { formatShortDate, pluralize } from '@/lib/format';
+import { formatPostcodeCity, formatShortDate, pluralize } from '@/lib/format';
 import { index, show } from '@/routes/admin/orders';
 import type { AdminOrdersIndexPageProps, OrderSummary } from '@/types';
 
@@ -286,7 +286,12 @@ function statusDetail(order: OrderSummary): string | null {
                                     <p
                                         class="text-[12.5px] leading-[17px] text-muted-foreground"
                                     >
-                                        {{ order.postcode }} {{ order.city }}
+                                        {{
+                                            formatPostcodeCity(
+                                                order.postcode,
+                                                order.city,
+                                            )
+                                        }}
                                     </p>
                                 </td>
                                 <td
@@ -375,7 +380,13 @@ function statusDetail(order: OrderSummary): string | null {
                         <p class="mt-2 text-sm leading-5 font-bold text-ink">
                             {{ order.receiver_name }}
                             <span class="font-medium text-muted-foreground">
-                                · {{ order.postcode }} {{ order.city }}
+                                ·
+                                {{
+                                    formatPostcodeCity(
+                                        order.postcode,
+                                        order.city,
+                                    )
+                                }}
                             </span>
                         </p>
                         <p class="mt-0.5 text-[13px] leading-5 text-ink-2">

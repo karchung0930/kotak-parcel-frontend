@@ -8,11 +8,13 @@ import {
     TriangleAlert,
 } from '@lucide/vue';
 import { computed } from 'vue';
+import BranchName from '@/components/BranchName.vue';
 import StatusChip from '@/components/StatusChip.vue';
+import TrackingNumber from '@/components/TrackingNumber.vue';
 import {
+    formatDeliveryArea,
     formatDimensions,
     formatShortDate,
-    formatTrackingNumber,
     formatWeight,
 } from '@/lib/format';
 import { show } from '@/routes/driver/jobs';
@@ -79,14 +81,14 @@ const failed = computed(() => props.job.failed_attempts ?? 0);
                     class="flex w-full min-w-0 items-start justify-between gap-2 sm:w-auto"
                 >
                     <h3
-                        class="min-w-0 text-[17px] leading-6 font-extrabold tracking-heading text-ink"
+                        class="min-w-0 text-[17px] leading-6 font-extrabold tracking-heading wrap-anywhere text-ink"
                     >
                         <Link
                             :href="show(job.id)"
                             class="after:absolute after:inset-0 after:rounded-2xl focus-visible:outline-none"
                         >
                             <span class="sr-only">Stop {{ stop }}: </span>
-                            {{ job.city }} {{ job.postcode }}
+                            {{ formatDeliveryArea(job.city, job.postcode) }}
                         </Link>
                     </h3>
                     <ChevronRight
@@ -109,11 +111,9 @@ const failed = computed(() => props.job.failed_attempts ?? 0);
                 >
             </p>
 
-            <p
-                class="mt-2.5 font-mono text-[12.5px] leading-5 font-bold tracking-[0.02em] text-ink-2"
-            >
+            <p class="mt-2.5 text-[12.5px] leading-5 text-ink-2">
                 <span class="sr-only">Tracking number </span>
-                {{ formatTrackingNumber(job.tracking_number) }}
+                <TrackingNumber :value="job.tracking_number" size="inline" />
             </p>
             <!-- Wraps rather than truncates: drivers need the size and weight.
                  The size is one inline block, so it moves to the next line
@@ -143,7 +143,7 @@ const failed = computed(() => props.job.failed_attempts ?? 0);
                     class="mt-0.5 size-4 flex-none text-brand"
                 />
                 <span class="min-w-0">
-                    Collect from {{ job.branch.name }}
+                    Collect from <BranchName :name="job.branch.name" />
                 </span>
             </p>
 
