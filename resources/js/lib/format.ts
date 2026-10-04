@@ -97,6 +97,30 @@ export function formatDimensions(
     return `${lengthCm} × ${widthCm} × ${heightCm} cm`;
 }
 
+/**
+ * (40, 30, 25, 5000) → "40 × 30 × 25 ÷ 5000": how a size (volumetric)
+ * weight is worked out, or "L × W × H ÷ 5000" while a side is missing.
+ * No-break spaces keep the box size together and the divisor with its
+ * sign, so in a box too narrow for all of it the sum wraps only before
+ * the "÷". `whole` keeps all of it on one line, for a short formula after
+ * other words ("Size weight = L × W × H ÷ 5000"), where the text wraps
+ * before the formula instead.
+ */
+export function formatVolumeSum(
+    lengthCm: number | null | undefined,
+    widthCm: number | null | undefined,
+    heightCm: number | null | undefined,
+    divisor: number,
+    { whole = false }: { whole?: boolean } = {},
+): string {
+    const sides = [lengthCm, widthCm, heightCm];
+    const box = sides.every((side) => side && Number.isFinite(side))
+        ? sides.join(' × ')
+        : 'L × W × H';
+
+    return `${box.replaceAll(' ', NBSP)}${whole ? NBSP : ' '}÷${NBSP}${divisor}`;
+}
+
 /** 2.44 → "2.4", 3 → "3.0": one decimal, e.g. days in statistics. */
 export function formatDecimal(value: number | null | undefined): string {
     if (value === null || value === undefined || !Number.isFinite(value)) {
@@ -412,21 +436,6 @@ export function telHref(phone: string): string {
     return `tel:${phone.replace(/[^\d+]/g, '')}`;
 }
 
-/**
- * A branch name split after its dash: "Cheras - Taman Connaught" →
- * ["Cheras - ", "Taman Connaught"], with a no-break space before the dash.
- * Shown with the second part unbroken (BranchName.vue), a long name wraps
- * after the dash: never before it, and never leaving its last word alone.
- * A name without a dash is all second part.
- */
-export function branchNameParts(name: string): [string, string] {
-    const dash = name.lastIndexOf(' - ');
-
-    return dash < 0
-        ? ['', name]
-        : [`${name.slice(0, dash)}\u00a0- `, name.slice(dash + 3)];
-}
-
 /*
 |--------------------------------------------------------------------------
 | Addresses
@@ -478,6 +487,67 @@ export function formatPostcodeCity(postcode: string, city: string): string {
  */
 export function formatDeliveryArea(city: string, postcode: string): string {
     return joinPostcode(postcode, city, false);
+}
+
+/*
+|--------------------------------------------------------------------------
+| Branch names and receipt numbers
+|--------------------------------------------------------------------------
+*/
+
+/**
+ * A branch name split after its dash: "Cheras - Taman Connaught" →
+ * ["Cheras - ", "Taman Connaught"], with a no-break space before the dash.
+ * A short town keeps its words together too (the same limit as beside a
+ * postcode), so "Petaling Jaya - SS2" never breaks inside "Petaling Jaya".
+ * Shown with the second part kept whole where it fits (BranchName.vue), a
+ * long name wraps after the dash: never before it, and never leaving its
+ * last word alone. A name without a dash is all second part.
+ */
+export function branchNameParts(name: string): [string, string] {
+    const dash = name.lastIndexOf(' - ');
+
+    if (dash < 0) {
+        return ['', name];
+    }
+
+    const town = name.slice(0, dash);
+    const head =
+        town.length <= SHORT_TOWN ? town.split(/\s+/).join(NBSP) : town;
+
+    return [`${head}${NBSP}- `, name.slice(dash + 3)];
+}
+
+/**
+ * The longest area after a branch's dash kept whole in plain text: it
+ * still fits the narrowest box a branch name is shown in as text (the
+ * user card in the menu, on a 320px phone).
+ */
+const SHORT_AREA = 24;
+
+/**
+ * A branch name as plain text that breaks where BranchName.vue does, for
+ * text not built in a template: a sentence passed to a dialog, or a
+ * line-clamped box (where an inline-block would count as a single line).
+ * "Kuala Lumpur - Bandar Sri Permaisuri" wraps after its dash; only a
+ * longer area may wrap between its words.
+ */
+export function formatBranchName(name: string): string {
+    const [head, area] = branchNameParts(name);
+
+    return head !== '' && area.length <= SHORT_AREA
+        ? head + area.split(/\s+/).join(NBSP)
+        : head + area;
+}
+
+/**
+ * "RCPT-20261003-00000025" → ["RCPT-", "20261003-", "00000025"]: a receipt
+ * number in the pieces it may break between, after a hyphen and never
+ * inside the date or the number (ReceiptNumber.vue). Joined, the pieces
+ * are the number again.
+ */
+export function receiptNumberParts(value: string): string[] {
+    return value === '' ? [] : value.split(/(?<=-)/);
 }
 
 /*

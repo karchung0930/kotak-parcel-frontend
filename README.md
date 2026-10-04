@@ -85,8 +85,11 @@ tests/js/                small checks that run on plain Node
 ## Conventions
 
 - **Mobile first.** Every page is checked from 320 px phones through tablets
-  to 1440 px desktops. The driver screens are built for one-handed use on a
-  phone.
+  to 1440 px desktops, and at 320 px no text runs out of its box or into a
+  button's padding: two buttons that cannot both fit their labels side by
+  side stack (or give the shorter one only its own width), and a long
+  label wraps inside its button. The driver screens are built for
+  one-handed use on a phone.
 - **Tables** use the shared `.data-table` grid in `app.css`: every column
   left-aligned, equal gaps, the same space at both ends, ARIA table roles. On
   phones they turn into cards.
@@ -130,9 +133,11 @@ tests/js/                small checks that run on plain Node
   after "_", "-" and ".", never inside a word), `ImportFileField.vue` for choosing a spreadsheet to
   import, `SheetPreview.vue` for a few rows of a sheet (an import's columns
   step, and the example layouts on Import rates), `RouteTitle.vue` for a route's name, which wraps after the arrow
-  rather than inside a zone name, and `BranchName.vue` for a branch name in
-  a narrow column, which wraps after its dash ("Cheras - / Taman
-  Connaught").
+  rather than inside a zone name, `BranchName.vue` for every branch name
+  shown in a template, which wraps after its dash ("Cheras - / Taman
+  Connaught") and never inside a short town (`formatBranchName` gives the
+  same breaks to plain text: a dialog's sentence, a line-clamped box),
+  and `ReceiptNumber.vue` for a receipt number.
 - **No lone words.** Wrapped text never ends on a single word: `body` sets
   `text-wrap-style: pretty` (the longhand, so `whitespace-nowrap` still
   holds), and short labels that may wrap (stat cards, validation messages)
@@ -146,7 +151,15 @@ tests/js/                small checks that run on plain Node
   `TrackingNumber.vue` (size `inline` inside a sentence or on a label), so
   "KT-" never ends a line. The helpers in `lib/format.ts` join a date's
   day, month and year, and a weight's number and "kg", with no-break spaces
-  (as Intl does after "RM"). `formatPostcodeCity` and `formatDeliveryArea`
+  (as Intl does after "RM"); `DateTime.vue` lets only the time after a
+  date go to the next line. A receipt number stays whole where it fits
+  (its `DescriptionItem` row has `wrap`, so it moves under the label) and
+  otherwise breaks only after a hyphen, a size sum (`formatVolumeSum`) only
+  before its "÷" (or not at all, `whole`, after other words), and a
+  breadcrumb's ">" moves to the next line with the item after it. A list
+  row cuts short only a free-text name, never an amount or a weight. An
+  empty search field's placeholder gets the room Chrome keeps for its
+  clear button (`app.css`). `formatPostcodeCity` and `formatDeliveryArea`
   keep a short town whole with its postcode ("47500 Subang Jaya"); a long
   one, typed by a customer, keeps only the word next to the postcode and
   wraps between the others, so it never widens a card. Text from the

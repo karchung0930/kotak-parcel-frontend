@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Link, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
+import BranchName from '@/components/BranchName.vue';
 import KotakLogo from '@/components/brand/KotakLogo.vue';
 import { todayInKualaLumpur } from '@/lib/format';
 import { canSendParcels, customerNav, roleHome } from '@/lib/navigation';
@@ -108,7 +109,7 @@ const linkClass =
                 <ul v-if="listedBranches.length > 0" :class="listClass">
                     <li v-for="branch in listedBranches" :key="branch.id">
                         <Link :href="branchesIndex()" :class="linkClass">
-                            {{ branch.name }}
+                            <BranchName :name="branch.name" />
                         </Link>
                     </li>
                 </ul>

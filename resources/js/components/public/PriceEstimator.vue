@@ -17,7 +17,12 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import UnitInput from '@/components/UnitInput.vue';
 import { useCanSendParcels } from '@/composables/useCanSendParcels';
-import { formatKg, formatMoney, formatWeight } from '@/lib/format';
+import {
+    formatKg,
+    formatMoney,
+    formatVolumeSum,
+    formatWeight,
+} from '@/lib/format';
 import {
     billedWeightGrams,
     chargedByVolume,
@@ -192,11 +197,21 @@ const route = computed(() =>
         : null,
 );
 
-/** "40 × 30 × 25 ÷ 5000": how the size weight is worked out. */
+/**
+ * "40 × 30 × 25 ÷ 5000": how the size weight is worked out. Before there
+ * is an estimate, the formula, kept whole in the sentence that shows it.
+ */
 const sizeSum = computed(() =>
     estimate.value
-        ? `${Number(values.length)} × ${Number(values.width)} × ${Number(values.height)} ÷ ${props.pricing.divisor}`
-        : `L × W × H ÷ ${props.pricing.divisor}`,
+        ? formatVolumeSum(
+              Number(values.length),
+              Number(values.width),
+              Number(values.height),
+              props.pricing.divisor,
+          )
+        : formatVolumeSum(null, null, null, props.pricing.divisor, {
+              whole: true,
+          }),
 );
 
 /** How the price adds up: "RM 8.00 up to 1 kg" and "+ 5 kg × RM 2.00". */
@@ -249,7 +264,8 @@ const weights = computed(() => {
         {
             key: 'size',
             label: 'Size weight',
-            sum: sizeSum.value,
+            // The box size and "÷ 5000", the one place the sum may wrap.
+            sum: sizeSum.value.split(' '),
             value: formatWeight(result.volumetricG),
             used: bySize,
         },
@@ -572,7 +588,12 @@ const labelClass = 'mb-1.5 text-[13px] leading-[19px] font-semibold text-ink';
                                  from each label (and the size sum) to its
                                  value. When a row is too narrow, the sum and
                                  the leader move under the label together and
-                                 the value stays at the end of that line. -->
+                                 the value stays at the end of that line.
+                                 Only if that line is too narrow as well (a
+                                 320px phone) does the sum wrap, before its
+                                 "÷", which takes the leader with it to the
+                                 value's line. A leader is at least two dots,
+                                 so it never reads as a separator. -->
                             <ul class="mt-2 flex flex-col gap-2">
                                 <li
                                     v-for="weight in weights"
@@ -607,18 +628,28 @@ const labelClass = 'mb-1.5 text-[13px] leading-[19px] font-semibold text-ink';
                                             {{ weight.label }}
                                         </span>
                                         <span
-                                            class="flex flex-1 items-center gap-2"
+                                            class="flex min-w-fit flex-1 flex-wrap items-center gap-x-1"
                                         >
                                             <span
                                                 v-if="weight.sum"
-                                                class="whitespace-nowrap text-muted-foreground"
+                                                class="text-muted-foreground"
                                             >
-                                                {{ weight.sum }}
+                                                {{ weight.sum[0] }}
                                             </span>
                                             <span
-                                                aria-hidden="true"
-                                                class="price-estimator__leader min-w-4 flex-1 text-line-strong"
-                                            />
+                                                class="flex min-w-fit flex-1 items-center gap-2"
+                                            >
+                                                <span
+                                                    v-if="weight.sum?.[1]"
+                                                    class="text-muted-foreground"
+                                                >
+                                                    {{ weight.sum[1] }}
+                                                </span>
+                                                <span
+                                                    aria-hidden="true"
+                                                    class="price-estimator__leader min-w-4 flex-1 text-line-strong"
+                                                />
+                                            </span>
                                         </span>
                                     </span>
                                     <span

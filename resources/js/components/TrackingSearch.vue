@@ -66,7 +66,9 @@ function submit(): void {
  * 40px / 14px box of the desktop header and top bar, but stays 44px tall
  * with 16px text on touch screens (an iPad in landscape). Below 360px only
  * the placeholder drops to 14px, so it fits the narrow menu sheet; md does
- * the same below 400px, for the card on the error page.
+ * the same below 400px, for the card on the error page. Below 375px the lg
+ * and md buttons move under the field (full width), as beside it the field
+ * is too narrow for the example number.
  */
 const inputClass = {
     lg: 'h-14 pl-11 text-base sm:h-[60px] sm:pl-[52px] sm:text-lg md:text-[19px]',
@@ -113,8 +115,18 @@ const labelClass = {
         </div>
         <label v-else :for="id" class="sr-only">{{ label }}</label>
 
-        <div :class="['flex', size === 'sm' ? 'gap-2' : 'gap-2.5']">
-            <div class="relative min-w-0 flex-1">
+        <div
+            :class="[
+                'flex',
+                size === 'sm' ? 'gap-2' : 'gap-2.5 max-[374px]:flex-col',
+            ]"
+        >
+            <div
+                :class="[
+                    'relative min-w-0 flex-1',
+                    size !== 'sm' && 'max-[374px]:flex-none',
+                ]"
+            >
                 <ScanLine
                     aria-hidden="true"
                     :class="[

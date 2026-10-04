@@ -3,8 +3,10 @@ import { Head, Link } from '@inertiajs/vue3';
 import { Printer, ScanLine } from '@lucide/vue';
 import { computed, onMounted, ref } from 'vue';
 import ActionDivider from '@/components/ActionDivider.vue';
+import BranchName from '@/components/BranchName.vue';
 import KotakLogo from '@/components/brand/KotakLogo.vue';
 import PageHeader from '@/components/PageHeader.vue';
+import ReceiptNumber from '@/components/ReceiptNumber.vue';
 import TrackingNumber from '@/components/TrackingNumber.vue';
 import { Button } from '@/components/ui/button';
 import {
@@ -54,6 +56,10 @@ function printReceipt(): void {
 // number) stays on one line down to a 60 mm printable width: an 80 mm roll
 // with the browser's default margins.
 const rowClass = 'flex items-baseline justify-between gap-4 py-1 print:gap-2';
+// A value that cannot break (the receipt number, a town with its postcode,
+// an approval code) moves under its label whole on a narrow phone, still on
+// the right, instead of squeezing the label onto two lines.
+const wrapRowClass = `${rowClass} flex-wrap gap-y-0`;
 const labelClass = 'text-muted-foreground print:text-black';
 </script>
 
@@ -127,7 +133,9 @@ const labelClass = 'text-muted-foreground print:text-black';
                         <header class="text-center">
                             <KotakLogo size="md" />
                             <template v-if="branch">
-                                <p class="mt-3 font-bold">{{ branch.name }}</p>
+                                <p class="mt-3 font-bold">
+                                    <BranchName :name="branch.name" />
+                                </p>
                                 <p :class="labelClass">
                                     {{ branch.address }},
                                     {{
@@ -152,12 +160,14 @@ const labelClass = 'text-muted-foreground print:text-black';
                         <dl
                             class="mt-4 border-t border-dashed border-line-strong pt-3 print:border-black"
                         >
-                            <div :class="rowClass">
+                            <div :class="wrapRowClass">
                                 <dt :class="labelClass">Receipt no.</dt>
                                 <dd
-                                    class="font-mono text-[12.5px] font-bold print:text-[8.5pt]"
+                                    class="ml-auto text-right text-[12.5px] font-bold print:text-[8.5pt]"
                                 >
-                                    {{ payment.receipt_number }}
+                                    <ReceiptNumber
+                                        :value="payment.receipt_number"
+                                    />
                                 </dd>
                             </div>
                             <div :class="rowClass">
@@ -200,9 +210,11 @@ const labelClass = 'text-muted-foreground print:text-black';
                                         {{ order.item_name }}
                                     </dd>
                                 </div>
-                                <div :class="rowClass">
+                                <div :class="wrapRowClass">
                                     <dt :class="labelClass">Deliver to</dt>
-                                    <dd class="text-right font-semibold">
+                                    <dd
+                                        class="ml-auto text-right font-semibold"
+                                    >
                                         {{ order.receiver_name }}<br />
                                         {{
                                             formatDeliveryArea(
@@ -286,9 +298,9 @@ const labelClass = 'text-muted-foreground print:text-black';
                                     {{ payment.method.label }}
                                 </dd>
                             </div>
-                            <div v-if="payment.reference" :class="rowClass">
+                            <div v-if="payment.reference" :class="wrapRowClass">
                                 <dt :class="labelClass">Approval code</dt>
-                                <dd class="font-mono font-bold">
+                                <dd class="ml-auto font-mono font-bold">
                                     {{ payment.reference }}
                                 </dd>
                             </div>

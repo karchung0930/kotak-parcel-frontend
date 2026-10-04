@@ -6,6 +6,7 @@
 import assert from 'node:assert/strict';
 import {
     branchNameParts,
+    formatBranchName,
     formatDate,
     formatDateTime,
     formatDecimal,
@@ -20,11 +21,13 @@ import {
     formatShortDateTime,
     formatTime,
     formatTrackingNumber,
+    formatVolumeSum,
     formatWeekdayDate,
     formatWeight,
     keepTogetherParts,
     normalizeTrackingNumber,
     pluralize,
+    receiptNumberParts,
     telHref,
     toLocalDate,
     toLocalDateTime,
@@ -66,6 +69,39 @@ const checks: [string, () => void][] = [
             assert.equal(formatDimensions(0, 30, 25), '—');
             assert.equal(pluralize(1, 'parcel'), '1 parcel');
             assert.equal(pluralize(3, 'parcel'), '3 parcels');
+        },
+    ],
+    [
+        'size weight sum, wrapping only before the divisor',
+        () => {
+            // The box size stays together and the divisor keeps its sign:
+            // the one plain space is before the "÷".
+            assert.equal(
+                formatVolumeSum(40, 30, 25, 5000),
+                '40\u00a0×\u00a030\u00a0×\u00a025 ÷\u00a05000',
+            );
+            assert.deepEqual(formatVolumeSum(120, 100, 80, 6000).split(' '), [
+                '120\u00a0×\u00a0100\u00a0×\u00a080',
+                '÷\u00a06000',
+            ]);
+            // Kept whole after other words, which wrap before it instead.
+            const whole = formatVolumeSum(null, null, null, 5000, {
+                whole: true,
+            });
+            assert.equal(
+                whole,
+                formatVolumeSum(null, null, null, 5000).replace(' ', ' '),
+            );
+            assert.ok(!whole.includes(' '));
+            // A missing side shows the formula instead.
+            assert.equal(
+                formatVolumeSum(40, null, 25, 5000),
+                'L\u00a0×\u00a0W\u00a0×\u00a0H ÷\u00a05000',
+            );
+            assert.equal(
+                formatVolumeSum(Number.NaN, 30, 25, 5000),
+                'L\u00a0×\u00a0W\u00a0×\u00a0H ÷\u00a05000',
+            );
         },
     ],
     [
@@ -164,16 +200,63 @@ const checks: [string, () => void][] = [
                 'Cheras\u00a0- ',
                 'Taman Connaught',
             ]);
+            // A short town keeps its words together as well, as beside a
+            // postcode; a long one may still wrap between them.
+            assert.deepEqual(branchNameParts('Petaling Jaya - SS2'), [
+                'Petaling\u00a0Jaya\u00a0- ',
+                'SS2',
+            ]);
             assert.deepEqual(branchNameParts('Shah Alam - Seksyen 13'), [
-                'Shah Alam\u00a0- ',
+                'Shah\u00a0Alam\u00a0- ',
                 'Seksyen 13',
             ]);
+            assert.deepEqual(
+                branchNameParts('Bandar Baru Salak Tinggi - Pusat'),
+                ['Bandar Baru Salak Tinggi\u00a0- ', 'Pusat'],
+            );
             // Hyphenated words are not dashes.
             assert.deepEqual(branchNameParts('Kota Kinabalu-Likas'), [
                 '',
                 'Kota Kinabalu-Likas',
             ]);
             assert.deepEqual(branchNameParts('Mid Valley'), ['', 'Mid Valley']);
+            // As plain text, for a sentence or a line-clamped box.
+            assert.equal(
+                formatBranchName('Petaling Jaya - SS2'),
+                'Petaling\u00a0Jaya\u00a0- SS2',
+            );
+            // There the area stays whole too, unless it is long.
+            assert.equal(
+                formatBranchName('Cheras - Taman Connaught'),
+                'Cheras\u00a0- Taman\u00a0Connaught',
+            );
+            assert.equal(
+                formatBranchName('Kuala Lumpur - Bandar Sri Permaisuri'),
+                'Kuala\u00a0Lumpur\u00a0- Bandar\u00a0Sri\u00a0Permaisuri',
+            );
+            assert.equal(
+                formatBranchName('Shah Alam - Kawasan Perindustrian Hicom'),
+                'Shah\u00a0Alam\u00a0- Kawasan Perindustrian Hicom',
+            );
+            assert.equal(formatBranchName('Mid Valley'), 'Mid Valley');
+        },
+    ],
+    [
+        'receipt numbers break only after a hyphen',
+        () => {
+            assert.deepEqual(receiptNumberParts('RCPT-20261003-00000025'), [
+                'RCPT-',
+                '20261003-',
+                '00000025',
+            ]);
+            assert.deepEqual(receiptNumberParts('RCPT20261003'), [
+                'RCPT20261003',
+            ]);
+            assert.deepEqual(receiptNumberParts(''), []);
+            // Nothing is added or lost: the pieces join into the number.
+            for (const value of ['RCPT-20261003-00000025', 'A--B-', '-X']) {
+                assert.equal(receiptNumberParts(value).join(''), value);
+            }
         },
     ],
     [

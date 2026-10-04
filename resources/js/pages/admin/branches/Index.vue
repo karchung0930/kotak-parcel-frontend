@@ -3,6 +3,7 @@ import { Head, Link } from '@inertiajs/vue3';
 import { Clock, MapPin, Pencil, Phone, Plus } from '@lucide/vue';
 import { computed } from 'vue';
 import ActiveStatus from '@/components/admin/ActiveStatus.vue';
+import BranchName from '@/components/BranchName.vue';
 import EmptyState from '@/components/EmptyState.vue';
 import PageHeader from '@/components/PageHeader.vue';
 import { Button } from '@/components/ui/button';
@@ -119,7 +120,7 @@ function hoursLines(hours: string): string[] {
                                  street, then postcode, city and state. -->
                             <td role="cell" class="max-w-80 py-3">
                                 <p class="leading-[19px] font-bold text-ink">
-                                    {{ branch.name }}
+                                    <BranchName :name="branch.name" />
                                 </p>
                                 <p
                                     class="text-[12.5px] leading-[17px] text-muted-foreground"
@@ -192,7 +193,9 @@ function hoursLines(hours: string): string[] {
                              with the status, so every card has a two-line
                              header however long the name -->
                         <div class="min-w-0">
-                            <p class="font-bold text-ink">{{ branch.name }}</p>
+                            <p class="font-bold text-ink">
+                                <BranchName :name="branch.name" />
+                            </p>
                             <div
                                 class="mt-1.5 flex flex-wrap items-center gap-1.5"
                             >

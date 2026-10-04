@@ -12,6 +12,7 @@ import {
     TriangleAlert,
 } from '@lucide/vue';
 import { computed, ref } from 'vue';
+import BranchName from '@/components/BranchName.vue';
 import ChoiceCard from '@/components/ChoiceCard.vue';
 import ConfirmActionDialog from '@/components/ConfirmActionDialog.vue';
 import DateTime from '@/components/DateTime.vue';
@@ -25,6 +26,7 @@ import { Button } from '@/components/ui/button';
 import Weight from '@/components/Weight.vue';
 import { directionsUrl, mapSearchUrl } from '@/lib/branches';
 import {
+    formatBranchName,
     formatDeliveryArea,
     formatDimensions,
     formatPhone,
@@ -118,8 +120,10 @@ const cardClass = 'rounded-2xl border border-line bg-white p-4 sm:p-5';
 const headingClass =
     'text-[17px] leading-6 font-extrabold tracking-heading text-ink';
 // The call and map links, 48px tall for a thumb. The white ones are outline
-// Buttons, so they hover like every other outline button on the site. On a
-// narrow phone a label may wrap rather than spill out of its half of the row.
+// Buttons, so they hover like every other outline button on the site. Each
+// pair sits side by side only where both its labels fit on one line (a
+// container query on the card, sized to that pair); on a narrower phone,
+// such as 320px, they stack at full width.
 const actionLinkClass =
     'h-12 rounded-xl border-[1.5px] px-4 text-[15px] font-bold whitespace-normal';
 </script>
@@ -194,9 +198,9 @@ const actionLinkClass =
                     First, collect it from the branch
                 </h2>
             </div>
-            <div class="p-4 sm:p-5">
+            <div class="@container p-4 sm:p-5">
                 <p class="text-lg leading-6 font-extrabold text-ink">
-                    {{ branch.name }}
+                    <BranchName :name="branch.name" />
                 </p>
                 <address
                     class="mt-1 text-[15px] leading-6 text-pretty text-ink-2 not-italic"
@@ -210,7 +214,7 @@ const actionLinkClass =
                     <Clock aria-hidden="true" class="size-4" />
                     {{ branch.opening_hours }}
                 </p>
-                <div class="mt-4 grid grid-cols-2 gap-2.5">
+                <div class="mt-4 grid gap-2.5 @[17.5rem]:grid-cols-2">
                     <Button variant="outline" as-child :class="actionLinkClass">
                         <a :href="telHref(branch.phone)">
                             <Phone aria-hidden="true" class="size-[18px]" />
@@ -241,7 +245,10 @@ const actionLinkClass =
         </section>
 
         <!-- The receiver -->
-        <section aria-labelledby="receiver-title" :class="cardClass">
+        <section
+            aria-labelledby="receiver-title"
+            :class="[cardClass, '@container']"
+        >
             <h2 id="receiver-title" :class="headingClass">Deliver to</h2>
             <p class="mt-2 text-base leading-6 font-bold text-ink">
                 {{ order.receiver_name }}
@@ -257,7 +264,7 @@ const actionLinkClass =
             <!-- On phones a compact Call leaves room for "Open in Maps";
                  from 640px equal halves, like the branch card's. -->
             <div
-                class="mt-4 grid grid-cols-[auto_minmax(0,1fr)] gap-2.5 sm:grid-cols-2"
+                class="mt-4 grid gap-2.5 sm:grid-cols-2 max-sm:@[17rem]:grid-cols-[auto_minmax(0,1fr)]"
             >
                 <Button variant="outline" as-child :class="actionLinkClass">
                     <a :href="telHref(order.receiver_phone)">
@@ -369,7 +376,7 @@ const actionLinkClass =
                     <Weight :grams="order.measured_weight_g" />
                 </DescriptionItem>
                 <DescriptionItem v-if="branch" label="From branch" stacked="sm">
-                    {{ branch.name }}
+                    <BranchName :name="branch.name" />
                 </DescriptionItem>
             </DescriptionList>
         </section>
@@ -443,7 +450,7 @@ const actionLinkClass =
             v-model:open="confirmingPickup"
             :icon="PackageOpen"
             title="Picked up at the branch?"
-            :description="`Confirm that you have ${trackingNumber} with you${branch ? ` from ${branch.name}` : ''}. Tracking will show it as out for delivery.`"
+            :description="`Confirm that you have ${trackingNumber} with you${branch ? ` from ${formatBranchName(branch.name)}` : ''}. Tracking will show it as out for delivery.`"
             confirm-label="Yes, I have it"
             :processing="pickupForm.processing"
             @confirm="confirmPickup"

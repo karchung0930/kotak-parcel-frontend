@@ -661,13 +661,15 @@ const extraRowClass = 'bg-[color-mix(in_srgb,var(--color-surface)_60%,white)]';
                     :key="zone.key"
                     class="rounded-xl border border-line p-4"
                 >
-                    <!-- The button lines up with the field, under its label. -->
-                    <div class="flex items-start gap-3">
+                    <!-- The button lines up with the field, under its label.
+                         Below 360px it goes under the field instead, so a
+                         name like "Peninsular Malaysia" is not cut short. -->
+                    <div class="flex items-start gap-3 max-[359px]:flex-col">
                         <FormField
                             :id="`${zone.key}-name`"
                             :label="`Zone ${zoneIndex + 1}`"
                             :error="error(`zone:${zone.key}:name`)"
-                            class="flex-1"
+                            class="flex-1 max-[359px]:self-stretch"
                         >
                             <template #default="{ describedby, invalid }">
                                 <Input
@@ -686,11 +688,13 @@ const extraRowClass = 'bg-[color-mix(in_srgb,var(--color-surface)_60%,white)]';
                         <Button
                             type="button"
                             variant="outline"
-                            class="mt-[26px] h-11 min-w-11 flex-none rounded-lg px-3.5 font-bold"
+                            class="mt-[26px] h-11 min-w-11 flex-none rounded-lg px-3.5 font-bold max-[359px]:mt-0"
                             @click="removeZone(zone)"
                         >
                             <Trash2 aria-hidden="true" />
-                            <span class="max-sm:sr-only">Remove</span>
+                            <span class="max-sm:min-[360px]:sr-only">
+                                Remove
+                            </span>
                             <span class="sr-only">
                                 {{ zone.name || `zone ${zoneIndex + 1}` }}
                             </span>

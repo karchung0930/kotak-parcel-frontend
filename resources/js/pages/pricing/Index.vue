@@ -31,6 +31,7 @@ import {
     formatDimensions,
     formatKg,
     formatMoney,
+    formatVolumeSum,
     formatWeight,
     toLocalDateTime,
 } from '@/lib/format';
@@ -193,7 +194,12 @@ const workedSteps = computed(() => {
         },
         {
             title: 'Size weight',
-            detail: `${example.lengthCm} × ${example.widthCm} × ${example.heightCm} ÷ ${props.pricing.divisor}`,
+            detail: formatVolumeSum(
+                example.lengthCm,
+                example.widthCm,
+                example.heightCm,
+                props.pricing.divisor,
+            ),
             value: formatWeight(estimate.volumetricG),
         },
         {
@@ -302,7 +308,9 @@ const limits = computed(() => [
         :breadcrumbs="breadcrumbs"
         panel-align="stretch"
     >
-        <dl class="grid h-full grid-cols-2 gap-3">
+        <!-- Side by side from 360px; on a 320px phone a tile is too narrow
+             for the price and its label, so they stack. -->
+        <dl class="grid h-full grid-cols-1 gap-3 min-[360px]:grid-cols-2">
             <div
                 class="flex flex-col justify-end rounded-xl border border-line bg-white px-4 py-3.5"
             >
@@ -530,7 +538,11 @@ const limits = computed(() => [
                     class="mt-0.5 size-4 flex-none text-brand"
                 />
                 Weights are chargeable weights: the actual weight or the size
-                weight (L × W × H ÷ {{ pricing.divisor }}), whichever is higher.
+                weight ({{
+                    formatVolumeSum(null, null, null, pricing.divisor, {
+                        whole: true,
+                    })
+                }}), whichever is higher.
             </p>
         </div>
     </section>

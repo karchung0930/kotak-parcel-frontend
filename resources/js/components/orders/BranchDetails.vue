@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Clock, ExternalLink, Phone, Store } from '@lucide/vue';
+import BranchName from '@/components/BranchName.vue';
 import { Button } from '@/components/ui/button';
 import { directionsUrl } from '@/lib/branches';
 import { formatPhone, formatPostcodeCity, telHref } from '@/lib/format';
@@ -26,7 +27,7 @@ defineProps<{
                 <p
                     class="text-base leading-[22px] font-extrabold tracking-heading text-ink"
                 >
-                    {{ branch.name }}
+                    <BranchName :name="branch.name" />
                 </p>
                 <p class="mt-0.5 text-sm leading-5 text-muted-foreground">
                     {{ branch.address }},

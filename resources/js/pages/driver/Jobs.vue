@@ -10,6 +10,7 @@ import {
     Truck,
 } from '@lucide/vue';
 import { computed, useTemplateRef } from 'vue';
+import BranchName from '@/components/BranchName.vue';
 import KotakVan from '@/components/brand/KotakVan.vue';
 import JobCard from '@/components/driver/JobCard.vue';
 import EmptyState from '@/components/EmptyState.vue';
@@ -301,9 +302,9 @@ const navButton =
             <ul>
                 <li v-for="pickup in pickups" :key="pickup.name">
                     {{ pluralize(pickup.count, 'parcel') }} from
-                    <strong class="font-bold text-ink">{{
-                        pickup.name
-                    }}</strong>
+                    <strong class="font-bold text-ink">
+                        <BranchName :name="pickup.name" />
+                    </strong>
                 </li>
             </ul>
         </Notice>

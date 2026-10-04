@@ -12,6 +12,7 @@ import WeighParcelForm from '@/components/counter/WeighParcelForm.vue';
 import DateTime from '@/components/DateTime.vue';
 import KeepTogether from '@/components/KeepTogether.vue';
 import Notice from '@/components/Notice.vue';
+import ReceiptNumber from '@/components/ReceiptNumber.vue';
 import StatusChip from '@/components/StatusChip.vue';
 import Timeline from '@/components/Timeline.vue';
 import TrackingNumber from '@/components/TrackingNumber.vue';
@@ -439,11 +440,11 @@ const historyFits = useFitsViewport(historyCard, 24);
                                      column never leaves a code's last
                                      letters alone on a line. -->
                                 <p
-                                    class="mt-1 flex flex-wrap gap-x-3 font-mono text-[13px] leading-5 font-semibold break-all text-ink-2"
+                                    class="mt-1 flex flex-wrap gap-x-3 font-mono text-[13px] leading-5 font-semibold text-ink-2"
                                 >
-                                    <span>
-                                        {{ order.payment.receipt_number }}
-                                    </span>
+                                    <ReceiptNumber
+                                        :value="order.payment.receipt_number"
+                                    />
                                     <span v-if="order.payment.reference">
                                         approval
                                         {{ order.payment.reference }}

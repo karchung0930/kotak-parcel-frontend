@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { MapPin, Ruler, Weight } from '@lucide/vue';
 import { computed } from 'vue';
-import { formatMoney } from '@/lib/format';
+import { formatMoney, formatVolumeSum } from '@/lib/format';
 import { lowestExtraKgSen, lowestPriceSen } from '@/lib/pricing';
 import type { Pricing } from '@/types';
 
@@ -37,7 +37,9 @@ const rules = computed(() => {
         },
         {
             icon: Ruler,
-            title: `Size weight = L × W × H ÷ ${props.pricing.divisor}`,
+            // The formula stays whole: on a phone it goes under "Size
+            // weight =" rather than leaving the divisor alone on a line.
+            title: `Size weight = ${formatVolumeSum(null, null, null, props.pricing.divisor, { whole: true })}`,
             text: 'Also called volumetric weight (box size in cm). When it is more than the actual weight, we charge by size.',
         },
     ];

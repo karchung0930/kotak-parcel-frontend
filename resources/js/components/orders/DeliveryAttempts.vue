@@ -120,7 +120,8 @@ const hasPhoto = computed(
                         class="mt-0.5 text-[15px] leading-[22px] font-bold text-ink"
                     >
                         <!-- On phones the recipient gets a line of its own,
-                             so the name is not broken in two. -->
+                             and the name moves under "received by" whole
+                             rather than being broken in two. -->
                         <template v-if="attempt.delivered">
                             Delivered
                             <template v-if="recipient">
@@ -132,7 +133,10 @@ const hasPhoto = computed(
                                 <span
                                     class="block font-semibold text-ink-2 sm:inline"
                                 >
-                                    received by {{ recipient }}
+                                    received by
+                                    <span class="inline-block">{{
+                                        recipient
+                                    }}</span>
                                 </span>
                             </template>
                         </template>
@@ -145,8 +149,8 @@ const hasPhoto = computed(
 
                     <!-- A green edge, as the parcel was delivered; it still
                          lifts on hover like every outline button. Phones
-                         get a shorter label that fits on one line; on the
-                         narrowest it may still wrap, so the button grows. -->
+                         get a shorter label that fits on one line, down to
+                         320px; it may still wrap, so the button grows. -->
                     <Button
                         v-if="attempt.delivered && hasPhoto"
                         variant="outline"
@@ -162,7 +166,7 @@ const hasPhoto = computed(
                                 aria-hidden="true"
                                 class="text-status-delivered"
                             />
-                            <span class="sm:hidden">View delivery photo</span>
+                            <span class="sm:hidden">View photo</span>
                             <span class="max-sm:hidden">
                                 View proof of delivery photo
                             </span>

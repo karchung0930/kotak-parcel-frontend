@@ -5,6 +5,7 @@ import { computed, ref, useTemplateRef } from 'vue';
 import { dispatchAction } from '@/components/admin/dispatch';
 import DispatchPanel from '@/components/admin/DispatchPanel.vue';
 import AttemptPips from '@/components/AttemptPips.vue';
+import BranchName from '@/components/BranchName.vue';
 import Breadcrumbs from '@/components/Breadcrumbs.vue';
 import JourneyConveyor from '@/components/brand/JourneyConveyor.vue';
 import DateTime from '@/components/DateTime.vue';
@@ -14,6 +15,7 @@ import KeepTogether from '@/components/KeepTogether.vue';
 import Money from '@/components/Money.vue';
 import Notice from '@/components/Notice.vue';
 import PlateBadge from '@/components/PlateBadge.vue';
+import ReceiptNumber from '@/components/ReceiptNumber.vue';
 import StatusChip from '@/components/StatusChip.vue';
 import TextLink from '@/components/TextLink.vue';
 import Timeline from '@/components/Timeline.vue';
@@ -49,14 +51,6 @@ const props = defineProps<AdminOrdersShowPageProps>();
 const pricedWith = computed(
     () =>
         props.order.final_rate_card ?? props.order.estimated_rate_card ?? null,
-);
-
-/** " by Aisyah Rahman for drop-off at Bangsar South", after the creation date. */
-const createdContext = computed(() =>
-    [
-        props.order.customer ? ` by ${props.order.customer.name}` : '',
-        props.order.branch ? ` for drop-off at ${props.order.branch.name}` : '',
-    ].join(''),
 );
 
 const breadcrumbs = computed(() => [
@@ -155,10 +149,11 @@ const cardTitle =
  * The next step's buttons fill the card on phones and in the right-hand
  * column. In one column on a wider page (42 to 56rem, e.g. iPads) they
  * keep a button's width side by side instead of becoming 670px bars. A
- * label too long for a 320px phone wraps inside the button.
+ * label too long for a 320px phone ("Open at the drop-off counter") wraps
+ * inside the button, centred like a button's, links included.
  */
 const nextButton =
-    'h-auto min-h-12 w-full rounded-lg py-2.5 text-[15px] font-bold whitespace-normal @2xl:w-auto @2xl:min-w-56 @2xl:has-[>svg]:px-6 @4xl:w-full';
+    'h-auto min-h-12 w-full rounded-lg py-2.5 text-center text-[15px] font-bold whitespace-normal @2xl:w-auto @2xl:min-w-56 @2xl:has-[>svg]:px-6 @4xl:w-full';
 </script>
 
 <template>
@@ -184,12 +179,19 @@ const nextButton =
                     <TrackingNumber :value="order.tracking_number" size="lg" />
                     <StatusChip :status="order.status" />
                 </div>
+                <!-- "Created 29 Sep 2026, 14:05 by Aisyah Rahman for
+                     drop-off at Bangsar South." -->
                 <p
                     class="mt-2 max-w-2xl text-[15px] leading-6 text-muted-foreground"
                 >
-                    Created <DateTime :value="order.created_at" />{{
-                        createdContext
-                    }}.
+                    Created <DateTime :value="order.created_at" /><template
+                        v-if="order.customer"
+                    >
+                        by {{ order.customer.name }}</template
+                    ><template v-if="order.branch">
+                        for drop-off at
+                        <BranchName :name="order.branch.name" /></template
+                    >.
                 </p>
             </div>
             <div class="flex flex-wrap gap-2.5">
@@ -681,10 +683,10 @@ const nextButton =
                                     · {{ order.payment.reference }}
                                 </span>
                             </DescriptionItem>
-                            <DescriptionItem label="Receipt">
-                                <span class="font-mono">{{
-                                    order.payment.receipt_number
-                                }}</span>
+                            <DescriptionItem label="Receipt" wrap>
+                                <ReceiptNumber
+                                    :value="order.payment.receipt_number"
+                                />
                             </DescriptionItem>
                             <DescriptionItem label="Paid">
                                 <DateTime :value="order.payment.paid_at" />
@@ -779,7 +781,7 @@ const nextButton =
                             Drop-off branch
                         </h2>
                         <p class="mt-2 text-sm leading-6 font-bold text-ink">
-                            {{ order.branch.name }}
+                            <BranchName :name="order.branch.name" />{{ ' ' }}
                             <span
                                 class="ml-1 rounded-[4px] bg-surface px-1.5 font-mono text-xs font-bold text-ink-2"
                             >

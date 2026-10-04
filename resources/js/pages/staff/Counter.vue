@@ -2,6 +2,7 @@
 import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
 import { ArrowRight, ChevronRight, MapPin, ScanLine } from '@lucide/vue';
 import { computed, onMounted, useTemplateRef } from 'vue';
+import BranchName from '@/components/BranchName.vue';
 import EmptyParcel from '@/components/brand/EmptyParcel.vue';
 import KotakTape from '@/components/brand/KotakTape.vue';
 import DateTime from '@/components/DateTime.vue';
@@ -28,15 +29,12 @@ const props = defineProps<StaffCounterPageProps>();
 const page = usePage();
 const branchName = computed(() => page.props.auth.user.branch_name);
 
-const recentCaption = computed(() => {
-    const where = branchName.value
-        ? `at ${branchName.value}`
-        : 'at every branch';
-
-    return props.recent.length > 0
-        ? `The latest ${pluralize(props.recent.length, 'parcel')} weighed ${where}`
-        : `Parcels weighed ${where}`;
-});
+/** "The latest 5 parcels weighed", followed by where in the template. */
+const recentLead = computed(() =>
+    props.recent.length > 0
+        ? `The latest ${pluralize(props.recent.length, 'parcel')} weighed`
+        : 'Parcels weighed',
+);
 
 // Admins without a branch see every branch's parcels, so show where each one is.
 const showBranch = computed(() => !branchName.value);
@@ -86,13 +84,18 @@ const STEPS = [
             title="Drop-off counter"
             description="Weigh parcels, take payment and print receipts."
         >
+            <!-- 40px tall; a long branch name wraps after its dash and
+                 the badge grows with it. -->
             <template v-if="branchName" #actions>
                 <p
-                    class="inline-flex h-10 items-center gap-2 rounded-lg border border-line bg-white px-3.5 text-sm font-semibold text-ink-2"
+                    class="inline-flex min-h-10 items-center gap-2 rounded-lg border border-line bg-white px-3.5 py-2 text-sm leading-5 font-semibold text-ink-2"
                 >
-                    <MapPin aria-hidden="true" class="size-4 text-brand" />
+                    <MapPin
+                        aria-hidden="true"
+                        class="size-4 flex-none text-brand"
+                    />
                     <span class="sr-only">Your branch:</span>
-                    {{ branchName }}
+                    <BranchName :name="branchName" />
                 </p>
             </template>
         </PageHeader>
@@ -266,7 +269,9 @@ const STEPS = [
                     Recently received
                 </h2>
                 <p class="text-[13px] leading-5 text-muted-foreground">
-                    {{ recentCaption }}
+                    {{ recentLead }} at
+                    <BranchName v-if="branchName" :name="branchName" />
+                    <template v-else>every branch</template>
                 </p>
             </div>
 
@@ -395,13 +400,17 @@ const STEPS = [
                                     class="hidden py-3 text-[13px] leading-[18px] text-ink-2 @4xl:block"
                                 >
                                     <template v-if="showBranch">
-                                        {{ item.branch?.name }}
+                                        <BranchName
+                                            v-if="item.branch"
+                                            :name="item.branch.name"
+                                        />
                                     </template>
                                     <DateTime
                                         v-else
                                         :value="item.updated_at"
                                         format="shortDateTime"
                                         mono
+                                        class="whitespace-nowrap"
                                     />
                                 </td>
                             </tr>
@@ -417,6 +426,8 @@ const STEPS = [
                             class="flex items-center gap-3 px-4 py-3.5 hover:bg-surface/70"
                         >
                             <span class="min-w-0 flex-1">
+                                <!-- A status that wraps stays on the
+                                     right, like every other. -->
                                 <span
                                     class="flex flex-wrap items-center justify-between gap-2"
                                 >
@@ -428,6 +439,7 @@ const STEPS = [
                                     <StatusChip
                                         :status="item.status"
                                         size="sm"
+                                        class="ml-auto"
                                     />
                                 </span>
                                 <span
@@ -445,18 +457,27 @@ const STEPS = [
                                         · {{ item.receiver_name }}
                                     </span>
                                 </span>
+                                <!-- Only the item's name is cut short:
+                                     the weight and the price stay whole. -->
                                 <span
-                                    class="mt-0.5 block truncate text-[13px] leading-5 text-muted-foreground"
+                                    class="mt-0.5 flex gap-1 text-[13px] leading-5 text-muted-foreground"
                                 >
-                                    {{ item.item_name }} ·
-                                    <Weight :grams="item.chargeable_weight_g" />
-                                    ·
-                                    <Money
-                                        :sen="
-                                            item.final_price_sen ??
-                                            item.estimated_price_sen
-                                        "
-                                    />
+                                    <span class="min-w-0 truncate">{{
+                                        item.item_name
+                                    }}</span>
+                                    <span class="flex-none whitespace-nowrap">
+                                        ·
+                                        <Weight
+                                            :grams="item.chargeable_weight_g"
+                                        />
+                                        ·
+                                        <Money
+                                            :sen="
+                                                item.final_price_sen ??
+                                                item.estimated_price_sen
+                                            "
+                                        />
+                                    </span>
                                 </span>
                             </span>
                             <ChevronRight

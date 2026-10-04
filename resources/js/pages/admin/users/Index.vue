@@ -70,6 +70,11 @@ function submit(): void {
         q: q.trim() === '' ? undefined : q,
     })).get(index.url(), { preserveScroll: true, preserveState: true });
 }
+
+/** "staff.midvalley@kotak.test" → ["staff.midvalley", "@kotak.test"]. */
+function emailParts(email: string): string[] {
+    return email.split(/(?=@)/);
+}
 </script>
 
 <template>
@@ -361,10 +366,21 @@ function submit(): void {
                                     You
                                 </span>
                             </p>
+                            <!-- The whole address: on a 320px phone a long
+                                 one wraps before its "@" rather than being
+                                 cut short. -->
                             <p
-                                class="truncate text-[13px] leading-5 text-muted-foreground"
+                                class="text-[13px] leading-5 wrap-anywhere text-muted-foreground"
                             >
-                                {{ user.email }}
+                                <template
+                                    v-for="(part, index) in emailParts(
+                                        user.email,
+                                    )"
+                                    :key="index"
+                                    ><wbr v-if="index > 0" />{{
+                                        part
+                                    }}</template
+                                >
                             </p>
                             <div
                                 class="mt-1.5 flex flex-wrap items-center gap-1.5"

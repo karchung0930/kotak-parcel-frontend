@@ -225,12 +225,15 @@ onMounted(async () => {
                                 type="search"
                                 autocomplete="off"
                                 enterkeyhint="search"
-                                placeholder="e.g. Petaling Jaya or 59200"
+                                placeholder="e.g. Cheras or 56000"
                                 aria-describedby="branch-search-result"
-                                class="h-12 rounded-lg bg-white pr-12 pl-11 text-base md:text-base [&::-webkit-search-cancel-button]:hidden"
+                                class="h-12 rounded-lg bg-white pr-12 pl-11 text-base placeholder-shown:pr-3.5 md:text-base [&::-webkit-search-cancel-button]:hidden"
                             />
                             <!-- 36px, and a 44px target on touch screens
-                                 that still fits inside the 48px field -->
+                                 that still fits inside the 48px field. It
+                                 shows only once something is typed, so the
+                                 empty field gives its room to the
+                                 placeholder. -->
                             <button
                                 v-if="search"
                                 type="button"

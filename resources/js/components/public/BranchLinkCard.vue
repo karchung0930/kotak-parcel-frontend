@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
 import { ChevronRight, Store } from '@lucide/vue';
+import BranchName from '@/components/BranchName.vue';
 import BranchOpenStatus from '@/components/public/BranchOpenStatus.vue';
 import { branchAnchor, formatDistance } from '@/lib/branches';
 import { index as branchesIndex } from '@/routes/branches';
@@ -40,9 +41,9 @@ withDefaults(
         </span>
         <span class="flex min-w-0 flex-1 flex-col">
             <span class="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                <span class="text-sm leading-5 font-bold">{{
-                    branch.name
-                }}</span>
+                <span class="text-sm leading-5 font-bold">
+                    <BranchName :name="branch.name" />
+                </span>
                 <span
                     v-if="nearest"
                     class="rounded-[4px] bg-highlight px-1.5 text-[11px] leading-[18px] font-bold text-ink"

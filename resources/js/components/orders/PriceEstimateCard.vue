@@ -4,7 +4,12 @@ import { computed } from 'vue';
 import KotakTape from '@/components/brand/KotakTape.vue';
 import Notice from '@/components/Notice.vue';
 import RouteTitle from '@/components/RouteTitle.vue';
-import { formatKg, formatMoney, formatWeight } from '@/lib/format';
+import {
+    formatKg,
+    formatMoney,
+    formatVolumeSum,
+    formatWeight,
+} from '@/lib/format';
 import {
     billedWeightGrams,
     chargedByVolume,
@@ -33,11 +38,14 @@ const props = defineProps<{
     needs: 'state' | 'branch' | null;
 }>();
 
-const volumeSum = computed(() => {
-    const { lengthCm, widthCm, heightCm } = props.size;
-
-    return `${lengthCm} × ${widthCm} × ${heightCm} ÷ ${props.pricing.divisor}`;
-});
+const volumeSum = computed(() =>
+    formatVolumeSum(
+        props.size.lengthCm,
+        props.size.widthCm,
+        props.size.heightCm,
+        props.pricing.divisor,
+    ),
+);
 
 /** "Within Peninsular Malaysia" or "Peninsular Malaysia → Sarawak". */
 const route = computed(() =>

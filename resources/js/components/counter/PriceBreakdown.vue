@@ -4,7 +4,12 @@ import { computed, useId } from 'vue';
 import KotakTape from '@/components/brand/KotakTape.vue';
 import KeepTogether from '@/components/KeepTogether.vue';
 import RouteTitle from '@/components/RouteTitle.vue';
-import { formatKg, formatMoney, formatWeight } from '@/lib/format';
+import {
+    formatKg,
+    formatMoney,
+    formatVolumeSum,
+    formatWeight,
+} from '@/lib/format';
 import { estimatePrice, routeName } from '@/lib/pricing';
 import type { ParcelSize } from '@/lib/pricing';
 import type { MalaysianStateValue, Pricing } from '@/types';
@@ -69,11 +74,14 @@ const summary = computed(() =>
 /** Read out once typing pauses, not on every keystroke. */
 const announced = refDebounced(summary, 800);
 
-const volumeFormula = computed(() => {
-    const { lengthCm, widthCm, heightCm } = props.size;
-
-    return `${lengthCm} × ${widthCm} × ${heightCm} ÷ ${props.pricing.divisor}`;
-});
+const volumeFormula = computed(() =>
+    formatVolumeSum(
+        props.size.lengthCm,
+        props.size.widthCm,
+        props.size.heightCm,
+        props.pricing.divisor,
+    ),
+);
 
 /** "Within Peninsular Malaysia" or "Peninsular Malaysia → Sarawak". */
 const route = computed(() =>

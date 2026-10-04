@@ -111,7 +111,12 @@ const th = 'py-2.5 font-bold';
                 :key="order.id"
                 class="relative rounded-2xl border border-line bg-white p-4 transition-colors hover:border-line-strong"
             >
-                <div class="flex items-start justify-between gap-3">
+                <!-- A long status ("Returned to Sender") goes under the
+                     number on a 320px phone rather than past the card,
+                     still on the right like every other card's. -->
+                <div
+                    class="flex flex-wrap items-start justify-between gap-x-3 gap-y-1.5"
+                >
                     <Link
                         :href="show(order.id)"
                         class="text-[15px] leading-6 text-brand-strong after:absolute after:inset-0 after:rounded-2xl"
@@ -124,7 +129,11 @@ const th = 'py-2.5 font-bold';
                             , parcel to {{ order.receiver_name }}
                         </span>
                     </Link>
-                    <StatusChip :status="order.status" size="sm" />
+                    <StatusChip
+                        :status="order.status"
+                        size="sm"
+                        class="ml-auto"
+                    />
                 </div>
                 <p class="mt-2 text-base leading-[22px] font-bold text-ink">
                     {{ order.receiver_name }}

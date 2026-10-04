@@ -34,13 +34,15 @@ const descriptionId = `${props.id}-description`;
 <template>
     <!-- On phones only the label shares a row with the switch, and the
          explanation takes the full width below. From sm it is a column
-         beside the switch. -->
+         beside the switch. A label too long for its row on a 320px phone
+         ("Open for new orders") wraps into balanced lines, not a lone
+         last word. -->
     <div
         class="grid grid-cols-[minmax(0,1fr)_auto] content-start items-center gap-x-5 sm:items-start"
     >
         <label
             :for="id"
-            class="col-start-1 row-start-1 text-sm leading-5 font-bold text-ink sm:pt-0.5"
+            class="col-start-1 row-start-1 text-sm leading-5 font-bold text-balance text-ink sm:pt-0.5"
         >
             {{ label }}
         </label>

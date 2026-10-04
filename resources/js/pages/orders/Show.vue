@@ -3,6 +3,7 @@ import { Head, Link } from '@inertiajs/vue3';
 import { Banknote, Info, PackagePlus, Receipt } from '@lucide/vue';
 import { computed, useTemplateRef } from 'vue';
 import ActionDivider from '@/components/ActionDivider.vue';
+import BranchName from '@/components/BranchName.vue';
 import DateTime from '@/components/DateTime.vue';
 import DescriptionItem from '@/components/DescriptionItem.vue';
 import DescriptionList from '@/components/DescriptionList.vue';
@@ -14,6 +15,7 @@ import CounterPass from '@/components/orders/CounterPass.vue';
 import DeliveryAttempts from '@/components/orders/DeliveryAttempts.vue';
 import OrderStatusCard from '@/components/orders/OrderStatusCard.vue';
 import PageHeader from '@/components/PageHeader.vue';
+import ReceiptNumber from '@/components/ReceiptNumber.vue';
 import Timeline from '@/components/Timeline.vue';
 import { Button } from '@/components/ui/button';
 import Weight from '@/components/Weight.vue';
@@ -290,10 +292,10 @@ const historyFits = useFitsViewport(historyCard, 24);
                             Payment receipt
                         </h3>
                         <DescriptionList class="mt-1">
-                            <DescriptionItem label="Receipt no.">
-                                <span class="font-mono">{{
-                                    order.payment.receipt_number
-                                }}</span>
+                            <DescriptionItem label="Receipt no." wrap>
+                                <ReceiptNumber
+                                    :value="order.payment.receipt_number"
+                                />
                             </DescriptionItem>
                             <DescriptionItem label="Amount paid">
                                 <Money :sen="order.payment.amount_sen" />
@@ -314,7 +316,7 @@ const historyFits = useFitsViewport(historyCard, 24);
                                 <DateTime :value="order.payment.paid_at" />
                             </DescriptionItem>
                             <DescriptionItem v-if="order.branch" label="Branch">
-                                {{ order.branch.name }}
+                                <BranchName :name="order.branch.name" />
                             </DescriptionItem>
                         </DescriptionList>
                     </div>

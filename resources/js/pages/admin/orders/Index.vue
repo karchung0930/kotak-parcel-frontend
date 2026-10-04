@@ -2,6 +2,7 @@
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { Search, X } from '@lucide/vue';
 import { computed } from 'vue';
+import BranchName from '@/components/BranchName.vue';
 import NativeSelect from '@/components/NativeSelect.vue';
 import DateTime from '@/components/DateTime.vue';
 import EmptyState from '@/components/EmptyState.vue';
@@ -71,19 +72,20 @@ function statusDetail(order: OrderSummary): string | null {
             <h2 id="orders-title" class="sr-only">Order list</h2>
 
             <!-- Sized by the card (container queries): the two filters share
-                 a row at every width (phones too, to keep the results in
-                 view), the button joins them from 42rem, and everything is
-                 one row from 56rem. -->
+                 a row from 21rem (phones from 375px, to keep the results in
+                 view; on a 320px phone "All statuses" would be cut short, so
+                 they stack), the button joins them from 42rem, and
+                 everything is one row from 56rem. -->
             <form
                 :action="index.url()"
                 method="get"
                 role="search"
                 aria-label="Filter orders"
-                class="grid grid-cols-2 gap-3 border-b border-line p-4 md:px-5 @2xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] @2xl:items-end @4xl:grid-cols-[minmax(0,1fr)_12rem_14rem_auto]"
+                class="grid gap-3 border-b border-line p-4 md:px-5 @[21rem]:grid-cols-2 @2xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] @2xl:items-end @4xl:grid-cols-[minmax(0,1fr)_12rem_14rem_auto]"
                 @submit.prevent="submit"
             >
                 <div
-                    class="col-span-2 grid gap-1.5 @2xl:col-span-3 @4xl:col-span-1"
+                    class="col-span-full grid gap-1.5 @2xl:col-span-3 @4xl:col-span-1"
                 >
                     <label
                         for="orders-q"
@@ -103,7 +105,7 @@ function statusDetail(order: OrderSummary): string | null {
                             v-model="form.q"
                             maxlength="100"
                             autocomplete="off"
-                            placeholder="KT- number, sender or receiver"
+                            placeholder="Tracking number or name"
                             class="h-10 rounded-md bg-white pl-10 pointer-coarse:h-11 pointer-coarse:text-base"
                         />
                     </div>
@@ -156,7 +158,7 @@ function statusDetail(order: OrderSummary): string | null {
                         </option>
                     </NativeSelect>
                 </div>
-                <div class="col-span-2 flex gap-2.5 @2xl:col-span-1">
+                <div class="col-span-full flex gap-2.5 @2xl:col-span-1">
                     <Button
                         type="submit"
                         :disabled="form.processing"
@@ -315,7 +317,10 @@ function statusDetail(order: OrderSummary): string | null {
                                     role="cell"
                                     class="hidden py-2.5 text-[13px] leading-[17px] text-ink-2 @4xl:block"
                                 >
-                                    {{ order.branch?.name }}
+                                    <BranchName
+                                        v-if="order.branch"
+                                        :name="order.branch.name"
+                                    />
                                 </td>
                                 <td role="cell" class="py-2.5">
                                     <StatusChip
@@ -368,14 +373,24 @@ function statusDetail(order: OrderSummary): string | null {
                         :key="order.id"
                         class="relative px-4 py-3.5 transition-colors hover:bg-surface/70 active:bg-surface/70"
                     >
-                        <div class="flex items-start justify-between gap-3">
+                        <!-- A long status ("Returned to Sender") goes
+                             under the number on a 320px phone rather than
+                             past the card, still on the right like every
+                             other card's. -->
+                        <div
+                            class="flex flex-wrap items-start justify-between gap-x-3 gap-y-1.5"
+                        >
                             <TrackingNumber
                                 :value="order.tracking_number"
                                 :href="show(order.id)"
                                 size="sm"
                                 stretched
                             />
-                            <StatusChip :status="order.status" size="sm" />
+                            <StatusChip
+                                :status="order.status"
+                                size="sm"
+                                class="ml-auto"
+                            />
                         </div>
                         <p class="mt-2 text-sm leading-5 font-bold text-ink">
                             {{ order.receiver_name }}
@@ -390,7 +405,9 @@ function statusDetail(order: OrderSummary): string | null {
                             </span>
                         </p>
                         <p class="mt-0.5 text-[13px] leading-5 text-ink-2">
-                            {{ order.branch?.name }} ·
+                            <template v-if="order.branch">
+                                <BranchName :name="order.branch.name" /> ·
+                            </template>
                             <Money
                                 :sen="
                                     order.final_price_sen ??

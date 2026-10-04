@@ -391,11 +391,15 @@ function submit(): void {
                 <template v-else>Choose a driver and a delivery date.</template>
             </p>
             <InputError :message="errors.status" class="mt-2" />
+            <!-- On a 320px phone Cancel is a little narrower, so "Reassign
+                 delivery" keeps one line; the longer "Reschedule delivery"
+                 wraps inside its button rather than pushing it past the
+                 panel. -->
             <div class="mt-3 flex gap-2.5">
                 <Button
                     type="button"
                     variant="outline"
-                    class="h-12 rounded-lg px-5 text-[15px] font-bold"
+                    class="h-12 rounded-lg px-4 text-[15px] font-bold min-[375px]:px-5"
                     @click="emit('cancel')"
                 >
                     Cancel
@@ -403,7 +407,7 @@ function submit(): void {
                 <Button
                     type="submit"
                     :disabled="form.processing"
-                    class="h-12 flex-1 rounded-lg text-[15px] font-bold"
+                    class="h-auto min-h-12 min-w-0 flex-1 rounded-lg py-2.5 text-[15px] font-bold whitespace-normal"
                 >
                     <Spinner v-if="form.processing" />
                     <Truck v-else aria-hidden="true" class="size-[18px]" />

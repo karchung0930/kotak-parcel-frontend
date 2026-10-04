@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Camera, ExternalLink, Phone } from '@lucide/vue';
 import { computed, useTemplateRef } from 'vue';
+import BranchName from '@/components/BranchName.vue';
 import DateTime from '@/components/DateTime.vue';
 import DescriptionItem from '@/components/DescriptionItem.vue';
 import DescriptionList from '@/components/DescriptionList.vue';
@@ -137,7 +138,7 @@ const phoneClass =
                     }}
                 </DescriptionItem>
                 <DescriptionItem v-if="order.branch" label="Branch">
-                    {{ order.branch.name }}
+                    <BranchName :name="order.branch.name" />
                 </DescriptionItem>
             </DescriptionList>
         </section>

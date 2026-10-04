@@ -6,12 +6,14 @@ import FormField from '@/components/admin/FormField.vue';
 import FormSection from '@/components/admin/FormSection.vue';
 import NativeSelect from '@/components/NativeSelect.vue';
 import SwitchField from '@/components/admin/SwitchField.vue';
+import BranchName from '@/components/BranchName.vue';
 import InputError from '@/components/InputError.vue';
 import PageHeader from '@/components/PageHeader.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 import { mapSearchUrl } from '@/lib/branches';
+import { formatBranchName } from '@/lib/format';
 import { create, edit, index, store, update } from '@/routes/admin/branches';
 import type { AdminBranchesFormPageProps, MalaysianStateValue } from '@/types';
 
@@ -127,7 +129,11 @@ function submit(): void {
             :title="title"
             :breadcrumbs="breadcrumbs"
             :description="description"
-        />
+        >
+            <template v-if="branch" #title>
+                Edit <BranchName :name="branch.name" />
+            </template>
+        </PageHeader>
 
         <form class="space-y-6" novalidate @submit.prevent="submit">
             <FormSection
@@ -159,7 +165,7 @@ function submit(): void {
                     <FormField
                         id="branch-name"
                         label="Name"
-                        hint="As customers know it, e.g. Petaling Jaya - SS2."
+                        :hint="`As customers know it, e.g. ${formatBranchName('Petaling Jaya - SS2')}.`"
                         :error="errors.name"
                     >
                         <template #default="{ describedby, invalid }">

@@ -12,6 +12,7 @@ import {
 } from '@lucide/vue';
 import { refDebounced } from '@vueuse/core';
 import { computed, nextTick, useTemplateRef, watch } from 'vue';
+import BranchName from '@/components/BranchName.vue';
 import InputError from '@/components/InputError.vue';
 import NativeSelect from '@/components/NativeSelect.vue';
 import Notice from '@/components/Notice.vue';
@@ -426,7 +427,7 @@ const hintClass = 'mt-1.5 text-[12.5px] leading-[18px] text-muted-foreground';
                             required
                             maxlength="255"
                             autocomplete="shipping address-line1"
-                            placeholder="e.g. No. 18, Jalan Tun Mohd Fuad 3"
+                            placeholder="e.g. 18, Jln Tun Mohd Fuad 3"
                             :class="inputClass"
                             :aria-invalid="
                                 form.errors.address_line1 ? true : undefined
@@ -771,7 +772,9 @@ const hintClass = 'mt-1.5 text-[12.5px] leading-[18px] text-muted-foreground';
                                     <p
                                         class="text-base leading-[22px] font-extrabold tracking-heading text-ink"
                                     >
-                                        {{ selectedBranch.name }}
+                                        <BranchName
+                                            :name="selectedBranch.name"
+                                        />
                                     </p>
                                     <p class="mt-0.5 text-muted-foreground">
                                         {{ selectedBranch.address }},

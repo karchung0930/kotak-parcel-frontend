@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Clock, MapPin, Navigation, Phone, Store } from '@lucide/vue';
 import { computed } from 'vue';
+import BranchName from '@/components/BranchName.vue';
 import BranchOpenStatus from '@/components/public/BranchOpenStatus.vue';
 import { Button } from '@/components/ui/button';
 import {
@@ -90,7 +91,7 @@ const place = computed(() => {
                     :id="`${anchor}-name`"
                     class="text-lg leading-6 font-extrabold tracking-heading text-ink"
                 >
-                    {{ branch.name }}
+                    <BranchName :name="branch.name" />
                 </h3>
             </div>
             <p
@@ -164,9 +165,11 @@ const place = computed(() => {
             </div>
         </dl>
 
-        <!-- Wide: as wide as the hours column above (half, less half the gap) -->
+        <!-- Equal halves; on a 320px phone a compact Call leaves room for
+             "Directions" on one line. Wide: as wide as the hours column
+             above (half, less half the gap). -->
         <div
-            class="mt-auto grid grid-cols-2 gap-2.5 pt-6 @xl:ml-auto @xl:w-[calc(50%_-_1rem)]"
+            class="mt-auto grid grid-cols-[minmax(0,1fr)_auto] gap-2.5 pt-6 @[16rem]:grid-cols-2 @xl:ml-auto @xl:w-[calc(50%_-_1rem)]"
         >
             <Button as-child variant="outline" class="h-11 text-sm font-bold">
                 <a

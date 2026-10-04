@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useInitials } from '@/composables/useInitials';
+import { formatBranchName } from '@/lib/format';
 import type { User } from '@/types';
 
 /** Avatar (initials) with the user's name and, optionally, email or role. */
@@ -38,8 +39,10 @@ const showAvatar = computed(
         <span v-if="showEmail" class="truncate text-xs text-muted-foreground">{{
             user.email
         }}</span>
-        <!-- The branch gets a line of its own (two if it must), as the
-             card is too narrow for "Branch Staff · Petaling Jaya - SS2" -->
+        <!-- The branch gets a line of its own (two if it must, wrapping
+             after its dash), as the card is too narrow for "Branch Staff ·
+             Petaling Jaya - SS2". Plain text, so the clamp still counts
+             its lines. -->
         <template v-if="showRole">
             <span class="truncate text-xs text-muted-foreground">
                 {{ user.role.label }}
@@ -48,7 +51,7 @@ const showAvatar = computed(
                 v-if="user.branch_name"
                 class="line-clamp-2 text-xs text-muted-foreground"
             >
-                {{ user.branch_name }}
+                {{ formatBranchName(user.branch_name) }}
             </span>
         </template>
     </div>

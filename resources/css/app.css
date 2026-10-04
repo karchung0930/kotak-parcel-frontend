@@ -234,6 +234,13 @@
         opacity: 1;
     }
 
+    /* Chrome keeps room for a search field's clear button even while the
+       field is empty, which cuts a placeholder short on a phone. Until
+       something is typed the placeholder gets that room. */
+    input[type='search']:placeholder-shown::-webkit-search-cancel-button {
+        display: none;
+    }
+
     /* A red focus ring for anything that does not draw its own. */
     :focus-visible {
         outline: 3px solid var(--color-brand);

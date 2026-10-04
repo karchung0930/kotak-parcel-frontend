@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { House } from '@lucide/vue';
 import { computed } from 'vue';
+import BranchName from '@/components/BranchName.vue';
 import KeepTogether from '@/components/KeepTogether.vue';
 import { formatShortDate, formatTime } from '@/lib/format';
 import { statusMeta } from '@/lib/status';
@@ -175,7 +176,8 @@ const items = computed(() =>
                     v-if="item.place || item.actor"
                     class="mt-1 text-[13px] leading-5 text-ink-2"
                 >
-                    <span v-if="item.place">{{ item.place }}</span>
+                    <BranchName v-if="item.branch" :name="item.branch.name" />
+                    <span v-else-if="item.place">{{ item.place }}</span>
                     <span v-if="item.place && item.actor" aria-hidden="true">
                         ·
                     </span>

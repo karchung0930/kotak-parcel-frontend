@@ -23,7 +23,7 @@ import RouteGroups from '@/components/RouteGroups.vue';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import ZoneList from '@/components/ZoneList.vue';
-import { formatDateTime } from '@/lib/format';
+import { formatDateTime, formatVolumeSum } from '@/lib/format';
 import {
     destroy,
     edit,
@@ -283,7 +283,14 @@ const headingClass =
                         </span>
                     </DescriptionItem>
                     <DescriptionItem label="Size weight">
-                        L × W × H ÷ {{ card.volumetric_divisor }}
+                        {{
+                            formatVolumeSum(
+                                null,
+                                null,
+                                null,
+                                card.volumetric_divisor,
+                            )
+                        }}
                     </DescriptionItem>
                     <DescriptionItem v-if="card.published_at" label="Published">
                         <DateTime :value="card.published_at" />

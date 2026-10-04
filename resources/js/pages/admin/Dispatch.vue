@@ -477,11 +477,21 @@ const sheetOpen = computed({
                                         {{ toAction }}
                                     </span>
                                 </TabsTrigger>
+                                <!-- In a card under 22rem (a phone of 375px
+                                     or less) the day is left out of sight,
+                                     so both tabs fit without scrolling; the
+                                     stat card above names it. -->
                                 <TabsTrigger
                                     value="scheduled"
                                     class="group inline-flex h-9 flex-none items-center gap-2 rounded-md px-2 text-[13px] font-semibold whitespace-nowrap text-ink-2 transition-colors hover:bg-surface data-[state=active]:bg-brand-tint data-[state=active]:font-bold data-[state=active]:text-brand-strong sm:px-3 sm:text-[13.5px] pointer-coarse:h-11"
                                 >
-                                    Assigned for {{ dayLabel }}
+                                    <span
+                                        >Assigned<span
+                                            class="@max-[22rem]:sr-only"
+                                        >
+                                            for {{ dayLabel }}</span
+                                        ></span
+                                    >
                                     <span
                                         class="inline-flex h-5 min-w-[22px] items-center justify-center rounded-full bg-status-neutral-tint px-1.5 text-[11.5px] font-bold text-ink-2 group-data-[state=active]:bg-brand group-data-[state=active]:text-white"
                                     >
@@ -490,10 +500,13 @@ const sheetOpen = computed({
                                 </TabsTrigger>
                             </TabsList>
 
+                            <!-- Side by side from 375px; on a 320px phone
+                                 the selects stack, so "All branches" is not
+                                 cut short. -->
                             <div
                                 role="group"
                                 aria-label="Filter the queue"
-                                class="grid grid-cols-2 gap-2 sm:flex sm:items-center"
+                                class="grid gap-2 min-[375px]:grid-cols-2 sm:flex sm:items-center"
                             >
                                 <label for="filter-branch" class="sr-only">
                                     Pickup branch
@@ -535,7 +548,7 @@ const sheetOpen = computed({
                                     v-if="filtering"
                                     type="button"
                                     variant="ghost"
-                                    class="col-span-2 h-10 font-bold sm:col-span-1 pointer-coarse:h-11"
+                                    class="h-10 font-bold min-[375px]:col-span-2 sm:col-span-1 pointer-coarse:h-11"
                                     @click="clearFilters"
                                 >
                                     <X aria-hidden="true" />

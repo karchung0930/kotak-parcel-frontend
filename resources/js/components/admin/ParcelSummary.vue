@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import AttemptPips from '@/components/AttemptPips.vue';
+import BranchName from '@/components/BranchName.vue';
 import DateTime from '@/components/DateTime.vue';
 import Money from '@/components/Money.vue';
 import PlateBadge from '@/components/PlateBadge.vue';
@@ -28,7 +29,7 @@ defineProps<{
                 :value="order.tracking_number"
                 :href="show(order.id)"
             />
-            <StatusChip :status="order.status" size="sm" />
+            <StatusChip :status="order.status" size="sm" class="ml-auto" />
         </div>
 
         <dl
@@ -54,7 +55,9 @@ defineProps<{
 
             <template v-if="order.branch">
                 <dt class="text-muted-foreground">Pickup</dt>
-                <dd class="font-semibold text-ink">{{ order.branch.name }}</dd>
+                <dd class="font-semibold text-ink">
+                    <BranchName :name="order.branch.name" />
+                </dd>
             </template>
 
             <template v-if="order.driver">

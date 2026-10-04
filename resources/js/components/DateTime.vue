@@ -17,6 +17,11 @@ import {
  * Formats: datetime "29 Sep 2026, 14:05" · date "29 Sep 2026" ·
  * weekday "Tue, 29 Sep 2026" · short "29 Sep" · shortDateTime
  * "29 Sep, 14:05" · time "14:05".
+ *
+ * The date itself never breaks (the formatters join its parts with
+ * no-break spaces), but the time may go to the next line after the comma,
+ * so a narrow box never has to grow to fit both. A table cell that wants
+ * one line sets whitespace-nowrap itself.
  */
 const props = withDefaults(
     defineProps<{
@@ -53,7 +58,7 @@ const text = computed(() => formatters[props.format](props.value));
     <time
         v-if="value && text !== EMPTY"
         :datetime="value"
-        :class="['whitespace-nowrap', { 'font-mono': mono }]"
+        :class="{ 'font-mono': mono }"
         >{{ text }}</time
     >
     <span v-else>{{ EMPTY }}</span>
