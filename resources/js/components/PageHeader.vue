@@ -4,10 +4,16 @@ import type { BreadcrumbItem } from '@/types';
 
 /**
  * The top of an app page (customer, console and settings pages): optional
- * breadcrumbs, the page's <h1>, a description and actions on the right
- * (they wrap under the title on phones).
+ * breadcrumbs, the page's <h1>, a description and actions on the right.
+ * The actions move under the title on phones, and on wider screens too
+ * whenever the title or description would have to wrap to make room for
+ * them, so the actions never squeeze the title into a narrow column. A
+ * title without spaces breaks anywhere rather than pushing the page
+ * sideways; a file name goes in the title slot as a FileName instead, so
+ * it breaks between its parts.
  *
- * Slots: actions (buttons/links), meta (chips or details under the title).
+ * Slots: title (replaces the title text), actions (buttons/links), meta
+ * (chips or details under the title).
  */
 withDefaults(
     defineProps<{
@@ -24,7 +30,7 @@ withDefaults(
 
 <template>
     <header
-        class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"
+        class="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between"
     >
         <div class="min-w-0">
             <Breadcrumbs
@@ -33,9 +39,9 @@ withDefaults(
                 class="mb-2"
             />
             <h1
-                class="text-2xl leading-8 font-extrabold tracking-display text-ink sm:text-[28px] sm:leading-9"
+                class="text-2xl leading-8 font-extrabold tracking-display wrap-anywhere text-ink sm:text-[28px] sm:leading-9"
             >
-                {{ title }}
+                <slot name="title">{{ title }}</slot>
             </h1>
             <p
                 v-if="description"

@@ -52,13 +52,13 @@ composer run dev                         # http://localhost:8000 and a queue lis
 
 ## Scripts
 
-| Command               | What it does                                                            |
-| --------------------- | ----------------------------------------------------------------------- |
-| `npm run dev`         | Vite dev server with hot reload                                         |
-| `npm run build`       | Production build into the backend's `public/build`                      |
-| `npm run check`       | Lint and format check (`npm run check:fix` to fix)                      |
-| `npm run types:check` | vue-tsc                                                                 |
-| `npm run test:js`     | Dependency-free checks of the format, pricing, phone and branch helpers |
+| Command               | What it does                                                                         |
+| --------------------- | ------------------------------------------------------------------------------------ |
+| `npm run dev`         | Vite dev server with hot reload                                                      |
+| `npm run build`       | Production build into the backend's `public/build`                                   |
+| `npm run check`       | Lint and format check (`npm run check:fix` to fix)                                   |
+| `npm run types:check` | vue-tsc                                                                              |
+| `npm run test:js`     | Dependency-free checks of the format, pricing, phone, branch and rate import helpers |
 
 Run `npm run build` once before `check` and `types:check`, so the Wayfinder
 helpers exist.
@@ -76,7 +76,7 @@ resources/
       brand/             the SVG illustrations: van, parcels, packaging tape, JourneyConveyor
       ui/                shadcn-vue primitives
     composables/         useFitsViewport and friends
-    lib/                 formatting (money, weight, dates in Asia/Kuala_Lumpur), pricing (rate cards), phone
+    lib/                 formatting (money, weight, dates in Asia/Kuala_Lumpur), pricing (rate cards), rate imports, phone
     types/               page props, typed to match the backend's API Resources
 tests/js/                small checks that run on plain Node
   fixtures/              price cases shared with the backend's PriceCalculatorTest
@@ -124,19 +124,31 @@ tests/js/                small checks that run on plain Node
   every status chip, `ActionDivider.vue` between two kinds of page actions,
   `RouteRates.vue` for a route's weight bands (laid out by
   `RouteRatesGrid.vue`, so cards side by side keep their rows level) on the
-  pricing page and the admin's Rates pages, `RouteTitle.vue` for a
-  route's name, which wraps after the arrow rather than inside a zone name,
-  and `BranchName.vue` for a branch name in a narrow column, which wraps
-  after its dash ("Cheras - / Taman Connaught").
+  pricing page and the admin's Rates pages, `RouteGroups.vue` for a card's
+  routes grouped by the zone they leave from (a version's page and an
+  import's preview), `FileName.vue` for an uploaded file's name (it wraps
+  after "_", "-" and ".", never inside a word), `ImportFileField.vue` for choosing a spreadsheet to
+  import, `SheetPreview.vue` for a few rows of a sheet (an import's columns
+  step, and the example layouts on Import rates), `RouteTitle.vue` for a route's name, which wraps after the arrow
+  rather than inside a zone name, and `BranchName.vue` for a branch name in
+  a narrow column, which wraps after its dash ("Cheras - / Taman
+  Connaught").
 - **No lone words.** Wrapped text never ends on a single word: `body` sets
   `text-wrap-style: pretty` (the longhand, so `whitespace-nowrap` still
   holds), and short labels that may wrap (stat cards, validation messages)
   wrap balanced. Stat card labels are kept short, so one of two words fits
   on one line from 375px. Page and card intros fit on one line from tablet
-  width.
+  width: `PageHeader.vue` moves its actions under the title rather than
+  squeeze the title and intro beside them. A name without spaces (a
+  spreadsheet's file name, which an imported draft is named after) breaks
+  anywhere instead of widening a column, a table or a dialog.
 - **Prices are worked out the server's way.** `lib/pricing.ts` applies the
   current rate card (zones, routes, weight bands) exactly as the backend's
   `PriceCalculator` does, for live estimates only; the server sets the
   price. The cases in `tests/js/fixtures/pricing-cases.json` run on both
   sides, so add a case there when the rules change.
+- **Pages waiting on the queue ask again.** A rate import's page polls with
+  Inertia's `usePoll` (only its own props) while a job reads or checks the
+  file, and stops once the job is done. A screen-reader live region says
+  where the import stands each time it moves on.
 - **Light theme only**, with colours from the brand tokens.

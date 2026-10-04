@@ -10,6 +10,7 @@ import {
 } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import ActionDivider from '@/components/ActionDivider.vue';
+import DownloadMenu from '@/components/admin/rates/DownloadMenu.vue';
 import PublishDialog from '@/components/admin/rates/PublishDialog.vue';
 import RateCardPhaseChip from '@/components/admin/RateCardPhaseChip.vue';
 import ConfirmActionDialog from '@/components/ConfirmActionDialog.vue';
@@ -18,12 +19,11 @@ import DescriptionItem from '@/components/DescriptionItem.vue';
 import DescriptionList from '@/components/DescriptionList.vue';
 import Notice from '@/components/Notice.vue';
 import PageHeader from '@/components/PageHeader.vue';
-import RouteRatesGrid from '@/components/RouteRatesGrid.vue';
+import RouteGroups from '@/components/RouteGroups.vue';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import ZoneList from '@/components/ZoneList.vue';
 import { formatDateTime } from '@/lib/format';
-import { routeName } from '@/lib/pricing';
 import {
     destroy,
     edit,
@@ -82,32 +82,20 @@ const refused = computed(
         null,
 );
 
-/*
-|--------------------------------------------------------------------------
-| Routes, grouped by the zone they leave from
-|--------------------------------------------------------------------------
-*/
+/** The zones and routes as RouteGroups lays them out, by zone id. */
+const routeZones = computed(() =>
+    zones.value.map((zone) => ({ key: zone.id, name: zone.name })),
+);
 
-const groups = computed(() =>
-    zones.value.map((from) => ({
-        from,
-        routes: zones.value.map((to) => {
-            const route = (card.value.routes ?? []).find(
-                (item) =>
-                    item.origin_zone_id === from.id &&
-                    item.destination_zone_id === to.id,
-            );
-
-            return {
-                key: `${from.id}-${to.id}`,
-                title: routeName(from.name, to.name, from.id === to.id),
-                bands: (route?.bands ?? []).map((band) => ({
-                    maxWeightG: band.max_weight_g,
-                    priceSen: band.price_sen,
-                })),
-                extraKgSen: route?.extra_kg_sen ?? null,
-            };
-        }),
+const routes = computed(() =>
+    (card.value.routes ?? []).map((route) => ({
+        from: route.origin_zone_id,
+        to: route.destination_zone_id,
+        bands: route.bands.map((band) => ({
+            maxWeightG: band.max_weight_g,
+            priceSen: band.price_sen,
+        })),
+        extraKgSen: route.extra_kg_sen,
     })),
 );
 
@@ -192,6 +180,7 @@ const headingClass =
                     Withdraw
                 </Button>
                 <ActionDivider v-if="can.delete || can.withdraw" />
+                <DownloadMenu :rate-card-id="card.id" />
                 <Button
                     v-if="can.update"
                     :variant="problems.length > 0 ? 'default' : 'outline'"
@@ -328,23 +317,13 @@ const headingClass =
 
         <section aria-labelledby="routes-title" class="space-y-3">
             <h2 id="routes-title" :class="headingClass">Prices by route</h2>
-            <!-- 24px between the groups, as between sections. -->
-            <div v-if="groups.length > 0" class="space-y-6">
-                <div
-                    v-for="group in groups"
-                    :key="group.from.id"
-                    class="space-y-3"
-                >
-                    <h3
-                        class="text-[15px] leading-6 font-bold text-muted-foreground"
-                    >
-                        From {{ group.from.name }}
-                    </h3>
-                    <RouteRatesGrid :routes="group.routes" heading-level="h4" />
-                </div>
-            </div>
+            <RouteGroups
+                v-if="routeZones.length > 0"
+                :zones="routeZones"
+                :routes="routes"
+            />
             <p
-                v-if="groups.length === 0"
+                v-else
                 class="rounded-xl border border-dashed border-line-strong bg-white px-5 py-6 text-sm text-muted-foreground"
             >
                 Add zones to set prices between them.

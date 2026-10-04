@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
-import { ChevronRight } from '@lucide/vue';
+import { ChevronRight, Download, FileUp } from '@lucide/vue';
 import { computed } from 'vue';
 import NewDraftDialog from '@/components/admin/rates/NewDraftDialog.vue';
 import RateCardPhaseChip from '@/components/admin/RateCardPhaseChip.vue';
@@ -9,13 +9,16 @@ import EmptyState from '@/components/EmptyState.vue';
 import PageHeader from '@/components/PageHeader.vue';
 import { Button } from '@/components/ui/button';
 import { pluralize } from '@/lib/format';
-import { show } from '@/routes/admin/rates';
+import { download, show } from '@/routes/admin/rates';
+import { create as importRates } from '@/routes/admin/rates/imports';
 import type { AdminRatesIndexPageProps } from '@/types';
 
 /**
  * Rates (admins only): every version of the price list. Drafts first, then
  * the published ones from the last to take effect, so a scheduled change
- * sits above the rates in effect.
+ * sits above the rates in effect. Prices can also come from a spreadsheet:
+ * the template is the current rates as a workbook, and an import becomes
+ * a draft.
  */
 const props = defineProps<AdminRatesIndexPageProps>();
 
@@ -34,14 +37,38 @@ const current = computed(
             description="Prices by zone and weight band. Published rates never change."
         >
             <template v-if="rateCards.length > 0" #meta>
-                <p class="text-[13px] font-semibold text-ink-2">
+                <p
+                    class="min-w-0 text-[13px] font-semibold wrap-anywhere text-ink-2"
+                >
                     {{ pluralize(rateCards.length, 'version') }}
                     <template v-if="current">
                         · in effect: {{ current.name }}
                     </template>
                 </p>
             </template>
+            <!-- White buttons open or download; starting a draft is the next step. -->
             <template #actions>
+                <Button
+                    v-if="current"
+                    variant="outline"
+                    as-child
+                    class="h-11 rounded-lg px-4 font-bold"
+                >
+                    <a :href="download([current.id, 'xlsx']).url" download>
+                        <Download aria-hidden="true" />
+                        Download template
+                    </a>
+                </Button>
+                <Button
+                    variant="outline"
+                    as-child
+                    class="h-11 rounded-lg px-4 font-bold"
+                >
+                    <Link :href="importRates()">
+                        <FileUp aria-hidden="true" />
+                        Import
+                    </Link>
+                </Button>
                 <NewDraftDialog :versions="rateCards" />
             </template>
         </PageHeader>
@@ -108,11 +135,13 @@ const current = computed(
                             role="row"
                             class="data-table__row transition-colors hover:bg-surface/70"
                         >
-                            <!-- The name is plain text: Open is the row's one link. -->
+                            <!-- The name is plain text: Open is the row's one link.
+                                 A name without spaces (an imported file's)
+                                 breaks anywhere, never over the next column. -->
                             <th
                                 scope="row"
                                 role="rowheader"
-                                class="max-w-72 py-3 text-left font-bold text-ink"
+                                class="max-w-72 py-3 text-left font-bold wrap-anywhere text-ink @[52rem]:max-w-96"
                             >
                                 {{ card.name }}
                             </th>
@@ -165,7 +194,9 @@ const current = computed(
                         class="flex items-center gap-3 px-4 py-4 transition-colors hover:bg-surface/70"
                     >
                         <div class="min-w-0 flex-1">
-                            <p class="font-bold text-ink">{{ card.name }}</p>
+                            <p class="font-bold wrap-anywhere text-ink">
+                                {{ card.name }}
+                            </p>
                             <div
                                 class="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1.5 text-[13px] text-ink-2"
                             >

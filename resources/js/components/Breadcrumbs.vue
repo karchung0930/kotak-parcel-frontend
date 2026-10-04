@@ -20,10 +20,17 @@ defineProps<{
     <Breadcrumb>
         <BreadcrumbList class="text-[13px] text-muted-foreground">
             <template v-for="(item, index) in breadcrumbs" :key="index">
-                <BreadcrumbItem>
+                <!-- The current page may be a long file name: cut short
+                     rather than pushing the page sideways. -->
+                <BreadcrumbItem
+                    :class="
+                        index === breadcrumbs.length - 1 ? 'max-w-full' : ''
+                    "
+                >
                     <BreadcrumbPage
                         v-if="index === breadcrumbs.length - 1"
-                        class="font-semibold text-ink"
+                        class="min-w-0 truncate font-semibold text-ink"
+                        :title="item.title"
                     >
                         {{ item.title }}
                     </BreadcrumbPage>

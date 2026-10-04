@@ -148,6 +148,104 @@ export type RateCard = {
     routes?: RateCardRoute[];
 };
 
+/** Where a rate card import stands (App\Enums\RateImportStatus). */
+export type RateImportStatusValue =
+    | 'uploaded'
+    | 'parsing'
+    | 'needs_mapping'
+    | 'validating'
+    | 'ready'
+    | 'failed'
+    | 'applied';
+
+/** How an imported sheet is laid out (App\Enums\RateImportLayout). */
+export type RateImportLayoutValue = 'long' | 'matrix';
+
+/**
+ * How to read an imported sheet. Columns count from 0 (A) and rows from 1,
+ * as in the sheet. A long layout names a column for each value; a matrix
+ * names the weight column, the route of each other column (zones by the
+ * base card's codes) and the row with the prices per extra kg.
+ */
+export type RateImportMapping = {
+    header_row: number;
+    weight_unit: 'kg' | 'g';
+    price_unit: 'rm' | 'sen';
+    columns?: {
+        origin: number | null;
+        destination: number | null;
+        weight: number | null;
+        price: number | null;
+    };
+    weight_column?: number;
+    routes?: {
+        column: number;
+        origin: string | null;
+        destination: string | null;
+    }[];
+    extra_row?: number | null;
+};
+
+/** A problem found in an imported file, at a row and column (A, B…) when it has one. */
+export type RateImportProblem = {
+    row: number | null;
+    column: string | null;
+    message: string;
+};
+
+/** RateImportResource: a spreadsheet of prices on its way to a draft rate card. */
+export type RateImport = {
+    id: number;
+    original_name: string;
+    format: 'xlsx' | 'csv';
+    /** The sheet read; null for a CSV file. */
+    sheet: string | null;
+    status: Option<RateImportStatusValue>;
+    /** A queued job is reading or checking the file: the page asks again. */
+    is_running: boolean;
+    layout: Option<RateImportLayoutValue> | null;
+    /** Suggested when the file is read, then as the admin confirmed it. */
+    mapping: RateImportMapping | null;
+    /** The first 200 problems, with how many there were. */
+    errors: { total: number; items: RateImportProblem[] } | null;
+    /**
+     * The sheet names (none for CSV), the first rows as text and the
+     * sheet's size; cut_short when the sheet goes on beyond the rows read.
+     * Only sent while the columns or the sheet can still be changed.
+     */
+    preview?: {
+        sheets: string[];
+        rows: { number: number; cells: string[] }[];
+        columns: number;
+        last_row: number;
+        cut_short?: boolean;
+    } | null;
+    /** Once checked: every route in grams and sen, zones by the base card's codes. */
+    summary: { rows: number; bands: number; routes: PriceRoute[] } | null;
+    /** False once the daily clean-up has deleted the file (after 7 days). */
+    file_kept: boolean;
+    /** A draft was made from the file and then deleted: it can be made again. */
+    draft_deleted: boolean;
+    created_at: string | null;
+    updated_at: string | null;
+    user?: { id: number; name: string };
+    base_rate_card?: { id: number; name: string } | null;
+    /** The draft made from the file. */
+    rate_card?: { id: number; name: string } | null;
+};
+
+/** RateImportSummaryResource (list rows). */
+export type RateImportSummary = Pick<
+    RateImport,
+    | 'id'
+    | 'original_name'
+    | 'status'
+    | 'created_at'
+    | 'user'
+    | 'base_rate_card'
+    | 'rate_card'
+>;
+
 /** BranchResource */
 export type Branch = {
     id: number;
@@ -612,6 +710,33 @@ export type AdminRatesEditPageProps = {
     states: Option<MalaysianStateValue>[];
     /** The heaviest band allowed, in grams. */
     maxWeightG: number;
+};
+
+export type AdminRateImportsCreatePageProps = {
+    /** The versions whose zones the prices can use (those with zones), drafts first. */
+    rateCards: RateCard[];
+    /** The default base, and the version the template is downloaded from. */
+    currentRateCardId: number;
+    /** The latest 10 imports, newest first; each has user, base_rate_card and rate_card. */
+    recent: RateImportSummary[];
+    /** The largest file accepted, in KB. */
+    maxKb: number;
+};
+
+export type AdminRateImportsShowPageProps = {
+    /** Has user, base_rate_card and rate_card. */
+    rateImport: RateImport;
+    /** The base card's zones, in its order: the routes a file can hold. */
+    zones: PriceZone[];
+    currentRateCardId: number;
+    maxKb: number;
+    can: {
+        /** Confirm the mapping (again). */
+        map: boolean;
+        /** Read another sheet of the workbook. */
+        chooseSheet: boolean;
+        createDraft: boolean;
+    };
 };
 
 export type DriverJobsPageProps = {

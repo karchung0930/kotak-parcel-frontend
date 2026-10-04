@@ -40,13 +40,15 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits)
          DialogFooter's `band`, which works from the same padding.
          A dialog taller than the screen (a phone on its side) scrolls
          inside itself, 1rem clear of the top and bottom edges; the close
-         button scrolls with the title. -->
+         button scrolls with the title. A word wider than the dialog (a
+         rate card named after a file) breaks anywhere rather than
+         widening the dialog and pushing its buttons out. -->
     <DialogContent
       data-slot="dialog-content"
       v-bind="{ ...$attrs, ...forwarded }"
       :class="
         cn(
-          'bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid max-h-[calc(100dvh-2rem)] w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 overflow-y-auto rounded-lg border [--dialog-padding:1.25rem] p-(--dialog-padding) shadow-lg duration-200 sm:max-w-lg sm:[--dialog-padding:1.5rem]',
+          'bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid max-h-[calc(100dvh-2rem)] w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 overflow-y-auto rounded-lg border wrap-anywhere [--dialog-padding:1.25rem] p-(--dialog-padding) shadow-lg duration-200 sm:max-w-lg sm:[--dialog-padding:1.5rem]',
           props.class,
         )"
     >
