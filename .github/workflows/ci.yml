@@ -43,6 +43,7 @@ jobs:
           cache: npm
           cache-dependency-path: kotak-parcel-frontend/package-lock.json
 
+      # Wayfinder only reads the routes, so the backend needs no database here.
       - name: Install backend
         working-directory: kotak-parcel-backend
         run: |

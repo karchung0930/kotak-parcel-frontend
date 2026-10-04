@@ -25,26 +25,29 @@ every page through Inertia, and this repository holds the Vue side of it:
   typed route and form helpers to `resources/js/actions`, `routes` and
   `wayfinder` (not committed). No URL is hard-coded in the pages, and a
   renamed route shows up as a type error. The build therefore needs PHP and
-  the backend's `composer install`.
+  the backend's `composer install`, but no database.
 
 ## Setup
 
-You need Node 22.12+, and PHP 8.3+ with Composer 2 for the backend.
+You need Node 22.18+ (or 24.11+), and for the backend PHP 8.3+ with Composer
+2 and Docker (it runs MySQL 8.4 from its `compose.yaml`).
 
 ```bash
 git clone https://github.com/karchung0930/kotak-parcel-backend.git
 git clone https://github.com/karchung0930/kotak-parcel-frontend.git
 
 cd kotak-parcel-backend
-composer setup                # see the backend README
-php artisan db:seed           # demo data and accounts
+cp .env.example .env                     # port 3306 taken? set DB_PORT and FORWARD_DB_PORT in .env now
+docker compose up -d --wait              # MySQL 8.4, see the backend's docs/local-development.md
+composer setup                           # composer install, app key, migrations
+php artisan db:seed --class=DemoSeeder   # demo data and accounts
 
 cd ../kotak-parcel-frontend
-npm install
-npm run build                 # or npm run dev while editing
+npm ci                                   # the exact versions in package-lock.json
+npm run build                            # while editing the pages, run npm run dev in a second terminal instead
 
 cd ../kotak-parcel-backend
-composer dev                  # http://localhost:8000
+composer run dev                         # http://localhost:8000 and a queue listener
 ```
 
 ## Scripts
