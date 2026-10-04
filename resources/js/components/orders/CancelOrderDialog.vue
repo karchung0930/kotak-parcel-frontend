@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
+import { Textarea } from '@/components/ui/textarea';
 import { formatTrackingNumber } from '@/lib/format';
 import { cancel } from '@/routes/orders';
 
@@ -70,18 +71,21 @@ const trackingNumber = formatTrackingNumber(props.trackingNumber);
                 </DialogHeader>
 
                 <div class="grid gap-1.5">
+                    <!-- block: a plain space before (optional), as in every
+                         form label, not the flex gap -->
                     <Label
                         for="cancel-reason"
-                        class="text-[13.5px] leading-[19px] font-semibold text-ink"
+                        class="block text-[13.5px] leading-[19px] font-semibold text-ink"
                     >
                         Reason
                         <span class="font-normal text-muted-foreground">
                             (optional)
                         </span>
                     </Label>
-                    <textarea
+                    <Textarea
                         id="cancel-reason"
                         name="reason"
+                        size="lg"
                         rows="3"
                         maxlength="255"
                         placeholder="e.g. I sent it another way"
@@ -89,7 +93,6 @@ const trackingNumber = formatTrackingNumber(props.trackingNumber);
                         :aria-describedby="
                             errors.reason ? 'cancel-reason-error' : undefined
                         "
-                        class="w-full resize-none rounded-lg border-[1.5px] border-input bg-white px-3.5 py-2.5 text-base leading-6 text-ink outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:border-destructive"
                     />
                     <InputError
                         id="cancel-reason-error"
@@ -99,7 +102,7 @@ const trackingNumber = formatTrackingNumber(props.trackingNumber);
 
                 <!-- Keep order is a plain outline button; cancelling cannot
                      be undone, so it is caution yellow. -->
-                <DialogFooter class="gap-2">
+                <DialogFooter>
                     <DialogClose as-child>
                         <Button
                             type="button"

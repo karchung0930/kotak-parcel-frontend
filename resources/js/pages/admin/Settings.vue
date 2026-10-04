@@ -129,15 +129,18 @@ const suggestionTone = computed(() =>
             description="Drop-off limit, reminders and attempts."
         />
 
-        <form class="space-y-5" novalidate @submit.prevent="submit">
+        <form class="space-y-6" novalidate @submit.prevent="submit">
             <FormSection
                 title="Unclaimed orders"
                 description="Orders not dropped off in time are cancelled at midnight."
             >
                 <!-- The timeline's live region shares a wrapper with the
-                     fields, so while empty it adds no gap of its own -->
+                     fields, so while empty it adds no gap of its own. The
+                     columns are as wide as the fields (14rem), so they sit
+                     20px apart; the note under them starts at their left
+                     edge and keeps a reading width. -->
                 <div>
-                    <div class="grid gap-5 sm:grid-cols-2">
+                    <div class="grid gap-5 sm:grid-cols-[repeat(2,14rem)]">
                         <FormField
                             id="unclaimed-order-days"
                             label="Days to drop off"
@@ -156,7 +159,6 @@ const suggestionTone = computed(() =>
                                     autocomplete="off"
                                     :aria-describedby="describedby"
                                     :aria-invalid="invalid"
-                                    class="sm:max-w-56"
                                 />
                             </template>
                         </FormField>
@@ -178,7 +180,6 @@ const suggestionTone = computed(() =>
                                     autocomplete="off"
                                     :aria-describedby="describedby"
                                     :aria-invalid="invalid"
-                                    class="sm:max-w-56"
                                 />
                             </template>
                         </FormField>
@@ -217,8 +218,10 @@ const suggestionTone = computed(() =>
                 title="Failed deliveries"
                 description="A failed delivery can be rescheduled until this limit."
             >
+                <!-- Columns as above, so the field and its note line up
+                     with theirs -->
                 <div>
-                    <div class="grid gap-5 sm:grid-cols-2">
+                    <div class="grid gap-5 sm:grid-cols-[repeat(2,14rem)]">
                         <FormField
                             id="max-failed-attempts"
                             label="Delivery attempts"
@@ -237,7 +240,6 @@ const suggestionTone = computed(() =>
                                     autocomplete="off"
                                     :aria-describedby="describedby"
                                     :aria-invalid="invalid"
-                                    class="sm:max-w-56"
                                 />
                             </template>
                         </FormField>
@@ -338,7 +340,7 @@ const suggestionTone = computed(() =>
                     <li>
                         <StatCard
                             class="h-full"
-                            label="90th percentile"
+                            label="90% within"
                             :value="formatDecimal(timing.p90_days)"
                             :icon="Timer"
                             hint="days"
@@ -347,7 +349,7 @@ const suggestionTone = computed(() =>
                     <li>
                         <StatCard
                             class="h-full"
-                            label="95th percentile"
+                            label="95% within"
                             :value="formatDecimal(timing.p95_days)"
                             :icon="Timer"
                             hint="days"
@@ -371,7 +373,7 @@ const suggestionTone = computed(() =>
                         :value="timing.cancelled_unclaimed"
                         :icon="PackageX"
                         tone="failed"
-                        hint="cancelled automatically"
+                        hint="cancelled"
                     />
                 </li>
                 <li>
@@ -386,11 +388,11 @@ const suggestionTone = computed(() =>
                 <li>
                     <StatCard
                         class="h-full"
-                        label="Cancelled tonight"
+                        label="Last day"
                         :value="timing.expiring_tonight"
                         :icon="MoonStar"
                         tone="failed"
-                        hint="at midnight unless dropped off"
+                        hint="cancelled at midnight unless dropped off"
                     />
                 </li>
             </ul>

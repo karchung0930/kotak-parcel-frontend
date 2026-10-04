@@ -353,7 +353,7 @@ const sheetOpen = computed({
         <div
             class="@[74rem]:grid @[74rem]:grid-cols-[minmax(0,1fr)_23rem] @[74rem]:items-start @[74rem]:gap-6 @[86rem]:grid-cols-[minmax(0,1fr)_24.5rem]"
         >
-            <div class="@container min-w-0 space-y-5">
+            <div class="@container min-w-0 space-y-6">
                 <PageHeader
                     title="Dispatch"
                     description="Assign drivers, reschedule failed deliveries, hand over rounds."
@@ -377,7 +377,7 @@ const sheetOpen = computed({
                                         type="date"
                                         :min="today"
                                         :model-value="date"
-                                        class="h-10 w-44 rounded-md bg-white pl-9 font-semibold text-ink"
+                                        class="h-10 w-44 rounded-md bg-white pl-9 font-semibold text-ink pointer-coarse:h-11 pointer-coarse:text-base"
                                         @update:model-value="
                                             loadDaySoon(String($event))
                                         "
@@ -388,7 +388,7 @@ const sheetOpen = computed({
                                 v-if="date !== today"
                                 type="button"
                                 variant="outline"
-                                class="h-10 font-bold"
+                                class="h-10 font-bold pointer-coarse:h-11"
                                 @click="loadDay(today)"
                             >
                                 Today
@@ -412,7 +412,7 @@ const sheetOpen = computed({
                     <li>
                         <StatCard
                             class="h-full"
-                            label="Awaiting assignment"
+                            label="To assign"
                             :value="awaiting.meta.total"
                             :icon="Receipt"
                             tone="paid"
@@ -468,7 +468,7 @@ const sheetOpen = computed({
                             >
                                 <TabsTrigger
                                     value="queue"
-                                    class="group inline-flex h-9 flex-none items-center gap-2 rounded-md px-2 text-[13px] font-semibold whitespace-nowrap text-ink-2 transition-colors hover:bg-surface data-[state=active]:bg-brand-tint data-[state=active]:font-bold data-[state=active]:text-brand-strong sm:px-3 sm:text-[13.5px]"
+                                    class="group inline-flex h-9 flex-none items-center gap-2 rounded-md px-2 text-[13px] font-semibold whitespace-nowrap text-ink-2 transition-colors hover:bg-surface data-[state=active]:bg-brand-tint data-[state=active]:font-bold data-[state=active]:text-brand-strong sm:px-3 sm:text-[13.5px] pointer-coarse:h-11"
                                 >
                                     Dispatch queue
                                     <span
@@ -479,7 +479,7 @@ const sheetOpen = computed({
                                 </TabsTrigger>
                                 <TabsTrigger
                                     value="scheduled"
-                                    class="group inline-flex h-9 flex-none items-center gap-2 rounded-md px-2 text-[13px] font-semibold whitespace-nowrap text-ink-2 transition-colors hover:bg-surface data-[state=active]:bg-brand-tint data-[state=active]:font-bold data-[state=active]:text-brand-strong sm:px-3 sm:text-[13.5px]"
+                                    class="group inline-flex h-9 flex-none items-center gap-2 rounded-md px-2 text-[13px] font-semibold whitespace-nowrap text-ink-2 transition-colors hover:bg-surface data-[state=active]:bg-brand-tint data-[state=active]:font-bold data-[state=active]:text-brand-strong sm:px-3 sm:text-[13.5px] pointer-coarse:h-11"
                                 >
                                     Assigned for {{ dayLabel }}
                                     <span
@@ -535,7 +535,7 @@ const sheetOpen = computed({
                                     v-if="filtering"
                                     type="button"
                                     variant="ghost"
-                                    class="col-span-2 h-10 font-bold sm:col-span-1"
+                                    class="col-span-2 h-10 font-bold sm:col-span-1 pointer-coarse:h-11"
                                     @click="clearFilters"
                                 >
                                     <X aria-hidden="true" />

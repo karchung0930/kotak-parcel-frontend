@@ -85,7 +85,7 @@ function submit(): void {
 
 <template>
     <form novalidate class="grid gap-6" @submit.prevent="review">
-        <div class="grid gap-2">
+        <div class="grid gap-1.5">
             <Label
                 for="recipient-name"
                 class="text-sm leading-5 font-bold text-ink"
@@ -135,7 +135,7 @@ function submit(): void {
             />
         </div>
 
-        <div class="grid gap-2">
+        <div class="grid gap-1.5">
             <p class="text-sm leading-5 font-bold text-ink" aria-hidden="true">
                 Photo of the delivered parcel
             </p>

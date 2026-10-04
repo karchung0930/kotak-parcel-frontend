@@ -62,10 +62,10 @@ const cardClass = 'rounded-xl border border-line bg-white px-4 py-4 sm:px-5';
 const headingClass =
     'text-[17px] leading-6 font-extrabold tracking-heading text-ink';
 
-// On touch screens an invisible box around the number makes it a 44px tall
-// target, without moving anything.
+// On touch screens the number is a 44px target, without moving anything
+// (tap-target in app.css).
 const phoneClass =
-    'relative mt-0.5 inline-flex items-center gap-1.5 text-sm leading-5 font-semibold text-brand-strong hover:text-brand-deep hover:underline pointer-coarse:after:absolute pointer-coarse:after:-inset-x-1 pointer-coarse:after:-inset-y-3';
+    'tap-target relative mt-0.5 inline-flex items-center gap-1.5 text-sm leading-5 font-semibold text-brand-strong hover:text-brand-deep hover:underline';
 </script>
 
 <template>
@@ -274,7 +274,7 @@ const phoneClass =
                     v-if="attempt?.photo_url"
                     variant="outline"
                     as-child
-                    class="mt-3 h-10 rounded-lg font-bold"
+                    class="mt-3 h-10 rounded-lg font-bold pointer-coarse:h-11"
                 >
                     <a :href="attempt.photo_url" target="_blank" rel="noopener">
                         <Camera aria-hidden="true" />

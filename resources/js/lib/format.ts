@@ -397,3 +397,18 @@ export function formatPhone(phone: string | null | undefined): string {
 export function telHref(phone: string): string {
     return `tel:${phone.replace(/[^\d+]/g, '')}`;
 }
+
+/**
+ * A branch name split after its dash: "Cheras - Taman Connaught" →
+ * ["Cheras - ", "Taman Connaught"], with a no-break space before the dash.
+ * Shown with the second part unbroken (BranchName.vue), a long name wraps
+ * after the dash: never before it, and never leaving its last word alone.
+ * A name without a dash is all second part.
+ */
+export function branchNameParts(name: string): [string, string] {
+    const dash = name.lastIndexOf(' - ');
+
+    return dash < 0
+        ? ['', name]
+        : [`${name.slice(0, dash)}\u00a0- `, name.slice(dash + 3)];
+}

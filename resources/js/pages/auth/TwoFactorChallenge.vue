@@ -94,7 +94,7 @@ const toggleRecoveryMode = (clearErrors: () => void): void => {
                     <span>Lost your phone? You can </span>
                     <button
                         type="button"
-                        class="font-semibold text-brand-strong underline decoration-brand-edge underline-offset-4 transition-colors hover:text-brand-deep hover:decoration-current"
+                        class="tap-target relative font-semibold text-brand-strong underline decoration-brand-edge underline-offset-4 transition-colors hover:text-brand-deep hover:decoration-current"
                         @click="() => toggleRecoveryMode(clearErrors)"
                     >
                         {{ authConfigContent.buttonText }}
@@ -151,7 +151,7 @@ const toggleRecoveryMode = (clearErrors: () => void): void => {
                     <span>Found your phone? You can </span>
                     <button
                         type="button"
-                        class="font-semibold text-brand-strong underline decoration-brand-edge underline-offset-4 transition-colors hover:text-brand-deep hover:decoration-current"
+                        class="tap-target relative font-semibold text-brand-strong underline decoration-brand-edge underline-offset-4 transition-colors hover:text-brand-deep hover:decoration-current"
                         @click="() => toggleRecoveryMode(clearErrors)"
                     >
                         {{ authConfigContent.buttonText }}

@@ -5,6 +5,7 @@
  */
 import assert from 'node:assert/strict';
 import {
+    branchNameParts,
     formatDate,
     formatDateTime,
     formatDecimal,
@@ -143,6 +144,25 @@ const checks: [string, () => void][] = [
             assert.equal(formatPhone('+6591234567'), '+6591234567');
             assert.equal(formatPhone('03-7877 1203'), '03-7877 1203');
             assert.equal(telHref('03-7877 1203'), 'tel:0378771203');
+        },
+    ],
+    [
+        'branch names split after the dash, which keeps to the word before',
+        () => {
+            assert.deepEqual(branchNameParts('Cheras - Taman Connaught'), [
+                'Cheras\u00a0- ',
+                'Taman Connaught',
+            ]);
+            assert.deepEqual(branchNameParts('Shah Alam - Seksyen 13'), [
+                'Shah Alam\u00a0- ',
+                'Seksyen 13',
+            ]);
+            // Hyphenated words are not dashes.
+            assert.deepEqual(branchNameParts('Kota Kinabalu-Likas'), [
+                '',
+                'Kota Kinabalu-Likas',
+            ]);
+            assert.deepEqual(branchNameParts('Mid Valley'), ['', 'Mid Valley']);
         },
     ],
 ];

@@ -36,7 +36,7 @@ const onJobs = computed(() => isNavActive(jobs(), currentUrl.value));
             <Link
                 :href="jobs()"
                 aria-label="Kotak driver home"
-                class="rounded-md"
+                class="tap-target relative rounded-md"
             >
                 <KotakLogo size="sm" badge="Driver" />
             </Link>

@@ -192,7 +192,7 @@ function submit(): void {
         @submit.prevent="submit"
     >
         <div class="grid content-start gap-6">
-            <div class="grid gap-2">
+            <div class="grid gap-1.5">
                 <Label
                     for="measured-weight"
                     class="text-sm leading-5 font-bold text-ink"
@@ -289,7 +289,7 @@ function submit(): void {
                     <button
                         v-if="sizeChanged"
                         type="button"
-                        class="relative -my-1.5 inline-flex h-8 flex-none items-center gap-1.5 rounded-md px-2 text-[13px] font-bold text-brand-strong hover:bg-brand-tint pointer-coarse:after:absolute pointer-coarse:after:inset-x-0 pointer-coarse:after:-inset-y-1.5"
+                        class="tap-target relative -my-1.5 inline-flex h-8 flex-none items-center gap-1.5 rounded-md px-2 text-[13px] font-bold text-brand-strong hover:bg-brand-tint"
                         @click="resetSize"
                     >
                         <RotateCcw aria-hidden="true" class="size-3.5" />

@@ -92,10 +92,14 @@ function reload(): void {
 <template>
     <Head :title="content.title" />
 
-    <div class="flex min-h-svh flex-col bg-surface">
+    <div class="flex min-h-svh flex-col bg-surface public-surface">
         <header class="border-b border-line bg-white">
             <div class="container-page flex h-16 items-center md:h-[76px]">
-                <Link :href="home()" aria-label="Kotak home" class="rounded-md">
+                <Link
+                    :href="home()"
+                    aria-label="Kotak home"
+                    class="tap-target relative rounded-md"
+                >
                     <KotakLogo />
                 </Link>
             </div>
@@ -128,7 +132,7 @@ function reload(): void {
                 </p>
 
                 <div
-                    class="mt-8 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center"
+                    class="mt-8 flex flex-col items-stretch gap-2.5 sm:flex-row sm:items-center"
                 >
                     <Button as-child class="h-12 px-5 text-[15px] font-bold">
                         <Link :href="home()">

@@ -53,7 +53,6 @@ defineProps<{
     >
         <Button
             :disabled="processing"
-            variant="secondary"
             class="h-12 w-full text-[15px] font-bold"
         >
             <Spinner v-if="processing" />

@@ -6,6 +6,7 @@ import {
 } from '@/components/admin/dispatch';
 import type { QueueGroup } from '@/components/admin/dispatch';
 import AttemptPips from '@/components/AttemptPips.vue';
+import BranchName from '@/components/BranchName.vue';
 import DateTime from '@/components/DateTime.vue';
 import Pagination from '@/components/Pagination.vue';
 import PlateBadge from '@/components/PlateBadge.vue';
@@ -174,11 +175,14 @@ const emit = defineEmits<{
                                 />
                             </span>
                         </p>
+                        <!-- Not balanced: balancing would split the town
+                             ("from Shah / Alam - Seksyen 13"), while the
+                             default wrap breaks after the dash -->
                         <p
                             v-if="row.order.branch"
-                            class="max-w-40 text-[12.5px] leading-[17px] text-balance whitespace-normal text-muted-foreground @[49rem]:hidden"
+                            class="max-w-40 text-[12.5px] leading-[17px] whitespace-normal text-muted-foreground @[49rem]:hidden"
                         >
-                            from {{ row.order.branch.name }}
+                            from <BranchName :name="row.order.branch.name" />
                         </p>
                     </td>
                     <td
@@ -191,7 +195,10 @@ const emit = defineEmits<{
                         role="cell"
                         class="hidden max-w-48 py-2.5 text-[13px] leading-[17px] whitespace-normal text-ink-2 @[49rem]:block"
                     >
-                        {{ row.order.branch?.name }}
+                        <BranchName
+                            v-if="row.order.branch"
+                            :name="row.order.branch.name"
+                        />
                     </td>
                     <td role="cell" class="py-2.5">
                         <StatusChip :status="row.order.status" size="sm" />

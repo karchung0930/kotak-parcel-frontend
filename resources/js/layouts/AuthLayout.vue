@@ -47,7 +47,7 @@ const year = todayInKualaLumpur().slice(0, 4);
 <template>
     <SkipLink />
     <div
-        class="grid min-h-dvh grid-cols-1 bg-white lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]"
+        class="grid min-h-dvh grid-cols-1 bg-white public-surface lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]"
     >
         <div class="flex min-h-dvh min-w-0 flex-col">
             <!-- phones and tablets: the hub as a compact band above the
@@ -72,7 +72,7 @@ const year = todayInKualaLumpur().slice(0, 4);
                         <Link
                             :href="home()"
                             aria-label="Kotak home"
-                            class="inline-flex rounded-md"
+                            class="tap-target relative inline-flex rounded-md"
                         >
                             <KotakLogo />
                         </Link>

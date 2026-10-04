@@ -134,7 +134,7 @@ const STEPS = [
                         >
                             Tracking number
                         </label>
-                        <div class="mt-2 flex flex-col gap-3 sm:flex-row">
+                        <div class="mt-1.5 flex flex-col gap-2.5 sm:flex-row">
                             <div class="relative min-w-0 flex-1">
                                 <ScanLine
                                     aria-hidden="true"

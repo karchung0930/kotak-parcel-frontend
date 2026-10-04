@@ -129,7 +129,7 @@ function submit(): void {
             :description="description"
         />
 
-        <form class="space-y-5" novalidate @submit.prevent="submit">
+        <form class="space-y-6" novalidate @submit.prevent="submit">
             <FormSection
                 title="Branch"
                 description="The short code appears on receipts and in staff screens."
@@ -200,10 +200,13 @@ function submit(): void {
                         />
                     </template>
                 </FormField>
-                <!-- A 5-digit postcode needs little room, so it shares a
-                     row with the city even on phones -->
+                <!-- A 5-digit postcode needs little room, so from 640px it
+                     shares a row with the city, in a column still wide
+                     enough for its error message on two lines. On phones
+                     each field takes the full width, like the fields
+                     above. -->
                 <div
-                    class="grid grid-cols-[7rem_minmax(0,1fr)] gap-5 sm:grid-cols-[8rem_minmax(0,1fr)] xl:grid-cols-[8rem_minmax(0,1fr)_minmax(0,1fr)]"
+                    class="grid gap-5 sm:grid-cols-[9rem_minmax(0,1fr)] xl:grid-cols-[9rem_minmax(0,1fr)_minmax(0,1fr)]"
                 >
                     <FormField
                         id="branch-postcode"
@@ -246,7 +249,7 @@ function submit(): void {
                         id="branch-state"
                         label="State"
                         :error="errors.state"
-                        class="col-span-2 xl:col-span-1"
+                        class="sm:col-span-2 xl:col-span-1"
                     >
                         <template #default="{ describedby, invalid }">
                             <NativeSelect

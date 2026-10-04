@@ -6,6 +6,7 @@ import EmptyState from '@/components/EmptyState.vue';
 import BranchLinkCard from '@/components/public/BranchLinkCard.vue';
 import LocationSort from '@/components/public/LocationSort.vue';
 import SectionHeading from '@/components/SectionHeading.vue';
+import TextLink from '@/components/TextLink.vue';
 import { useClock } from '@/composables/useClock';
 import { useNearestBranches } from '@/composables/useNearestBranches';
 import { index as branchesIndex } from '@/routes/branches';
@@ -102,12 +103,9 @@ const heading = computed(() => {
                 </ul>
                 <p v-if="more > 0" class="mt-4 text-sm text-ink-2">
                     And {{ more }} more.
-                    <Link
-                        :href="branchesIndex()"
-                        class="font-semibold text-brand-strong underline decoration-brand-edge underline-offset-4 hover:text-brand-deep"
-                    >
+                    <TextLink :href="branchesIndex()">
                         See every branch
-                    </Link>
+                    </TextLink>
                 </p>
             </div>
             <EmptyState

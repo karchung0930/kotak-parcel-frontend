@@ -71,7 +71,10 @@ const descriptionId = `${props.id}-description`;
             >
                 {{ model ? onLabel : offLabel }}
             </span>
-            <span class="relative inline-flex">
+            <!-- A second label around the 28px switch: its ::after makes
+                 a 44px target on touch screens, and a tap on it toggles
+                 the switch like a tap on the switch itself -->
+            <label :for="id" class="tap-target relative inline-flex">
                 <input
                     :id="id"
                     v-model="model"
@@ -89,7 +92,7 @@ const descriptionId = `${props.id}-description`;
                     aria-hidden="true"
                     class="pointer-events-none absolute top-1 left-1 size-5 rounded-full bg-white shadow-sm transition-transform peer-checked:translate-x-5"
                 />
-            </span>
+            </label>
         </div>
     </div>
 </template>

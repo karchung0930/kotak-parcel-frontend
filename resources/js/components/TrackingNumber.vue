@@ -17,7 +17,8 @@ import { formatTrackingNumber } from '@/lib/format';
  *
  * `stretched` makes the link cover its row or card (the nearest positioned
  * ancestor, so give that `relative`): a tap anywhere on it opens the
- * parcel, and the copy button stays on top.
+ * parcel, and the copy button stays on top. Otherwise the link and the
+ * button are 44px tap targets on touch screens (tap-target in app.css).
  */
 const props = withDefaults(
     defineProps<{
@@ -69,19 +70,10 @@ const textSize = {
     lg: 'text-xl leading-8 sm:text-2xl',
 };
 
-// On touch screens the button's ::after makes a 44px target around it.
 const buttonSize = {
-    sm: 'size-7 pointer-coarse:after:-inset-2',
-    md: 'size-8 pointer-coarse:after:-inset-1.5',
-    lg: 'size-9 pointer-coarse:after:-inset-1',
-};
-
-// The same for the link's line when it is not stretched: 44px tall, and
-// 4px past each end (the x inset also gives the empty ::after its width).
-const linkHitArea = {
-    sm: 'pointer-coarse:after:-inset-x-1 pointer-coarse:after:-inset-y-3',
-    md: 'pointer-coarse:after:-inset-x-1 pointer-coarse:after:-inset-y-2.5',
-    lg: 'pointer-coarse:after:-inset-x-1 pointer-coarse:after:-inset-y-1.5',
+    sm: 'size-7',
+    md: 'size-8',
+    lg: 'size-9',
 };
 
 const iconSize = {
@@ -104,7 +96,7 @@ const iconSize = {
                 :aria-label="`Copy tracking number ${display}`"
                 :title="copied ? 'Copied' : 'Copy tracking number'"
                 :class="[
-                    'relative text-ink-2 pointer-coarse:after:absolute',
+                    'tap-target relative text-ink-2',
                     buttonSize[size],
                     stretched && 'z-10',
                 ]"
@@ -127,10 +119,7 @@ const iconSize = {
                 textSize[size],
                 stretched
                     ? 'after:absolute after:inset-0'
-                    : [
-                          'pointer-coarse:relative pointer-coarse:after:absolute',
-                          linkHitArea[size],
-                      ],
+                    : 'tap-target relative',
             ]"
         >
             {{ display }}

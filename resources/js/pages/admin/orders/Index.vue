@@ -58,7 +58,7 @@ function statusDetail(order: OrderSummary): string | null {
 <template>
     <Head title="Orders" />
 
-    <div class="space-y-5">
+    <div class="space-y-6">
         <PageHeader
             title="Orders"
             description="Every parcel, newest first. Search by tracking number or by sender or receiver name."
@@ -104,7 +104,7 @@ function statusDetail(order: OrderSummary): string | null {
                             maxlength="100"
                             autocomplete="off"
                             placeholder="KT- number, sender or receiver"
-                            class="h-10 rounded-md bg-white pl-10"
+                            class="h-10 rounded-md bg-white pl-10 pointer-coarse:h-11 pointer-coarse:text-base"
                         />
                     </div>
                 </div>
@@ -156,11 +156,11 @@ function statusDetail(order: OrderSummary): string | null {
                         </option>
                     </NativeSelect>
                 </div>
-                <div class="col-span-2 flex gap-2 @2xl:col-span-1">
+                <div class="col-span-2 flex gap-2.5 @2xl:col-span-1">
                     <Button
                         type="submit"
                         :disabled="form.processing"
-                        class="h-10 flex-1 rounded-md px-4 font-bold @2xl:flex-none"
+                        class="h-10 flex-1 rounded-md px-4 font-bold @2xl:flex-none pointer-coarse:h-11"
                     >
                         <Spinner v-if="form.processing" />
                         <Search v-else aria-hidden="true" />
@@ -170,7 +170,7 @@ function statusDetail(order: OrderSummary): string | null {
                         v-if="filtered"
                         variant="ghost"
                         as-child
-                        class="h-10 rounded-md px-3 font-bold"
+                        class="h-10 rounded-md px-3 font-bold pointer-coarse:h-11"
                     >
                         <Link :href="index()">
                             <X aria-hidden="true" />

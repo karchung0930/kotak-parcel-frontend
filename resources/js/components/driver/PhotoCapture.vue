@@ -105,7 +105,7 @@ onBeforeUnmount(() => setPreview(null));
                      another), so it is not red, which is for the next
                      step, nor yellow, which is for a step that cannot be
                      undone: an outline trash button like a passkey's. -->
-                <div class="flex flex-none gap-2">
+                <div class="flex flex-none gap-2.5">
                     <Button
                         type="button"
                         variant="outline"

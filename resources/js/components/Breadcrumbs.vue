@@ -27,12 +27,12 @@ defineProps<{
                     >
                         {{ item.title }}
                     </BreadcrumbPage>
-                    <!-- The ::after makes a 44px-tall target without moving
+                    <!-- A 44px target on touch screens without moving
                          anything: often the only way back on a phone. -->
                     <BreadcrumbLink v-else as-child>
                         <Link
                             :href="item.href"
-                            class="relative after:absolute after:-inset-x-1.5 after:-inset-y-3 hover:text-brand-strong"
+                            class="tap-target relative hover:text-brand-strong"
                         >
                             {{ item.title }}
                         </Link>

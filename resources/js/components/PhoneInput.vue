@@ -191,15 +191,22 @@ const FLAG_STAR = Array.from({ length: 28 }, (_, point) => {
 </script>
 
 <template>
+    <!-- The selector and the number sit inside the 44px field's border,
+         and both reach over it so each is a 44px target: on touch screens
+         the selector's ::after (tap-target in app.css), and the number's
+         own box, 1px past the field's top and bottom edges (so the field
+         does not clip its overflow). A tap on the border at either end
+         moves on to the number too. -->
     <div
         :data-invalid="message ? '' : undefined"
         :class="
             cn(
-                'flex h-11 w-full min-w-0 items-stretch overflow-hidden rounded-md border border-input bg-white shadow-xs transition-[color,box-shadow] focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50',
+                'flex h-11 w-full min-w-0 items-stretch rounded-md border border-input bg-white shadow-xs transition-[color,box-shadow] focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50',
                 'data-invalid:border-destructive data-invalid:focus-within:border-destructive data-invalid:focus-within:ring-destructive/20',
                 props.class,
             )
         "
+        @click.self="focusInput"
     >
         <!--
             The hint sits right on top of the selector: its left edge lines
@@ -227,7 +234,7 @@ const FLAG_STAR = Array.from({ length: 28 }, (_, point) => {
                         aria-haspopup="listbox"
                         aria-label="Country: Malaysia (+60)"
                         :aria-describedby="countryId"
-                        class="flex flex-none cursor-not-allowed items-center gap-1.5 rounded-l-[inherit] border-r border-line-strong bg-surface pr-2 pl-3 text-[15px] font-semibold text-ink-2 tabular-nums outline-none focus-visible:ring-2 focus-visible:ring-brand/60 focus-visible:ring-inset"
+                        class="tap-target relative flex flex-none cursor-not-allowed items-center gap-1.5 rounded-l-[inherit] border-r border-line-strong bg-surface pr-2 pl-3 text-[15px] font-semibold text-ink-2 tabular-nums outline-none focus-visible:ring-2 focus-visible:ring-brand/60 focus-visible:ring-inset"
                         @mousedown.prevent
                         @click="focusInput"
                     >
@@ -287,7 +294,7 @@ const FLAG_STAR = Array.from({ length: 28 }, (_, point) => {
             :aria-describedby="describedBy"
             :class="
                 cn(
-                    'h-full w-full min-w-0 flex-1 bg-transparent px-3 text-base text-ink outline-none placeholder:text-muted-foreground md:text-[15px]',
+                    '-my-px h-[calc(100%+2px)] w-full min-w-0 flex-1 bg-transparent px-3 text-base text-ink outline-none placeholder:text-muted-foreground md:text-[15px]',
                     inputClass,
                 )
             "

@@ -71,7 +71,7 @@ watch(
             <Button
                 variant="ghost"
                 size="icon"
-                class="size-11 text-ink-2 lg:size-10"
+                class="size-11 text-ink-2 lg:size-10 pointer-coarse:size-11"
                 @click="toggleSidebar"
             >
                 <Menu aria-hidden="true" class="size-5" />
@@ -81,7 +81,7 @@ watch(
             <Link
                 :href="home.href"
                 aria-label="Kotak console home"
-                class="rounded-md lg:hidden"
+                class="tap-target relative rounded-md lg:hidden"
             >
                 <KotakLogo size="sm" />
             </Link>

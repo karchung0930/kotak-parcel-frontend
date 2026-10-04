@@ -30,7 +30,7 @@ function hoursLines(hours: string): string[] {
 <template>
     <Head title="Branches" />
 
-    <div class="space-y-5">
+    <div class="space-y-6">
         <PageHeader
             title="Branches"
             description="Drop-off points. A deactivated branch takes no new orders but keeps its history."

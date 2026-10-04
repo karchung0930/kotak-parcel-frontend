@@ -141,7 +141,7 @@ function submit(): void {
             :description="description"
         />
 
-        <form class="space-y-5" novalidate @submit.prevent="submit">
+        <form class="space-y-6" novalidate @submit.prevent="submit">
             <FormSection
                 title="Account"
                 description="Who this is and how to reach them."

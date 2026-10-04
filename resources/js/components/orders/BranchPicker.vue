@@ -6,6 +6,7 @@ import {
     TriangleAlert,
 } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
+import BranchName from '@/components/BranchName.vue';
 import ChoiceCard from '@/components/ChoiceCard.vue';
 import InputError from '@/components/InputError.vue';
 import Notice from '@/components/Notice.vue';
@@ -83,12 +84,12 @@ const visible = computed(() => {
 
         <template v-else>
             <!-- An outline Button, so it looks and hovers like "Use my
-                 location" on the branches page; the thicker edge matches
+                 location" on the branches page; the 1.5px edge matches
                  this form's fields. -->
             <Button
                 type="button"
                 variant="outline"
-                class="h-12 w-full rounded-lg border-[1.5px] border-field text-[15px] font-bold"
+                class="h-12 w-full rounded-lg border-[1.5px] text-[15px] font-bold"
                 :disabled="locateStatus === 'locating'"
                 @click="locate"
             >
@@ -156,7 +157,7 @@ const visible = computed(() => {
                                             : 'font-bold',
                                     ]"
                                 >
-                                    {{ option.branch.name }}
+                                    <BranchName :name="option.branch.name" />
                                 </span>
                                 <span
                                     class="mt-0.5 block text-[13px] leading-[18px] text-muted-foreground"

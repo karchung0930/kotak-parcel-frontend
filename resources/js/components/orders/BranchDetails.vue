@@ -51,11 +51,11 @@ defineProps<{
                     aria-hidden="true"
                     class="mt-0.5 size-4 flex-none text-brand"
                 />
-                <!-- after: makes the tap target 44px tall without moving
+                <!-- A 44px target on touch screens without moving
                      anything; it stays clear of the button below. -->
                 <a
                     :href="telHref(branch.phone)"
-                    class="relative font-semibold text-ink-2 underline decoration-line-strong underline-offset-4 after:absolute after:-inset-x-1 after:-inset-y-3 hover:text-brand-strong hover:decoration-current"
+                    class="tap-target relative font-semibold text-ink-2 underline decoration-line-strong underline-offset-4 hover:text-brand-strong hover:decoration-current"
                 >
                     <span class="sr-only">Call the branch:</span>
                     {{ formatPhone(branch.phone) }}

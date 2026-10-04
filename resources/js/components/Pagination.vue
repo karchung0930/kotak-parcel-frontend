@@ -8,7 +8,8 @@ import type { Pagination } from '@/types';
  * Page links for a Laravel paginated resource (`orders.meta`). Renders
  * nothing when everything fits on one page. Pass `only` to reload just the
  * paginated prop (e.g. ['failed'] on the dispatch board, whose queues each
- * have their own page parameter).
+ * have their own page parameter). The links are 44px tall on touch
+ * screens, 36px with a mouse from 640px.
  */
 const props = withDefaults(
     defineProps<{
@@ -57,7 +58,7 @@ const linkOptions = computed(() =>
                     v-if="previous"
                     :href="previous"
                     v-bind="linkOptions"
-                    class="inline-flex h-11 items-center gap-1 rounded-md px-2.5 text-sm font-semibold text-ink hover:bg-accent hover:text-accent-foreground sm:h-9"
+                    class="inline-flex h-11 items-center gap-1 rounded-md px-2.5 text-sm font-semibold text-ink hover:bg-accent hover:text-accent-foreground sm:h-9 pointer-coarse:h-11"
                 >
                     <ChevronLeft aria-hidden="true" class="size-4" />
                     <span>Previous</span>
@@ -65,7 +66,7 @@ const linkOptions = computed(() =>
                 <span
                     v-else
                     aria-disabled="true"
-                    class="inline-flex h-11 items-center gap-1 px-2.5 text-sm font-semibold text-subtle sm:h-9"
+                    class="inline-flex h-11 items-center gap-1 px-2.5 text-sm font-semibold text-subtle sm:h-9 pointer-coarse:h-11"
                 >
                     <ChevronLeft aria-hidden="true" class="size-4" />
                     Previous
@@ -78,7 +79,7 @@ const linkOptions = computed(() =>
             >
                 <span
                     v-if="!page.url"
-                    class="inline-flex h-9 min-w-9 items-center justify-center text-sm text-muted-foreground"
+                    class="inline-flex h-9 min-w-9 items-center justify-center text-sm text-muted-foreground pointer-coarse:h-11"
                     >…</span
                 >
                 <Link
@@ -88,7 +89,7 @@ const linkOptions = computed(() =>
                     :aria-current="page.active ? 'page' : undefined"
                     :aria-label="`Page ${page.page ?? page.label}`"
                     :class="[
-                        'inline-flex h-9 min-w-9 items-center justify-center rounded-md px-2 font-mono text-sm font-semibold',
+                        'inline-flex h-9 min-w-9 items-center justify-center rounded-md px-2 font-mono text-sm font-semibold pointer-coarse:h-11 pointer-coarse:min-w-11',
                         page.active
                             ? 'bg-brand text-white'
                             : 'text-ink hover:bg-accent hover:text-accent-foreground',
@@ -105,7 +106,7 @@ const linkOptions = computed(() =>
                     v-if="next"
                     :href="next"
                     v-bind="linkOptions"
-                    class="inline-flex h-11 items-center gap-1 rounded-md px-2.5 text-sm font-semibold text-ink hover:bg-accent hover:text-accent-foreground sm:h-9"
+                    class="inline-flex h-11 items-center gap-1 rounded-md px-2.5 text-sm font-semibold text-ink hover:bg-accent hover:text-accent-foreground sm:h-9 pointer-coarse:h-11"
                 >
                     <span>Next</span>
                     <ChevronRight aria-hidden="true" class="size-4" />
@@ -113,7 +114,7 @@ const linkOptions = computed(() =>
                 <span
                     v-else
                     aria-disabled="true"
-                    class="inline-flex h-11 items-center gap-1 px-2.5 text-sm font-semibold text-subtle sm:h-9"
+                    class="inline-flex h-11 items-center gap-1 px-2.5 text-sm font-semibold text-subtle sm:h-9 pointer-coarse:h-11"
                 >
                     Next
                     <ChevronRight aria-hidden="true" class="size-4" />

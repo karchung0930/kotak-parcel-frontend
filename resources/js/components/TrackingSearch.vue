@@ -63,13 +63,15 @@ function submit(): void {
  * sm is 44px tall with 16px text below 1024px, where it is used on touch
  * screens (the menu sheet, the console top bar on a phone or tablet) and
  * iOS zooms into a field with smaller text. From 1024px it is the compact
- * 40px / 14px box of the desktop header and top bar. Below 360px only the
- * placeholder drops to 14px, so it fits the narrow menu sheet.
+ * 40px / 14px box of the desktop header and top bar, but stays 44px tall
+ * with 16px text on touch screens (an iPad in landscape). Below 360px only
+ * the placeholder drops to 14px, so it fits the narrow menu sheet; md does
+ * the same below 400px, for the card on the error page.
  */
 const inputClass = {
     lg: 'h-14 pl-11 text-base sm:h-[60px] sm:pl-[52px] sm:text-lg md:text-[19px]',
-    md: 'h-[52px] pl-[46px] text-base md:text-[17px]',
-    sm: 'h-11 pl-9 text-base max-[360px]:placeholder:text-sm md:text-base lg:h-10 lg:text-sm',
+    md: 'h-[52px] pl-[46px] text-base max-[400px]:placeholder:text-sm md:text-[17px]',
+    sm: 'h-11 pl-9 text-base max-[360px]:placeholder:text-sm md:text-base lg:h-10 lg:text-sm pointer-coarse:h-11 pointer-coarse:text-base',
 };
 
 const iconClass = {
@@ -81,7 +83,7 @@ const iconClass = {
 const buttonClass = {
     lg: 'h-14 px-5 text-base font-bold sm:h-[60px] sm:px-[26px] sm:text-[17px]',
     md: 'h-[52px] px-5 text-base font-bold',
-    sm: 'h-11 w-11 px-0 text-sm font-bold lg:h-10 lg:w-10',
+    sm: 'h-11 w-11 px-0 text-sm font-bold lg:h-10 lg:w-10 pointer-coarse:h-11 pointer-coarse:w-11',
 };
 
 const labelClass = {

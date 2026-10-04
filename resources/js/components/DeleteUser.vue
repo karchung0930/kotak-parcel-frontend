@@ -82,13 +82,14 @@ const passwordInput = useTemplateRef('passwordInput');
                                 name="password"
                                 ref="passwordInput"
                                 placeholder="Password"
+                                class="h-11 text-base md:text-[15px]"
                             />
                             <InputError :message="errors.password" />
                         </div>
 
                         <!-- Cancel is a plain outline button; deleting
                              cannot be undone, so it is caution yellow. -->
-                        <DialogFooter class="gap-2">
+                        <DialogFooter>
                             <DialogClose as-child>
                                 <Button
                                     variant="outline"

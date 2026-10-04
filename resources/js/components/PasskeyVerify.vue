@@ -41,7 +41,7 @@ const { verify, isLoading, error, isSupported } = usePasskeyVerify({
             <Button
                 type="button"
                 variant="outline"
-                class="h-12 w-full border-field text-[15px] font-bold"
+                class="h-12 w-full text-[15px] font-bold"
                 @click="verify"
                 :disabled="isLoading"
             >

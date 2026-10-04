@@ -89,11 +89,11 @@ const sceneTitle =
                         hint="Starts with KT- and is printed on your order confirmation and drop-off receipt."
                     >
                         <template #label-aside>
-                            <!-- The after: layer makes the tap area 44px tall
-                                 without moving the text. -->
+                            <!-- A 44px target on touch screens without
+                                 moving the text. -->
                             <Link
                                 :href="whereToFind"
-                                class="relative text-[13px] leading-5 font-semibold text-brand-strong underline decoration-brand-edge underline-offset-4 after:absolute after:-inset-x-1 after:-inset-y-3 hover:text-brand-deep hover:decoration-current"
+                                class="tap-target relative text-[13px] leading-5 font-semibold text-brand-strong underline decoration-brand-edge underline-offset-4 hover:text-brand-deep hover:decoration-current"
                             >
                                 Where is my tracking number?
                             </Link>
@@ -104,10 +104,12 @@ const sceneTitle =
                 <div
                     class="mt-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-6"
                 >
+                    <!-- Track is the red step here; this opens the order
+                         form, so it is a white outline button. -->
                     <Button
                         v-if="canSend"
                         as-child
-                        variant="secondary"
+                        variant="outline"
                         class="h-12 rounded-lg px-5 text-[15px] font-bold"
                     >
                         <Link :href="createOrder()">

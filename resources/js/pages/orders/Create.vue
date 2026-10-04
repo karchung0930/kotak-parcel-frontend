@@ -2,7 +2,6 @@
 import { Head, useForm, usePage } from '@inertiajs/vue3';
 import {
     ArrowRight,
-    ChevronDown,
     CircleAlert,
     Clock,
     ExternalLink,
@@ -14,6 +13,7 @@ import {
 import { refDebounced } from '@vueuse/core';
 import { computed, nextTick, useTemplateRef, watch } from 'vue';
 import InputError from '@/components/InputError.vue';
+import NativeSelect from '@/components/NativeSelect.vue';
 import Notice from '@/components/Notice.vue';
 import BranchPicker from '@/components/orders/BranchPicker.vue';
 import FormSection from '@/components/orders/FormSection.vue';
@@ -292,7 +292,7 @@ const hintClass = 'mt-1.5 text-[12.5px] leading-[18px] text-muted-foreground';
         @submit.prevent="submit"
     >
         <div
-            class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px] lg:grid-rows-[repeat(4,auto)_1fr] lg:gap-x-8 lg:gap-y-5 xl:grid-cols-[minmax(0,1fr)_400px]"
+            class="grid gap-5 sm:gap-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:grid-rows-[repeat(4,auto)_1fr] lg:gap-x-8 xl:grid-cols-[minmax(0,1fr)_400px]"
         >
             <!-- Sender (read-only, from the customer's profile) -->
             <section
@@ -359,7 +359,7 @@ const hintClass = 'mt-1.5 text-[12.5px] leading-[18px] text-muted-foreground';
                 title="Receiver"
                 class="lg:col-start-1"
             >
-                <div class="grid gap-4 sm:grid-cols-2">
+                <div class="grid gap-5 sm:grid-cols-2">
                     <div>
                         <Label for="receiver_name" :class="labelClass">
                             Full name
@@ -471,8 +471,13 @@ const hintClass = 'mt-1.5 text-[12.5px] leading-[18px] text-muted-foreground';
                         />
                     </div>
 
+                    <!-- A 5-digit postcode needs little room: from 640px it
+                         shares a row with the city and the state, 20px apart
+                         like every field. On phones each takes the full
+                         width, like the fields above, so a column is never
+                         too narrow for its error message. -->
                     <div
-                        class="grid grid-cols-[128px_minmax(0,1fr)] gap-x-2.5 gap-y-4 sm:col-span-2 sm:grid-cols-[140px_minmax(0,1fr)_minmax(0,1fr)] sm:gap-x-4"
+                        class="grid gap-5 sm:col-span-2 sm:grid-cols-[140px_minmax(0,1fr)_minmax(0,1fr)]"
                     >
                         <div>
                             <Label for="postcode" :class="labelClass">
@@ -530,47 +535,35 @@ const hintClass = 'mt-1.5 text-[12.5px] leading-[18px] text-muted-foreground';
                                 class="mt-1.5"
                             />
                         </div>
-                        <div class="col-span-2 sm:col-span-1">
+                        <div>
                             <Label for="state" :class="labelClass">State</Label>
-                            <div class="relative">
-                                <select
-                                    id="state"
-                                    v-model="form.state"
-                                    name="state"
-                                    required
-                                    autocomplete="shipping address-level1"
-                                    :aria-invalid="
-                                        form.errors.state ? true : undefined
-                                    "
-                                    :aria-describedby="
-                                        describedBy(
-                                            form.errors.state && 'state-error',
-                                        )
-                                    "
-                                    :class="[
-                                        'h-12 w-full appearance-none rounded-lg border-[1.5px] border-input bg-white pr-10 pl-3.5 text-base font-semibold outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:border-destructive',
-                                        form.state === ''
-                                            ? 'text-subtle'
-                                            : 'text-ink',
-                                    ]"
+                            <NativeSelect
+                                id="state"
+                                v-model="form.state"
+                                name="state"
+                                size="lg"
+                                required
+                                autocomplete="shipping address-level1"
+                                :aria-invalid="
+                                    form.errors.state ? true : undefined
+                                "
+                                :aria-describedby="
+                                    describedBy(
+                                        form.errors.state && 'state-error',
+                                    )
+                                "
+                            >
+                                <option value="" disabled>
+                                    Choose a state
+                                </option>
+                                <option
+                                    v-for="option in states"
+                                    :key="option.value"
+                                    :value="option.value"
                                 >
-                                    <option value="" disabled>
-                                        Choose a state
-                                    </option>
-                                    <option
-                                        v-for="option in states"
-                                        :key="option.value"
-                                        :value="option.value"
-                                        class="text-ink"
-                                    >
-                                        {{ option.label }}
-                                    </option>
-                                </select>
-                                <ChevronDown
-                                    aria-hidden="true"
-                                    class="pointer-events-none absolute top-1/2 right-3.5 size-[18px] -translate-y-1/2 text-muted-foreground"
-                                />
-                            </div>
+                                    {{ option.label }}
+                                </option>
+                            </NativeSelect>
                             <InputError
                                 id="state-error"
                                 :message="form.errors.state"
@@ -588,7 +581,7 @@ const hintClass = 'mt-1.5 text-[12.5px] leading-[18px] text-muted-foreground';
                 title="Parcel"
                 class="lg:col-start-1"
             >
-                <div class="grid gap-4">
+                <div class="grid gap-5">
                     <div>
                         <Label for="item_name" :class="labelClass">
                             What's inside?
@@ -617,9 +610,7 @@ const hintClass = 'mt-1.5 text-[12.5px] leading-[18px] text-muted-foreground';
                         />
                     </div>
 
-                    <div
-                        class="grid gap-4 sm:grid-cols-[160px_minmax(0,1fr)] sm:gap-5"
-                    >
+                    <div class="grid gap-5 sm:grid-cols-[160px_minmax(0,1fr)]">
                         <div>
                             <Label for="weight_kg" :class="labelClass">
                                 Weight
@@ -728,9 +719,12 @@ const hintClass = 'mt-1.5 text-[12.5px] leading-[18px] text-muted-foreground';
                 aria-label="Price and drop-off"
                 class="lg:col-start-2 lg:row-[1/span_5]"
             >
+                <!-- A flex column, not space-y: its gap skips the hidden
+                     drop-off card and the visually hidden live region, so
+                     below 1024px nothing is left under the estimate. -->
                 <div
                     ref="sideColumn"
-                    class="space-y-4 lg:top-[109px]"
+                    class="flex flex-col gap-6 lg:top-[109px]"
                     :class="sideColumnFits && 'lg:sticky'"
                 >
                     <PriceEstimateCard
@@ -755,7 +749,8 @@ const hintClass = 'mt-1.5 text-[12.5px] leading-[18px] text-muted-foreground';
                         </h2>
                         <!-- What BranchDetails shows, set tighter so the
                              column fits on laptop screens: small icons and
-                             the directions link on the phone's line. -->
+                             the directions link on the phone's line. Both
+                             links are 44px targets on touch screens. -->
                         <div
                             v-if="selectedBranch"
                             class="mt-2.5 text-sm leading-5 text-ink-2"
@@ -801,7 +796,7 @@ const hintClass = 'mt-1.5 text-[12.5px] leading-[18px] text-muted-foreground';
                                     />
                                     <a
                                         :href="telHref(selectedBranch.phone)"
-                                        class="font-semibold whitespace-nowrap text-ink-2 underline decoration-line-strong underline-offset-4 hover:text-brand-strong hover:decoration-current"
+                                        class="tap-target relative font-semibold whitespace-nowrap text-ink-2 underline decoration-line-strong underline-offset-4 hover:text-brand-strong hover:decoration-current"
                                     >
                                         <span class="sr-only">
                                             Call the branch:
@@ -812,7 +807,7 @@ const hintClass = 'mt-1.5 text-[12.5px] leading-[18px] text-muted-foreground';
                                         :href="directionsUrl(selectedBranch)"
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        class="ml-auto inline-flex items-center gap-1.5 font-semibold whitespace-nowrap text-brand-strong underline decoration-brand-edge underline-offset-4 hover:text-brand-deep hover:decoration-current"
+                                        class="tap-target relative ml-auto inline-flex items-center gap-1.5 font-semibold whitespace-nowrap text-brand-strong underline decoration-brand-edge underline-offset-4 hover:text-brand-deep hover:decoration-current"
                                     >
                                         Get directions
                                         <ExternalLink

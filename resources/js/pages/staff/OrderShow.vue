@@ -156,7 +156,7 @@ const historyFits = useFitsViewport(historyCard, 24);
             <Button
                 variant="outline"
                 as-child
-                class="h-10 rounded-lg font-bold print:hidden"
+                class="h-10 rounded-lg font-bold print:hidden pointer-coarse:h-11"
             >
                 <Link :href="counter()">
                     <ScanLine aria-hidden="true" />

@@ -61,10 +61,14 @@ const handleDelete = () => {
 
         <Dialog>
             <!-- Only opens the dialog, so a plain outline button like the
-                 close button; the step that cannot be undone is the
-                 dialog's own button. -->
+                 close button, and like it a 44px target on touch screens;
+                 the step that cannot be undone is the dialog's own button. -->
             <DialogTrigger as-child>
-                <Button variant="outline" size="icon" class="text-ink-2">
+                <Button
+                    variant="outline"
+                    size="icon"
+                    class="tap-target relative text-ink-2"
+                >
                     <Trash2 aria-hidden="true" class="size-[18px]" />
                     <span class="sr-only">Remove</span>
                 </Button>
@@ -79,12 +83,15 @@ const handleDelete = () => {
                 </DialogDescription>
                 <!-- Cancel is a plain outline button; a removed passkey
                      cannot be brought back, so it is caution yellow. -->
-                <DialogFooter class="gap-2">
+                <DialogFooter>
                     <DialogClose as-child>
-                        <Button variant="outline">Cancel</Button>
+                        <Button variant="outline" class="h-11 px-5 font-bold">
+                            Cancel
+                        </Button>
                     </DialogClose>
                     <Button
                         variant="warning"
+                        class="h-11 px-5 font-bold"
                         :disabled="isDeleting"
                         @click="handleDelete"
                     >

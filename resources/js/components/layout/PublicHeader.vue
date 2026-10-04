@@ -53,7 +53,7 @@ const showHeaderSearch = computed(
             <Link
                 :href="home()"
                 aria-label="Kotak home"
-                class="-ml-1 rounded-md p-1"
+                class="tap-target relative -ml-1 rounded-md p-1"
             >
                 <KotakLogo />
             </Link>
@@ -212,7 +212,7 @@ const showHeaderSearch = computed(
 
                             <div
                                 v-if="user && accountHome"
-                                class="flex flex-col gap-2 border-t border-line pt-5"
+                                class="flex flex-col gap-2.5 border-t border-line pt-5"
                             >
                                 <p class="text-sm text-muted-foreground">
                                     Signed in as
@@ -243,7 +243,7 @@ const showHeaderSearch = computed(
                             </div>
                             <div
                                 v-else
-                                class="flex flex-col gap-2 border-t border-line pt-5"
+                                class="flex flex-col gap-2.5 border-t border-line pt-5"
                             >
                                 <Button
                                     as-child

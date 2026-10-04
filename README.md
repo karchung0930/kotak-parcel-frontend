@@ -93,21 +93,47 @@ tests/js/                small checks that run on plain Node
 - **Button colours carry meaning.** Red is the normal next step. Caution
   yellow with black text is only for the final confirm of a step that cannot
   be undone. White outline buttons open, switch, cancel or go back. The pale
-  red tint marks what is selected.
+  red tint marks what is selected. There is no black button (the Button
+  component has no `secondary` variant): a dark fill reads as the main step.
+  The outline button's edge comes from the page: the public, customer and
+  sign-in layouts carry `public-surface` (in `app.css`), which gives it the
+  darker grey of the fields there, and the console keeps the lighter grey.
+- **Spacing follows one rhythm**, judged by the visible gap: 6px from a label
+  to its field and from the field to its note, 20px between fields, 24px
+  between cards and sections (20px on phones in the customer and driver
+  pages), 40px from a form section's title column to its fields, 10px
+  between buttons (`DialogFooter` sets it for dialogs). Grid columns are
+  sized to their fields, so two narrow fields never sit far apart in a wide
+  row.
+- **44px touch targets.** On touch screens every control is at least 44px
+  each way, while the look with a mouse stays the same. Small controls
+  (copy and icon buttons, breadcrumbs, phone links, inline text buttons,
+  the logo) use the `tap-target` utility in `app.css`, an invisible
+  `::after` centred on them. Red links to other pages in running text are
+  `TextLink.vue`, whose own 44px area grows upwards, clear of a field just
+  below. Rows of links (the footer, the account menu, the admin's contact
+  links) and compact filter controls grow with `pointer-coarse:` sizes,
+  and the compact filter fields get 16px text there too.
 - **One component per repeated element**, for example `CloseButton.vue` for
   every close button in dialogs, sheets and panels, `UnitInput.vue` for the
   short number fields in the estimator and the order, counter and admin
   forms (weights, box sides, days), `NativeSelect.vue` for selects,
-  `ChoiceCard.vue` for radio choices shown as cards, `ToneChip.vue` under
+  `components/ui/textarea` for every multi-line field (`size="lg"` in the
+  customer, counter and driver forms), `ChoiceCard.vue` for radio choices
+  shown as cards, `ToneChip.vue` under
   every status chip, `ActionDivider.vue` between two kinds of page actions,
   `RouteRates.vue` for a route's weight bands (laid out by
   `RouteRatesGrid.vue`, so cards side by side keep their rows level) on the
-  pricing page and the admin's Rates pages, and `RouteTitle.vue` for a
-  route's name, which wraps after the arrow rather than inside a zone name.
+  pricing page and the admin's Rates pages, `RouteTitle.vue` for a
+  route's name, which wraps after the arrow rather than inside a zone name,
+  and `BranchName.vue` for a branch name in a narrow column, which wraps
+  after its dash ("Cheras - / Taman Connaught").
 - **No lone words.** Wrapped text never ends on a single word: `body` sets
   `text-wrap-style: pretty` (the longhand, so `whitespace-nowrap` still
-  holds), and validation messages wrap balanced. Page and card intros fit on
-  one line from tablet width.
+  holds), and short labels that may wrap (stat cards, validation messages)
+  wrap balanced. Stat card labels are kept short, so one of two words fits
+  on one line from 375px. Page and card intros fit on one line from tablet
+  width.
 - **Prices are worked out the server's way.** `lib/pricing.ts` applies the
   current rate card (zones, routes, weight bands) exactly as the backend's
   `PriceCalculator` does, for live estimates only; the server sets the

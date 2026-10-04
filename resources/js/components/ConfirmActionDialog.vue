@@ -86,7 +86,7 @@ const iconTone = {
             <!-- Go back is a plain outline button. The confirm is red for
                  a step forward, or caution yellow (warning) for a negative
                  step that cannot be undone, such as a failed delivery. -->
-            <DialogFooter band class="gap-2.5">
+            <DialogFooter band>
                 <Button
                     type="button"
                     variant="outline"

@@ -229,10 +229,12 @@ onMounted(async () => {
                                 aria-describedby="branch-search-result"
                                 class="h-12 rounded-lg bg-white pr-12 pl-11 text-base md:text-base [&::-webkit-search-cancel-button]:hidden"
                             />
+                            <!-- 36px, and a 44px target on touch screens
+                                 that still fits inside the 48px field -->
                             <button
                                 v-if="search"
                                 type="button"
-                                class="absolute top-1/2 right-1.5 flex size-9 -translate-y-1/2 items-center justify-center rounded-md text-ink-2 hover:bg-surface hover:text-ink"
+                                class="tap-target absolute top-1/2 right-1.5 flex size-9 -translate-y-1/2 items-center justify-center rounded-md text-ink-2 hover:bg-surface hover:text-ink"
                                 @click="search = ''"
                             >
                                 <X aria-hidden="true" class="size-[18px]" />
@@ -280,7 +282,7 @@ onMounted(async () => {
                 <Button
                     type="button"
                     variant="outline"
-                    class="h-11 border-field px-5 font-bold"
+                    class="h-11 px-5 font-bold"
                     @click="search = ''"
                 >
                     Clear search

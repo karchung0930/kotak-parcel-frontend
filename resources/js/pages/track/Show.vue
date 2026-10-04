@@ -18,6 +18,7 @@ import DescriptionItem from '@/components/DescriptionItem.vue';
 import DescriptionList from '@/components/DescriptionList.vue';
 import PublicPageBand from '@/components/public/PublicPageBand.vue';
 import StatusChip from '@/components/StatusChip.vue';
+import TextLink from '@/components/TextLink.vue';
 import Timeline from '@/components/Timeline.vue';
 import TrackingNumber from '@/components/TrackingNumber.vue';
 import TrackingSearch from '@/components/TrackingSearch.vue';
@@ -543,12 +544,12 @@ const detailsFits = useFitsViewport(detailsCard, 24);
                     </template>
                 </p>
                 <div
-                    class="mt-7 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center"
+                    class="mt-7 flex flex-col items-stretch justify-center gap-2.5 sm:flex-row sm:items-center"
                 >
                     <Button
                         as-child
                         variant="outline"
-                        class="h-12 border-field px-5 text-[15px] font-bold"
+                        class="h-12 px-5 text-[15px] font-bold"
                     >
                         <Link :href="branchesIndex()">
                             <Store aria-hidden="true" />
@@ -558,7 +559,7 @@ const detailsFits = useFitsViewport(detailsCard, 24);
                     <Button
                         v-if="canSendParcels(user)"
                         as-child
-                        variant="secondary"
+                        variant="outline"
                         class="h-12 px-5 text-[15px] font-bold"
                     >
                         <Link :href="createOrder()">
@@ -627,12 +628,7 @@ const detailsFits = useFitsViewport(detailsCard, 24);
                         v-if="user?.role.value === 'customer'"
                         class="mt-5 text-sm text-ink-2"
                     >
-                        <Link
-                            :href="myOrders()"
-                            class="font-semibold text-brand-strong underline decoration-brand-edge underline-offset-4 hover:text-brand-deep"
-                        >
-                            Open My parcels
-                        </Link>
+                        <TextLink :href="myOrders()">Open My parcels</TextLink>
                         to see every order with its tracking number.
                     </p>
                 </div>

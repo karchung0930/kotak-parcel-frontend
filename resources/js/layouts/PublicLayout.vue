@@ -28,7 +28,7 @@ withDefaults(
 </script>
 
 <template>
-    <div class="flex min-h-svh flex-col bg-white">
+    <div class="flex min-h-svh flex-col bg-white public-surface">
         <SkipLink />
         <PublicHeader />
         <main id="main" tabindex="-1" class="flex-1 outline-none">

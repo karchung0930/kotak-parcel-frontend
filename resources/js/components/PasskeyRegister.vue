@@ -104,7 +104,7 @@ const handleCancel = () => {
         <!-- Red for the next step; Cancel is a plain outline button, like
              every Cancel on the site (a ghost button's pale red hover
              would read as "selected"). -->
-        <div class="flex gap-2">
+        <div class="flex gap-2.5">
             <Button
                 type="submit"
                 class="h-11 px-6 font-bold"

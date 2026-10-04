@@ -853,7 +853,7 @@ const limits = computed(() => [
                         Create the order online in a couple of minutes, then
                         drop the parcel at any Kotak branch in the Klang Valley.
                     </p>
-                    <div class="mt-6 flex flex-col gap-3 sm:flex-row">
+                    <div class="mt-6 flex flex-col gap-2.5 sm:flex-row">
                         <Button
                             v-if="canSend"
                             as-child
@@ -867,7 +867,7 @@ const limits = computed(() => [
                         <Button
                             as-child
                             variant="outline"
-                            class="h-12 border-field px-5 text-[15px] font-bold"
+                            class="h-12 px-5 text-[15px] font-bold"
                         >
                             <Link :href="branchesIndex()">Find a branch</Link>
                         </Button>

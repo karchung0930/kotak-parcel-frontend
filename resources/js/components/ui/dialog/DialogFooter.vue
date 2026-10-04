@@ -20,11 +20,12 @@ const props = withDefaults(defineProps<{
        padding (negative margins of --dialog-padding) and is padded with it
        again, so its buttons still line up with the content above. The
        dialog's rows are 1rem apart (DialogContent's gap-4), so it tops that
-       up to a full padding above its line, as below it. -->
+       up to a full padding above its line, as below it. Its buttons are
+       10px apart, like every button group on the site. -->
   <div
     data-slot="dialog-footer"
     :class="cn(
-      'flex flex-col-reverse gap-2 sm:flex-row sm:justify-end',
+      'flex flex-col-reverse gap-2.5 sm:flex-row sm:justify-end',
       band && '-mx-(--dialog-padding) mt-[calc(var(--dialog-padding)-1rem)] -mb-(--dialog-padding) rounded-b-lg border-t border-line bg-surface/60 p-(--dialog-padding)',
       props.class,
     )"

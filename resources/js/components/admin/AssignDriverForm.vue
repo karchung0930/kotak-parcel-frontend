@@ -210,15 +210,16 @@ function submit(): void {
                     </p>
                     <!-- Toggle chips, not outline Buttons: the chosen day is
                          pale red and the others turn grey on hover. The grey
-                         is safe here, as no hovered row sits behind them. -->
-                    <div class="flex gap-1.5">
+                         is safe here, as no hovered row sits behind them.
+                         32px with a mouse, 44px on touch screens. -->
+                    <div class="flex gap-1.5 pointer-coarse:gap-2">
                         <button
                             v-for="quick in quickDays"
                             :key="quick.label"
                             type="button"
                             :aria-pressed="form.scheduled_for === quick.day"
                             :class="[
-                                'h-8 rounded-md border px-2.5 text-xs font-bold transition-colors',
+                                'h-8 rounded-md border px-2.5 text-xs font-bold transition-colors pointer-coarse:h-11 pointer-coarse:min-w-11 pointer-coarse:px-3',
                                 form.scheduled_for === quick.day
                                     ? 'border-brand bg-brand-tint text-brand-strong'
                                     : 'border-line bg-white text-ink-2 hover:border-line-strong hover:bg-surface',
@@ -346,7 +347,7 @@ function submit(): void {
                 Not worth another try?
                 <button
                     type="button"
-                    class="font-semibold text-brand-strong underline decoration-brand-edge underline-offset-4 hover:text-brand-deep hover:decoration-current"
+                    class="tap-target relative font-semibold text-brand-strong underline decoration-brand-edge underline-offset-4 hover:text-brand-deep hover:decoration-current"
                     @click="emit('return')"
                 >
                     Return it to the sender

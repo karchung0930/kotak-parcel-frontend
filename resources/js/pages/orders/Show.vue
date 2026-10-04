@@ -114,7 +114,7 @@ const historyFits = useFitsViewport(historyCard, 24);
             />
             <!-- Cancelling this parcel vs sending a new one -->
             <ActionDivider v-if="canCancel" />
-            <Button as-child variant="secondary" class="h-11 px-4 font-bold">
+            <Button as-child variant="outline" class="h-11 px-4 font-bold">
                 <Link :href="create()">
                     <PackagePlus aria-hidden="true" />
                     Send another parcel
@@ -374,11 +374,11 @@ const historyFits = useFitsViewport(historyCard, 24);
                                 <br />{{ order.postcode }} {{ order.city }},
                                 {{ order.state }}
                             </span>
-                            <!-- after: makes the tap target 44px tall
-                                 without moving anything -->
+                            <!-- A 44px target on touch screens without
+                                 moving anything -->
                             <a
                                 :href="telHref(order.receiver_phone)"
-                                class="relative mt-1 inline-block font-semibold text-brand-strong underline decoration-brand-edge underline-offset-4 after:absolute after:-inset-x-1 after:-inset-y-3 hover:text-brand-deep hover:decoration-current"
+                                class="tap-target relative mt-1 inline-block font-semibold text-brand-strong underline decoration-brand-edge underline-offset-4 hover:text-brand-deep hover:decoration-current"
                             >
                                 <span class="sr-only">Call the receiver:</span>
                                 {{ formatPhone(order.receiver_phone) }}

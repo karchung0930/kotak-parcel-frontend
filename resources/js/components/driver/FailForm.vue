@@ -7,6 +7,7 @@ import ConfirmActionDialog from '@/components/ConfirmActionDialog.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { formatTrackingNumber } from '@/lib/format';
 import { fail } from '@/routes/driver/jobs';
 import type { DeliveryFailureReasonValue, DriverJob, Option } from '@/types';
@@ -114,7 +115,7 @@ function submit(): void {
             />
         </fieldset>
 
-        <div class="grid gap-2">
+        <div class="grid gap-1.5">
             <!-- block: a plain space before (optional), not the flex gap -->
             <Label
                 for="fail-note"
@@ -128,9 +129,10 @@ function submit(): void {
                     (optional)
                 </span>
             </Label>
-            <textarea
+            <Textarea
                 id="fail-note"
                 v-model="form.note"
+                size="lg"
                 rows="3"
                 :maxlength="NOTE_LIMIT"
                 :placeholder="
@@ -145,7 +147,6 @@ function submit(): void {
                         ? 'fail-note-hint fail-note-error'
                         : 'fail-note-hint'
                 "
-                class="w-full resize-none rounded-lg border-[1.5px] border-field bg-white px-3.5 py-3 text-base leading-6 text-ink outline-none placeholder:text-subtle focus-visible:border-brand focus-visible:ring-[3px] focus-visible:ring-brand/25 aria-invalid:border-brand-strong"
             />
             <p
                 id="fail-note-hint"

@@ -3,6 +3,7 @@ import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
 import { Pencil, Search, UserPlus, X } from '@lucide/vue';
 import { computed } from 'vue';
 import ActiveStatus from '@/components/admin/ActiveStatus.vue';
+import BranchName from '@/components/BranchName.vue';
 import EmptyState from '@/components/EmptyState.vue';
 import PageHeader from '@/components/PageHeader.vue';
 import Pagination from '@/components/Pagination.vue';
@@ -74,7 +75,7 @@ function submit(): void {
 <template>
     <Head title="Users" />
 
-    <div class="space-y-5">
+    <div class="space-y-6">
         <PageHeader
             title="Users"
             description="Staff, driver, admin and customer accounts. They are deactivated, never deleted."
@@ -113,7 +114,7 @@ function submit(): void {
                                 "
                                 preserve-scroll
                                 :class="[
-                                    'inline-flex h-9 items-center rounded-md px-3 text-[13.5px] whitespace-nowrap transition-colors',
+                                    'inline-flex h-9 items-center justify-center rounded-md px-3 text-[13.5px] whitespace-nowrap transition-colors pointer-coarse:h-11 pointer-coarse:min-w-11',
                                     filters.role === tab.role
                                         ? 'bg-brand-tint font-bold text-brand-strong'
                                         : 'font-semibold text-ink-2 hover:bg-surface',
@@ -149,13 +150,13 @@ function submit(): void {
                             maxlength="100"
                             autocomplete="off"
                             placeholder="Name or email"
-                            class="h-10 rounded-md bg-white pl-10"
+                            class="h-10 rounded-md bg-white pl-10 pointer-coarse:h-11 pointer-coarse:text-base"
                         />
                     </div>
                     <Button
                         type="submit"
                         :disabled="form.processing"
-                        class="h-10 rounded-md px-4 font-bold"
+                        class="h-10 rounded-md px-4 font-bold pointer-coarse:h-11"
                     >
                         <Spinner v-if="form.processing" />
                         Search
@@ -294,9 +295,10 @@ function submit(): void {
                                         v-if="user.vehicle_plate"
                                         :plate="user.vehicle_plate"
                                     />
-                                    <template v-else-if="user.branch">
-                                        {{ user.branch.name }}
-                                    </template>
+                                    <BranchName
+                                        v-else-if="user.branch"
+                                        :name="user.branch.name"
+                                    />
                                     <span v-else class="text-muted-foreground"
                                         >—</span
                                     >

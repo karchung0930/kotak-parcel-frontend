@@ -557,7 +557,9 @@ const stickyClass =
     'w-px whitespace-nowrap sm:sticky sm:left-0 sm:z-10 sm:shadow-[inset_-1px_0_0_var(--color-line)]';
 // Every route column is as wide; headers wrap inside it. The gap between
 // two boxes is the cells' padding, 16px, as after the weight column.
-const routeCellClass = 'w-32 px-2';
+// Wide enough for a zone name and its arrow ("Peninsular Malaysia →") on one
+// line of the column heading, so the name is not split across two.
+const routeCellClass = 'w-38 px-2';
 // The extra-kg row's tint as one opaque colour, so the sticky cell matches.
 const extraRowClass = 'bg-[color-mix(in_srgb,var(--color-surface)_60%,white)]';
 </script>
@@ -581,7 +583,7 @@ const extraRowClass = 'bg-[color-mix(in_srgb,var(--color-surface)_60%,white)]';
             {{ serverErrors.other }}
         </Notice>
 
-        <form class="space-y-5" novalidate @submit.prevent="submit">
+        <form class="space-y-6" novalidate @submit.prevent="submit">
             <FormSection
                 title="Version"
                 description="Staff see the name at the counter and on order details."

@@ -125,6 +125,7 @@
     --color-border: var(--border);
     --color-input: var(--input);
     --color-ring: var(--ring);
+    --color-button-edge: var(--button-edge);
 
     --color-chart-1: var(--chart-1);
     --color-chart-2: var(--chart-2);
@@ -152,11 +153,12 @@
     --popover: #ffffff;
     --popover-foreground: #16181d;
 
-    /* Kotak red for primary actions, ink for the dark secondary button. */
+    /* Kotak red for primary actions. Secondary is a pale neutral, not ink:
+       there is no black button (see components/ui/button). */
     --primary: #d0161e;
     --primary-foreground: #ffffff;
-    --secondary: #16181d;
-    --secondary-foreground: #ffffff;
+    --secondary: #eef0f3;
+    --secondary-foreground: #16181d;
 
     --muted: #f4f5f7;
     --muted-foreground: #555c69;
@@ -171,6 +173,10 @@
     --border: #e2e5ea;
     --input: #858c99;
     --ring: #d0161e;
+
+    /* The outline button's edge: the light line grey here and in the
+       console, the field grey on public-surface pages (see below). */
+    --button-edge: var(--color-line-strong);
 
     --chart-1: #d0161e;
     --chart-2: #1d4f9a;
@@ -252,6 +258,48 @@
 
     @media (width >= 64rem) {
         padding-inline: 2rem;
+    }
+}
+
+/*
+|--------------------------------------------------------------------------
+| Public surface
+|--------------------------------------------------------------------------
+|
+| The public, customer and sign-in layouts (and the error page) carry this
+| class. Their fields have the darker field grey edge, so outline buttons
+| there take that edge too and do not look fainter than the field beside
+| them. Dialogs, sheets and menus open outside the layout, so they keep
+| the light edge, like their close button.
+|
+*/
+@utility public-surface {
+    --button-edge: var(--color-field);
+}
+
+/*
+|--------------------------------------------------------------------------
+| Tap targets
+|--------------------------------------------------------------------------
+|
+| On touch screens a control that looks small (a copy button, a breadcrumb,
+| a phone link, the logo) gets an empty ::after centred on it, at least
+| 44px each way, so it is easy to tap and nothing moves. With a mouse it
+| keeps its visible size. Give the control `relative` (or another
+| position). The insets are percentages of its padding box, so a border
+| does not make the area smaller, and a control already 44px or more keeps
+| its own size. Rows of links that sit closer than 44px get real height on
+| touch screens instead (pointer-coarse:min-h-11), so the areas never
+| overlap.
+|
+*/
+@utility tap-target {
+    @media (pointer: coarse) {
+        &::after {
+            content: '';
+            position: absolute;
+            inset: min(0px, calc((100% - 2.75rem) / 2));
+        }
     }
 }
 

@@ -19,7 +19,7 @@ const { currentUrl } = useCurrentUrl();
 </script>
 
 <template>
-    <div class="flex min-h-svh flex-col bg-surface">
+    <div class="flex min-h-svh flex-col bg-surface public-surface">
         <SkipLink />
         <PublicHeader />
 

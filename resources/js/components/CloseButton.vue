@@ -8,8 +8,8 @@ import { Button } from '@/components/ui/button';
  * square outline Button with an 18px × and a name for screen readers.
  * It is an outline Button like the ones beside it (the panel's Cancel):
  * white with a strong grey border, and on hover a dark border and a soft
- * shadow. Its ::after reaches 4px past each edge, so the target is 44px
- * while it still looks 36px.
+ * shadow. On touch screens its ::after makes the target 44px while it
+ * still looks 36px (tap-target in app.css).
  *
  * On its own it is a plain button: listen for its click, which falls
  * through to the <button>. Inside a DialogClose or SheetClose with
@@ -35,7 +35,7 @@ withDefaults(
         type="button"
         variant="outline"
         size="icon"
-        class="relative text-ink-2 after:absolute after:-inset-1"
+        class="tap-target relative text-ink-2"
     >
         <X aria-hidden="true" class="size-[18px]" />
         <span class="sr-only">{{ label }}</span>

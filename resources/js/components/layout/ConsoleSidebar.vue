@@ -62,7 +62,7 @@ function closeSheet(): void {
             <Link
                 :href="home.href"
                 :aria-label="`Kotak ${badge.toLowerCase()} console home`"
-                class="rounded-md"
+                class="tap-target relative rounded-md"
                 @click="closeSheet"
             >
                 <KotakLogo size="sm" :badge="badge" />
@@ -124,7 +124,7 @@ function closeSheet(): void {
                     aria-label="Log out"
                     title="Log out"
                     data-test="logout-button"
-                    class="inline-flex size-11 flex-none items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground lg:size-9"
+                    class="inline-flex size-11 flex-none items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground lg:size-9 pointer-coarse:size-11"
                     @click="router.flushAll()"
                 >
                     <LogOut aria-hidden="true" class="size-[18px]" />

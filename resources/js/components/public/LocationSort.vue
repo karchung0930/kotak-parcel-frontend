@@ -46,7 +46,7 @@ const emit = defineEmits<{
                 type="button"
                 variant="outline"
                 :class="[
-                    'border-field font-bold',
+                    'font-bold',
                     size === 'lg'
                         ? 'h-12 flex-1 rounded-lg px-5 text-[15px] has-[>svg]:px-5 sm:flex-none'
                         : 'h-11 px-4 text-[15px]',

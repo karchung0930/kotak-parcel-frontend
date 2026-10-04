@@ -50,6 +50,17 @@ const account = computed<NavItem[]>(() => {
 const listedBranches = computed(() =>
     props.branches.filter((branch) => branch.is_active).slice(0, 6),
 );
+
+/*
+ * The link lists: 26px rows with a mouse. On touch screens each link is a
+ * 44px row instead, so the tap areas never overlap; the list starts 12px
+ * higher and ends 12px lower, so the names keep their distance from the
+ * heading above and the section below.
+ */
+const listClass =
+    'mt-3 space-y-2 pointer-coarse:-mb-3 pointer-coarse:mt-0 pointer-coarse:space-y-0';
+const linkClass =
+    'text-sm font-semibold text-ink-2 hover:text-brand-strong pointer-coarse:flex pointer-coarse:min-h-11 pointer-coarse:w-fit pointer-coarse:min-w-11 pointer-coarse:items-center';
 </script>
 
 <template>
@@ -63,7 +74,7 @@ const listedBranches = computed(() =>
                 <Link
                     :href="home()"
                     aria-label="Kotak home"
-                    class="inline-flex"
+                    class="tap-target relative inline-flex"
                 >
                     <KotakLogo size="sm" />
                 </Link>
@@ -81,12 +92,9 @@ const listedBranches = computed(() =>
                 >
                     Send and track
                 </h2>
-                <ul class="mt-3 space-y-2">
+                <ul :class="listClass">
                     <li v-for="item in services" :key="item.title">
-                        <Link
-                            :href="item.href"
-                            class="text-sm font-semibold text-ink-2 hover:text-brand-strong"
-                        >
+                        <Link :href="item.href" :class="linkClass">
                             {{ item.title }}
                         </Link>
                     </li>
@@ -97,12 +105,9 @@ const listedBranches = computed(() =>
                 <h2 class="text-sm font-extrabold tracking-heading text-ink">
                     Branches
                 </h2>
-                <ul v-if="listedBranches.length > 0" class="mt-3 space-y-2">
+                <ul v-if="listedBranches.length > 0" :class="listClass">
                     <li v-for="branch in listedBranches" :key="branch.id">
-                        <Link
-                            :href="branchesIndex()"
-                            class="text-sm font-semibold text-ink-2 hover:text-brand-strong"
-                        >
+                        <Link :href="branchesIndex()" :class="linkClass">
                             {{ branch.name }}
                         </Link>
                     </li>
@@ -112,7 +117,7 @@ const listedBranches = computed(() =>
                     vary by branch.
                     <Link
                         :href="branchesIndex()"
-                        class="mt-1 block font-semibold text-brand-strong hover:text-brand-deep"
+                        class="mt-1 block w-fit font-semibold text-brand-strong hover:text-brand-deep pointer-coarse:mt-0 pointer-coarse:flex pointer-coarse:min-h-11 pointer-coarse:items-center"
                     >
                         Find a branch
                     </Link>
@@ -129,12 +134,9 @@ const listedBranches = computed(() =>
                 >
                     Your account
                 </h2>
-                <ul class="mt-3 space-y-2">
+                <ul :class="listClass">
                     <li v-for="item in account" :key="item.title">
-                        <Link
-                            :href="item.href"
-                            class="text-sm font-semibold text-ink-2 hover:text-brand-strong"
-                        >
+                        <Link :href="item.href" :class="linkClass">
                             {{ item.title }}
                         </Link>
                     </li>

@@ -124,7 +124,7 @@ const place = computed(() => {
                 <dd>
                     <a
                         :href="telHref(branch.phone)"
-                        class="font-semibold text-ink underline decoration-line-strong underline-offset-4 hover:text-brand-strong hover:decoration-current"
+                        class="tap-target relative font-semibold text-ink underline decoration-line-strong underline-offset-4 hover:text-brand-strong hover:decoration-current"
                     >
                         {{ branch.phone }}
                     </a>
@@ -167,13 +167,9 @@ const place = computed(() => {
 
         <!-- Wide: as wide as the hours column above (half, less half the gap) -->
         <div
-            class="mt-auto grid grid-cols-2 gap-2 pt-6 @xl:ml-auto @xl:w-[calc(50%_-_1rem)]"
+            class="mt-auto grid grid-cols-2 gap-2.5 pt-6 @xl:ml-auto @xl:w-[calc(50%_-_1rem)]"
         >
-            <Button
-                as-child
-                variant="outline"
-                class="h-11 border-field text-sm font-bold"
-            >
+            <Button as-child variant="outline" class="h-11 text-sm font-bold">
                 <a
                     :href="directionsUrl(branch)"
                     target="_blank"
@@ -186,11 +182,7 @@ const place = computed(() => {
                     </span>
                 </a>
             </Button>
-            <Button
-                as-child
-                variant="outline"
-                class="h-11 border-field text-sm font-bold"
-            >
+            <Button as-child variant="outline" class="h-11 text-sm font-bold">
                 <a :href="telHref(branch.phone)">
                     <Phone aria-hidden="true" />
                     Call

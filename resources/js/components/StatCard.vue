@@ -4,8 +4,10 @@ import { Link } from '@inertiajs/vue3';
 import type { Component } from 'vue';
 
 /**
- * A summary number for console pages ("Awaiting assignment 5"). The icon
- * takes the tone's colour; with `href` the whole card is a link.
+ * A summary number for console pages ("To assign 5"). The icon takes the
+ * tone's colour; with `href` the whole card is a link. Keep labels and
+ * hints short: in a phone's two-across row a label or hint of two words
+ * should still fit on one line, as balancing cannot help it.
  */
 withDefaults(
     defineProps<{
@@ -46,11 +48,12 @@ const iconClass = {
     >
         <!-- Below a 48rem @container the cards are narrow and a label may
              wrap, so every label keeps room for two lines and the values
-             in a row line up -->
+             in a row line up. A wrapped label is balanced, so its second
+             line never holds one word alone ("Assigned for / today"). -->
         <p
             class="flex min-h-9 items-start justify-between gap-2 text-[12.5px] leading-[18px] font-semibold text-muted-foreground @3xl:min-h-0"
         >
-            {{ label }}
+            <span class="min-w-0 text-balance">{{ label }}</span>
             <component
                 :is="icon"
                 v-if="icon"
@@ -63,7 +66,10 @@ const iconClass = {
         >
             {{ value }}
         </p>
-        <p v-if="hint" class="mt-0.5 text-xs leading-4 text-muted-foreground">
+        <p
+            v-if="hint"
+            class="mt-0.5 text-xs leading-4 text-balance text-muted-foreground"
+        >
             {{ hint }}
         </p>
     </component>

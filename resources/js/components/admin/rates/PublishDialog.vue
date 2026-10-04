@@ -225,7 +225,7 @@ function submit(): void {
                     </p>
                 </fieldset>
 
-                <DialogFooter band class="gap-2.5">
+                <DialogFooter band>
                     <DialogClose as-child>
                         <Button
                             type="button"

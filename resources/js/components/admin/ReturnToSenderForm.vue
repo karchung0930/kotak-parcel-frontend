@@ -103,7 +103,7 @@ function submit(): void {
                 Worth another try?
                 <button
                     type="button"
-                    class="font-semibold text-brand-strong underline decoration-brand-edge underline-offset-4 hover:text-brand-deep hover:decoration-current"
+                    class="tap-target relative font-semibold text-brand-strong underline decoration-brand-edge underline-offset-4 hover:text-brand-deep hover:decoration-current"
                     @click="emit('back')"
                 >
                     Reschedule the delivery

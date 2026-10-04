@@ -28,7 +28,7 @@ const current = computed(
 <template>
     <Head title="Rates" />
 
-    <div class="space-y-5">
+    <div class="space-y-6">
         <PageHeader
             title="Rates"
             description="Prices by zone and weight band. Published rates never change."

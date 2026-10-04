@@ -122,7 +122,7 @@ const actionLinkClass =
 <template>
     <Head :title="`Delivery ${trackingNumber}`" />
 
-    <div class="grid grid-cols-1 gap-4 sm:gap-5">
+    <div class="grid grid-cols-1 gap-5 sm:gap-6">
         <Link
             :href="backHref"
             class="-ml-2 inline-flex h-11 w-fit items-center gap-2 rounded-lg px-2 text-[15px] font-bold text-ink-2 hover:bg-white hover:text-ink"
@@ -295,7 +295,7 @@ const actionLinkClass =
                 <legend class="sr-only">What happened at the door?</legend>
                 <!-- Stacked on phones: side by side, "Couldn't deliver" and
                      its hint would wrap in a half-width tile. -->
-                <div class="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+                <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
                     <!-- Green once delivered, amber when it could not be. -->
                     <ChoiceCard
                         v-for="option in OUTCOMES"

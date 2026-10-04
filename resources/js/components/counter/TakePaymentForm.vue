@@ -80,7 +80,7 @@ const announcedChange = refDebounced(
     >
         <input type="hidden" name="amount_sen" :value="amountSen" />
 
-        <div class="grid gap-2">
+        <div class="grid gap-1.5">
             <Label
                 for="payment-amount"
                 class="text-sm leading-5 font-bold text-ink"
@@ -117,7 +117,7 @@ const announcedChange = refDebounced(
             </legend>
             <!-- Side by side once the step card is 32rem wide, where each
                  tile still has room for its icon and a one-line hint. -->
-            <div class="mt-2 grid gap-3 @lg:grid-cols-2">
+            <div class="mt-2 grid gap-2 @lg:grid-cols-2">
                 <ChoiceCard
                     v-for="option in paymentMethods"
                     :key="option.value"
@@ -132,7 +132,7 @@ const announcedChange = refDebounced(
             <InputError :message="errors.method" class="mt-2" />
         </fieldset>
 
-        <div v-if="method === 'card'" class="grid gap-2">
+        <div v-if="method === 'card'" class="grid gap-1.5">
             <Label
                 for="payment-reference"
                 class="text-sm leading-5 font-bold text-ink"
@@ -173,7 +173,7 @@ const announcedChange = refDebounced(
             />
         </div>
 
-        <div v-else class="grid gap-2">
+        <div v-else class="grid gap-1.5">
             <!-- block: a plain space before (optional), not the flex gap -->
             <Label
                 for="cash-received"

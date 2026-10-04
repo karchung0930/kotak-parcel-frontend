@@ -189,8 +189,12 @@ const nextButton =
                     }}.
                 </p>
             </div>
-            <div class="flex flex-wrap gap-2">
-                <Button variant="outline" as-child class="h-10 font-bold">
+            <div class="flex flex-wrap gap-2.5">
+                <Button
+                    variant="outline"
+                    as-child
+                    class="h-10 font-bold pointer-coarse:h-11"
+                >
                     <a
                         :href="
                             track.url({
@@ -298,7 +302,7 @@ const nextButton =
                         </template>
                     </p>
                     <div
-                        class="mt-4 grid gap-2 @2xl:flex @2xl:flex-wrap @4xl:grid"
+                        class="mt-4 grid gap-2.5 @2xl:flex @2xl:flex-wrap @4xl:grid"
                     >
                         <Button
                             v-if="action === 'reschedule'"
@@ -481,7 +485,7 @@ const nextButton =
                                 </span>
                                 <a
                                     :href="telHref(order.receiver_phone)"
-                                    class="block w-fit font-medium text-brand-strong underline-offset-4 hover:underline pointer-coarse:py-1.5"
+                                    class="block w-fit font-medium text-brand-strong underline-offset-4 hover:underline pointer-coarse:py-3"
                                 >
                                     {{ formatPhone(order.receiver_phone) }}
                                 </a>
@@ -728,19 +732,19 @@ const nextButton =
                                     order.customer.name
                                 }}</span>
                                 <!-- Here and in every contact link, touch
-                                     screens get 6px above and below, so the
-                                     email and the phone number are not one
-                                     tap apart -->
+                                     screens get 12px above and below: a
+                                     44px target, and the email and the
+                                     phone number are not one tap apart -->
                                 <a
                                     :href="`mailto:${order.customer.email}`"
-                                    class="block w-fit font-medium break-all text-brand-strong underline-offset-4 hover:underline pointer-coarse:py-1.5"
+                                    class="block w-fit font-medium break-all text-brand-strong underline-offset-4 hover:underline pointer-coarse:py-3"
                                 >
                                     {{ order.customer.email }}
                                 </a>
                                 <a
                                     v-if="order.customer.phone"
                                     :href="telHref(order.customer.phone)"
-                                    class="block w-fit font-medium text-brand-strong underline-offset-4 hover:underline pointer-coarse:py-1.5"
+                                    class="block w-fit font-medium text-brand-strong underline-offset-4 hover:underline pointer-coarse:py-3"
                                 >
                                     {{ formatPhone(order.customer.phone) }}
                                 </a>
@@ -751,7 +755,7 @@ const nextButton =
                                 }}</span>
                                 <a
                                     :href="telHref(order.sender_phone)"
-                                    class="block w-fit font-medium text-brand-strong underline-offset-4 hover:underline pointer-coarse:py-1.5"
+                                    class="block w-fit font-medium text-brand-strong underline-offset-4 hover:underline pointer-coarse:py-3"
                                 >
                                     {{ formatPhone(order.sender_phone) }}
                                 </a>
@@ -793,7 +797,7 @@ const nextButton =
                         </p>
                         <a
                             :href="telHref(order.branch.phone)"
-                            class="mt-1 inline-block text-sm font-semibold text-brand-strong underline-offset-4 hover:underline pointer-coarse:py-1.5"
+                            class="mt-1 inline-block text-sm font-semibold text-brand-strong underline-offset-4 hover:underline pointer-coarse:py-3"
                         >
                             {{ formatPhone(order.branch.phone) }}
                         </a>

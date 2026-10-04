@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Form, Head, Link, usePage } from '@inertiajs/vue3';
+import { Form, Head, usePage } from '@inertiajs/vue3';
 import { MailWarning } from '@lucide/vue';
 import { computed } from 'vue';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
@@ -8,6 +8,7 @@ import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
 import Notice from '@/components/Notice.vue';
 import PhoneInput from '@/components/PhoneInput.vue';
+import TextLink from '@/components/TextLink.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -100,13 +101,9 @@ const inputClass = 'h-11 text-base md:text-[15px]';
             >
                 <p>
                     Check your inbox for the verification link.
-                    <Link
-                        :href="send()"
-                        as="button"
-                        class="font-semibold text-brand-strong underline decoration-brand-edge underline-offset-4 transition-colors hover:text-brand-deep hover:decoration-current"
-                    >
+                    <TextLink :href="send()" as="button">
                         Send it again
-                    </Link>
+                    </TextLink>
                 </p>
                 <p
                     v-if="page.props.status === 'verification-link-sent'"

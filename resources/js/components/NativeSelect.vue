@@ -8,10 +8,14 @@ import { cn } from '@/lib/utils';
  * Put the <option>s in the default slot. Attributes (id, name,
  * aria-describedby, disabled...) go on the <select>; `class` on the wrapper.
  *
- * size: sm for filter bars (40px), md for admin forms (44px), lg for the
- * public forms (48px, as UnitInput's lg). Below md the text is 16px at
- * every size, as in Input, or iOS zooms the page in when the select is
- * focused.
+ * size: sm for filter bars (40px, and 44px on touch screens), md for admin
+ * forms (44px), lg for the public forms (48px, as UnitInput's lg). Below
+ * md, and on touch screens at every width, the text is 16px, as in Input,
+ * or iOS zooms the page in when the select is focused.
+ *
+ * A prompt such as "Choose a state" is a disabled option: while a disabled
+ * option is showing, the text is the placeholder grey of the inputs. The
+ * options in the open list stay ink.
  */
 defineOptions({ inheritAttrs: false });
 
@@ -35,9 +39,9 @@ const model = defineModel<string | number | null>();
             v-model="model"
             v-bind="$attrs"
             :class="[
-                'w-full min-w-0 cursor-pointer appearance-none truncate border-field bg-white pr-9 pl-3 font-semibold text-ink transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:bg-surface disabled:text-muted-foreground aria-invalid:border-brand-strong',
+                'w-full min-w-0 cursor-pointer appearance-none truncate border-field bg-white pr-9 pl-3 font-semibold text-ink transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:bg-surface disabled:text-muted-foreground has-[option:disabled:checked]:text-subtle aria-invalid:border-brand-strong [&_option]:text-ink',
                 {
-                    sm: 'h-10 rounded-md border text-base md:text-[13.5px]',
+                    sm: 'h-10 rounded-md border text-base md:text-[13.5px] pointer-coarse:h-11 pointer-coarse:text-base',
                     md: 'h-11 rounded-md border text-base md:text-[15px]',
                     lg: 'h-12 rounded-lg border-[1.5px] text-base',
                 }[size],

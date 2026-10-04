@@ -14,6 +14,7 @@ import KotakVan from '@/components/brand/KotakVan.vue';
 import JobCard from '@/components/driver/JobCard.vue';
 import EmptyState from '@/components/EmptyState.vue';
 import Notice from '@/components/Notice.vue';
+import TextLink from '@/components/TextLink.vue';
 import { Button } from '@/components/ui/button';
 import {
     formatShortDate,
@@ -362,12 +363,7 @@ const navButton =
             v-if="jobs.length > 0 && !isToday"
             class="text-center text-sm leading-5"
         >
-            <Link
-                :href="jobsRoute()"
-                class="font-bold text-brand-strong underline decoration-brand-edge underline-offset-4 hover:text-brand-deep"
-            >
-                Back to today's jobs
-            </Link>
+            <TextLink :href="jobsRoute()">Back to today's jobs</TextLink>
         </p>
     </div>
 </template>

@@ -146,7 +146,7 @@ function submit(): void {
 
                 <InputError :message="form.errors.source_id" />
 
-                <DialogFooter band class="gap-2.5">
+                <DialogFooter band>
                     <DialogClose as-child>
                         <Button
                             type="button"
