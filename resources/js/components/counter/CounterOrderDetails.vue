@@ -5,6 +5,7 @@ import BranchName from '@/components/BranchName.vue';
 import DateTime from '@/components/DateTime.vue';
 import DescriptionItem from '@/components/DescriptionItem.vue';
 import DescriptionList from '@/components/DescriptionList.vue';
+import EmailAddress from '@/components/EmailAddress.vue';
 import Money from '@/components/Money.vue';
 import PlateBadge from '@/components/PlateBadge.vue';
 import { Button } from '@/components/ui/button';
@@ -72,6 +73,11 @@ const headingClass =
 // (tap-target in app.css).
 const phoneClass =
     'tap-target relative mt-0.5 inline-flex items-center gap-1.5 text-sm leading-5 font-semibold text-brand-strong hover:text-brand-deep hover:underline';
+// An email under a phone number: in full, wrapping between its parts, and
+// laid over the number's touch area (z-1), so pressing the email to copy it
+// never calls the number.
+const emailLineClass =
+    'relative z-1 mt-1 text-[13px] leading-5 text-muted-foreground';
 </script>
 
 <template>
@@ -175,11 +181,8 @@ const phoneClass =
                     <Phone aria-hidden="true" class="size-3.5" />
                     {{ formatPhone(order.sender_phone) }}
                 </a>
-                <p
-                    v-if="order.customer"
-                    class="mt-1 truncate text-[13px] leading-5 text-muted-foreground"
-                >
-                    Account: {{ order.customer.email }}
+                <p v-if="order.customer" :class="emailLineClass">
+                    Account: <EmailAddress :value="order.customer.email" />
                 </p>
 
                 <div class="mt-4 border-t border-line-soft pt-4">
@@ -194,6 +197,10 @@ const phoneClass =
                         <Phone aria-hidden="true" class="size-3.5" />
                         {{ formatPhone(order.receiver_phone) }}
                     </a>
+                    <!-- Where the receiver's delivery updates go -->
+                    <p v-if="order.receiver_email" :class="emailLineClass">
+                        Email: <EmailAddress :value="order.receiver_email" />
+                    </p>
                     <address
                         class="mt-2 text-sm leading-[22px] text-ink-2 not-italic"
                     >

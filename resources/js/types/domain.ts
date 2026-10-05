@@ -326,7 +326,21 @@ export type Payment = {
     paid_at: string;
     received_by?: { id: number; name: string };
     branch?: Branch;
-    order?: Order;
+    /** For the receipt: only what it prints about the parcel, no contact details. */
+    order?: Pick<
+        Order,
+        | 'id'
+        | 'tracking_number'
+        | 'item_name'
+        | 'receiver_name'
+        | 'city'
+        | 'postcode'
+        | 'measured_weight_g'
+        | 'length_cm'
+        | 'width_cm'
+        | 'height_cm'
+        | 'chargeable_weight_g'
+    >;
 };
 
 /** OrderSummaryResource (list rows). */
@@ -374,6 +388,8 @@ export type Order = Omit<OrderSummary, 'branch'> & {
     sender_name: string;
     sender_phone: string;
     receiver_phone: string;
+    /** Where the receiver's delivery updates go, if the customer gave one (never on tracking or for drivers). */
+    receiver_email: string | null;
     address_line2: string | null;
     declared_weight_g: number;
     length_cm: number;
@@ -501,6 +517,16 @@ export type WelcomePageProps = {
 export type TrackShowPageProps = {
     query: string | null;
     result: Tracking | null;
+};
+
+/** The page behind the link in each receiver email. */
+export type DeliveriesEmailsPageProps = {
+    /** Display form, e.g. "KT-7Q4M92XD". */
+    trackingNumber: string;
+    /** The receiver has stopped the emails (or the customer gave no address). */
+    stopped: boolean;
+    /** The signed link the stop button posts to. */
+    stopUrl: string;
 };
 
 export type BranchesIndexPageProps = {

@@ -7,6 +7,7 @@ import BranchName from '@/components/BranchName.vue';
 import DateTime from '@/components/DateTime.vue';
 import DescriptionItem from '@/components/DescriptionItem.vue';
 import DescriptionList from '@/components/DescriptionList.vue';
+import EmailAddress from '@/components/EmailAddress.vue';
 import Money from '@/components/Money.vue';
 import Notice from '@/components/Notice.vue';
 import BranchDetails from '@/components/orders/BranchDetails.vue';
@@ -380,6 +381,18 @@ const historyFits = useFitsViewport(historyCard, 24);
                                         order.city,
                                     )
                                 }}, {{ order.state }}
+                            </span>
+                            <!-- Where the receiver's delivery updates go,
+                                 labelled so it does not read as part of the
+                                 address, and laid over the phone number's
+                                 touch area below it (z-1), so pressing it to
+                                 copy it never calls the number -->
+                            <span
+                                v-if="order.receiver_email"
+                                class="relative z-1 mt-1 block font-normal text-ink-2"
+                            >
+                                Email:
+                                <EmailAddress :value="order.receiver_email" />
                             </span>
                             <!-- A 44px target on touch screens without
                                  moving anything -->

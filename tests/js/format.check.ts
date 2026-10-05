@@ -6,6 +6,7 @@
 import assert from 'node:assert/strict';
 import {
     branchNameParts,
+    emailAddressParts,
     formatBranchName,
     formatDate,
     formatDateTime,
@@ -25,6 +26,7 @@ import {
     formatWeekdayDate,
     formatWeight,
     keepTogetherParts,
+    mailtoHref,
     normalizeTrackingNumber,
     pluralize,
     receiptNumberParts,
@@ -204,6 +206,29 @@ const checks: [string, () => void][] = [
         },
     ],
     [
+        'mailto links keep the address one address',
+        () => {
+            assert.equal(
+                mailtoHref('daniel.lim+parcels@example.com'),
+                'mailto:daniel.lim%2Bparcels@example.com',
+            );
+            // Valid in an address, but a mail app would read a Bcc and a
+            // subject from them.
+            assert.equal(
+                mailtoHref('daniel?bcc=attacker%40evil.example&x=@example.com'),
+                'mailto:daniel%3Fbcc%3Dattacker%2540evil.example%26x%3D@example.com',
+            );
+            assert.equal(
+                mailtoHref('daniel?subject=Refund&body=Hi@example.com'),
+                'mailto:daniel%3Fsubject%3DRefund%26body%3DHi@example.com',
+            );
+            assert.equal(
+                mailtoHref('not-an-address?x'),
+                'mailto:not-an-address%3Fx',
+            );
+        },
+    ],
+    [
         'branch names split after the dash, which keeps to the word before',
         () => {
             assert.deepEqual(branchNameParts('Cheras - Taman Connaught'), [
@@ -266,6 +291,39 @@ const checks: [string, () => void][] = [
             // Nothing is added or lost: the pieces join into the number.
             for (const value of ['RCPT-20261003-00000025', 'A--B-', '-X']) {
                 assert.equal(receiptNumberParts(value).join(''), value);
+            }
+        },
+    ],
+    [
+        'email addresses break after the @ and before dots',
+        () => {
+            assert.deepEqual(
+                emailAddressParts('nur.izzati_hassan@mail.example.com.my'),
+                [
+                    'nur',
+                    '.izzati',
+                    '_hassan@',
+                    'mail',
+                    '.example',
+                    '.com',
+                    '.my',
+                ],
+            );
+            // Never at a hyphen, which would read as a hyphenated word.
+            assert.deepEqual(emailAddressParts('lim-mei@ex-ample.co'), [
+                'lim-mei@',
+                'ex-ample',
+                '.co',
+            ]);
+            assert.deepEqual(emailAddressParts('a+b@c'), ['a', '+b@', 'c']);
+            assert.deepEqual(emailAddressParts(''), []);
+            // Nothing is added or lost: the pieces join into the address.
+            for (const value of [
+                'nur.izzati_hassan@mail.example.com.my',
+                '.a..b@@c.',
+                'x',
+            ]) {
+                assert.equal(emailAddressParts(value).join(''), value);
             }
         },
     ],

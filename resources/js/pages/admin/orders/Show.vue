@@ -11,6 +11,7 @@ import JourneyConveyor from '@/components/brand/JourneyConveyor.vue';
 import DateTime from '@/components/DateTime.vue';
 import DescriptionItem from '@/components/DescriptionItem.vue';
 import DescriptionList from '@/components/DescriptionList.vue';
+import EmailAddress from '@/components/EmailAddress.vue';
 import KeepTogether from '@/components/KeepTogether.vue';
 import Money from '@/components/Money.vue';
 import Notice from '@/components/Notice.vue';
@@ -27,6 +28,7 @@ import { useFitsViewport } from '@/composables/useFitsViewport';
 import {
     formatDimensions,
     formatPhone,
+    mailtoHref,
     formatPostcodeCity,
     formatTrackingNumber,
     formatWeekdayDate,
@@ -492,6 +494,18 @@ const nextButton =
                                         )
                                     }}, {{ order.state }}
                                 </span>
+                                <!-- Where the receiver's delivery updates go.
+                                     Not balanced like the address: it
+                                     breaks only between its parts. -->
+                                <a
+                                    v-if="order.receiver_email"
+                                    :href="mailtoHref(order.receiver_email)"
+                                    class="block w-fit font-medium text-wrap text-brand-strong underline-offset-4 hover:underline pointer-coarse:py-3"
+                                >
+                                    <EmailAddress
+                                        :value="order.receiver_email"
+                                    />
+                                </a>
                                 <a
                                     :href="telHref(order.receiver_phone)"
                                     class="block w-fit font-medium text-brand-strong underline-offset-4 hover:underline pointer-coarse:py-3"
@@ -745,10 +759,12 @@ const nextButton =
                                      44px target, and the email and the
                                      phone number are not one tap apart -->
                                 <a
-                                    :href="`mailto:${order.customer.email}`"
-                                    class="block w-fit font-medium break-all text-brand-strong underline-offset-4 hover:underline pointer-coarse:py-3"
+                                    :href="mailtoHref(order.customer.email)"
+                                    class="block w-fit font-medium text-brand-strong underline-offset-4 hover:underline pointer-coarse:py-3"
                                 >
-                                    {{ order.customer.email }}
+                                    <EmailAddress
+                                        :value="order.customer.email"
+                                    />
                                 </a>
                                 <a
                                     v-if="order.customer.phone"

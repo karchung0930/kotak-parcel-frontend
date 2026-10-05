@@ -70,7 +70,7 @@ resources/
   css/app.css            brand tokens (Express Red), shared table pattern
   js/
     app.ts               picks each page's layout from its name
-    pages/               one folder per area: orders, staff, admin, driver, track, auth, settings
+    pages/               one folder per area: orders, staff, admin, driver, track, deliveries, auth, settings
     layouts/             Public, Customer, Console, Auth, Account and Settings layouts
     components/          shared components (StatusChip, TrackingNumber, Timeline, CloseButton…)
       brand/             the SVG illustrations: van, parcels, packaging tape, JourneyConveyor
@@ -137,7 +137,12 @@ tests/js/                small checks that run on plain Node
   shown in a template, which wraps after its dash ("Cheras - / Taman
   Connaught") and never inside a short town (`formatBranchName` gives the
   same breaks to plain text: a dialog's sentence, a line-clamped box),
-  and `ReceiptNumber.vue` for a receipt number.
+  `ReceiptNumber.vue` for a receipt number, and `EmailAddress.vue` for
+  every email address on an order page, which wraps after the "@" and
+  before its dots while each part of usual length stays whole (a hyphen
+  inside it too), so a long address neither widens a card nor is cut off. Its `mailto:` links come from `mailtoHref` in
+  `lib/format.ts`, which encodes the part before the "@", so an address
+  holding "?" or "&" cannot add a Bcc or a subject to the draft.
 - **No lone words.** Wrapped text never ends on a single word: `body` sets
   `text-wrap-style: pretty` (the longhand, so `whitespace-nowrap` still
   holds), and short labels that may wrap (stat cards, validation messages)

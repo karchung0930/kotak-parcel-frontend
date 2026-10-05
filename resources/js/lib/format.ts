@@ -439,6 +439,22 @@ export function telHref(phone: string): string {
     return `tel:${phone.replace(/[^\d+]/g, '')}`;
 }
 
+/**
+ * A mailto: link for an email address. The part before the @ may hold
+ * "?", "&", "=" or "%" (all valid in an address, and a receiver's address
+ * is the customer's own text), which a mail app would read as extra
+ * fields, such as a Bcc or a ready-made subject, so it is percent-encoded.
+ */
+export function mailtoHref(email: string): string {
+    const at = email.lastIndexOf('@');
+
+    if (at < 0) {
+        return `mailto:${encodeURIComponent(email)}`;
+    }
+
+    return `mailto:${encodeURIComponent(email.slice(0, at))}${email.slice(at)}`;
+}
+
 /*
 |--------------------------------------------------------------------------
 | Addresses
@@ -551,6 +567,18 @@ export function formatBranchName(name: string): string {
  */
 export function receiptNumberParts(value: string): string[] {
     return value === '' ? [] : value.split(/(?<=-)/);
+}
+
+/**
+ * "nur.izzati_hassan@mail.example.com" → ["nur", ".izzati", "_hassan@",
+ * "mail", ".example", ".com"]: an email address in the pieces it may break
+ * between, as style guides break addresses: after the @, and before a dot,
+ * underscore or plus, not at a hyphen, which would read as a hyphenated
+ * word (EmailAddress.vue keeps each piece whole). Joined, the pieces are
+ * the address again.
+ */
+export function emailAddressParts(value: string): string[] {
+    return value === '' ? [] : value.split(/(?=[._+])|(?<=@)/);
 }
 
 /*

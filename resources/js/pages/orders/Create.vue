@@ -82,6 +82,8 @@ const form = useForm({
     receiver_name: '',
     /** E.164 ("+60124583310") from PhoneInput, or the text as typed when it is not a valid number. */
     receiver_phone: '',
+    /** Optional: the receiver is then emailed about the delivery. */
+    receiver_email: '',
     address_line1: '',
     address_line2: '',
     city: '',
@@ -220,6 +222,7 @@ const sideColumnFits = useFitsViewport(sideColumn, 32);
 const FIELDS: [string, string][] = [
     ['receiver_name', '#receiver_name'],
     ['receiver_phone', '#receiver_phone'],
+    ['receiver_email', '#receiver_email'],
     ['address_line1', '#address_line1'],
     ['address_line2', '#address_line2'],
     ['postcode', '#postcode'],
@@ -257,9 +260,11 @@ function submit(): void {
         return;
     }
 
-    form.transform(({ weight_kg, address_line2, ...data }) => ({
+    form.transform(({ weight_kg, address_line2, receiver_email, ...data }) => ({
         ...data,
         address_line2: address_line2.trim() === '' ? null : address_line2,
+        receiver_email:
+            receiver_email.trim() === '' ? null : receiver_email.trim(),
         declared_weight_g: weight_kg.trim() === '' ? '' : weightG,
     })).submit(store(), {
         // Stay put to fix errors; the new order's page opens at the top.
@@ -413,6 +418,42 @@ const hintClass = 'mt-1.5 text-[12.5px] leading-[18px] text-muted-foreground';
                             :error="form.errors.receiver_phone"
                             class="h-12 rounded-lg border-[1.5px] shadow-none"
                             input-class="px-3.5 text-base font-semibold md:text-base"
+                        />
+                    </div>
+
+                    <div class="sm:col-span-2">
+                        <Label for="receiver_email" :class="labelClass">
+                            Receiver email
+                            <span class="font-normal text-muted-foreground">
+                                (optional)
+                            </span>
+                        </Label>
+                        <Input
+                            id="receiver_email"
+                            v-model="form.receiver_email"
+                            name="receiver_email"
+                            type="email"
+                            inputmode="email"
+                            maxlength="255"
+                            autocomplete="shipping email"
+                            autocapitalize="off"
+                            spellcheck="false"
+                            placeholder="e.g. daniel@example.com"
+                            :class="inputClass"
+                            :aria-invalid="
+                                form.errors.receiver_email ? true : undefined
+                            "
+                            :aria-describedby="
+                                describedBy(
+                                    form.errors.receiver_email &&
+                                        'receiver_email-error',
+                                )
+                            "
+                        />
+                        <InputError
+                            id="receiver_email-error"
+                            :message="form.errors.receiver_email"
+                            class="mt-1.5"
                         />
                     </div>
 
