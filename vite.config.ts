@@ -1,4 +1,7 @@
+import { readdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { promisify } from 'node:util';
+import { gzip } from 'node:zlib';
 import inertia from '@inertiajs/vite';
 import { wayfinder } from '@laravel/vite-plugin-wayfinder';
 import tailwindcss from '@tailwindcss/vite';
@@ -6,6 +9,7 @@ import vue from '@vitejs/plugin-vue';
 import laravel from 'laravel-vite-plugin';
 import { bunny } from 'laravel-vite-plugin/fonts';
 import { loadEnv } from 'vite';
+import type { Plugin } from 'vite';
 import { defineConfig, lazyPlugins } from 'vite-plus';
 
 /*
@@ -23,6 +27,50 @@ const backend = path
         ),
     )
     .replaceAll('\\', '/');
+
+const compress = promisify(gzip);
+
+/**
+ * Writes a gzip copy (name.gz) next to every built asset over 1 KB, once,
+ * at build time. nginx sends those copies as they are (gzip_static in the
+ * backend's deploy/nginx.conf) instead of compressing on each request,
+ * which for the camera scanner's 25 MB WebAssembly runtime would cost
+ * about a second of CPU every time.
+ */
+function gzipAssets(): Plugin {
+    let assets = '';
+
+    return {
+        name: 'kotak:gzip-assets',
+        apply: 'build',
+        configResolved(config) {
+            assets = path.resolve(
+                config.root,
+                config.build.outDir,
+                config.build.assetsDir,
+            );
+        },
+        async closeBundle() {
+            const files = (await readdir(assets)).filter(
+                (file) => !file.endsWith('.gz'),
+            );
+
+            await Promise.all(
+                files.map(async (file) => {
+                    const source = path.join(assets, file);
+                    const data = await readFile(source);
+
+                    if (data.length > 1024) {
+                        await writeFile(
+                            `${source}.gz`,
+                            await compress(data, { level: 9 }),
+                        );
+                    }
+                }),
+            );
+        },
+    };
+}
 
 export default defineConfig({
     plugins: lazyPlugins(() => [
@@ -72,7 +120,25 @@ export default defineConfig({
                 `${backend}/app/**/Http/**/*.php`,
             ],
         }),
+        gzipAssets(),
     ]),
+    resolve: {
+        alias: [
+            // The camera scanner runs PaddleOCR.js in its worker, which
+            // brings its own OpenCV.js; the copy its main entry imports is
+            // never used on the page (see lib/scanner/opencvInWorker.ts).
+            {
+                find: /^@techstark\/opencv-js$/,
+                replacement: path.resolve(
+                    'resources/js/lib/scanner/opencvInWorker.ts',
+                ),
+            },
+        ],
+    },
+    // The barcode reader's worker is an ES module, like PaddleOCR.js's.
+    worker: {
+        format: 'es',
+    },
     build: {
         // The output folder is in the backend repository, outside this
         // project, so Vite would otherwise leave old builds behind.

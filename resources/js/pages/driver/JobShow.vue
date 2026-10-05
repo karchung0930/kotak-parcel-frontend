@@ -11,7 +11,7 @@ import {
     Store,
     TriangleAlert,
 } from '@lucide/vue';
-import { computed, ref } from 'vue';
+import { computed, nextTick, ref, useTemplateRef } from 'vue';
 import BranchName from '@/components/BranchName.vue';
 import ChoiceCard from '@/components/ChoiceCard.vue';
 import ConfirmActionDialog from '@/components/ConfirmActionDialog.vue';
@@ -22,8 +22,10 @@ import DeliverForm from '@/components/driver/DeliverForm.vue';
 import FailForm from '@/components/driver/FailForm.vue';
 import StatusChip from '@/components/StatusChip.vue';
 import TrackingNumber from '@/components/TrackingNumber.vue';
+import TrackingScanner from '@/components/TrackingScanner.vue';
 import { Button } from '@/components/ui/button';
 import Weight from '@/components/Weight.vue';
+import type { ScanOutcome } from '@/composables/useTrackingScanner';
 import { directionsUrl, mapSearchUrl } from '@/lib/branches';
 import {
     formatBranchName,
@@ -34,6 +36,7 @@ import {
     formatShortDate,
     formatTrackingNumber,
     formatWeekdayDate,
+    normalizeTrackingNumber,
     telHref,
     todayInKualaLumpur,
 } from '@/lib/format';
@@ -98,8 +101,51 @@ function confirmPickup(): void {
     });
 }
 
+/**
+ * Scanning this job's label at the branch records the pick-up: the label
+ * in hand is the confirmation. Another parcel's label is refused, and the
+ * scanner keeps looking.
+ */
+function pickUpScanned(number: string): Promise<ScanOutcome> {
+    if (
+        normalizeTrackingNumber(number) !==
+        normalizeTrackingNumber(props.order.tracking_number)
+    ) {
+        return Promise.resolve({
+            found: false,
+            message: `That label is ${number}, not ${trackingNumber.value}. Scan this job's parcel.`,
+        });
+    }
+
+    return new Promise((resolve) => {
+        const message = `The pick-up of ${trackingNumber.value} was not saved. Try again.`;
+        // Refused by the server (the job changed meanwhile): reading the
+        // label again would not help, so it waits for "Scan again".
+        let outcome: ScanOutcome = { found: false, message };
+
+        pickupForm.submit(pickup(props.order.id), {
+            preserveScroll: true,
+            onSuccess: () => {
+                outcome = { found: true };
+                // The scanner goes with the branch card: on to the next
+                // step, recording the delivery.
+                void nextTick(() => outcomeTitle.value?.focus());
+            },
+            // No connection: the scanner says so, and reads the label
+            // again after a pause.
+            onNetworkError: () => {
+                outcome = { found: false, message, retry: true };
+
+                return false;
+            },
+            onFinish: () => resolve(outcome),
+        });
+    });
+}
+
 // Out for delivery: the driver chooses what happened.
 const outcome = ref<'delivered' | 'failed' | null>(null);
+const outcomeTitle = useTemplateRef<HTMLHeadingElement>('outcomeTitle');
 
 const OUTCOMES = [
     {
@@ -241,6 +287,22 @@ const actionLinkClass =
                         </a>
                     </Button>
                 </div>
+                <!-- At the branch: scanning the label records the pick-up
+                     (the same step as "Picked up at branch" below). -->
+                <div
+                    class="mt-4 flex flex-col gap-2.5 border-t border-line-soft pt-4 @[30rem]:flex-row @[30rem]:items-center @[30rem]:justify-between"
+                >
+                    <p class="text-sm leading-5 text-balance text-ink-2">
+                        Got the parcel? Scan its label to record the pick-up.
+                    </p>
+                    <TrackingScanner
+                        :resolve="pickUpScanned"
+                        title="Scan the parcel"
+                        action-label="Record pick-up"
+                        busy-label="Recording the pick-up of"
+                        :class="[actionLinkClass, 'flex-none']"
+                    />
+                </div>
             </div>
         </section>
 
@@ -300,7 +362,12 @@ const actionLinkClass =
             aria-labelledby="outcome-title"
             :class="cardClass"
         >
-            <h2 id="outcome-title" :class="headingClass">
+            <h2
+                id="outcome-title"
+                ref="outcomeTitle"
+                tabindex="-1"
+                :class="[headingClass, 'outline-none']"
+            >
                 Record the delivery
             </h2>
             <fieldset class="mt-3 min-w-0">

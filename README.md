@@ -52,13 +52,13 @@ composer run dev                         # http://localhost:8000 and a queue lis
 
 ## Scripts
 
-| Command               | What it does                                                                         |
-| --------------------- | ------------------------------------------------------------------------------------ |
-| `npm run dev`         | Vite dev server with hot reload                                                      |
-| `npm run build`       | Production build into the backend's `public/build`                                   |
-| `npm run check`       | Lint and format check (`npm run check:fix` to fix)                                   |
-| `npm run types:check` | vue-tsc                                                                              |
-| `npm run test:js`     | Dependency-free checks of the format, pricing, phone, branch and rate import helpers |
+| Command               | What it does                                                                                                                           |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run dev`         | Vite dev server with hot reload                                                                                                        |
+| `npm run build`       | Production build into the backend's `public/build`                                                                                     |
+| `npm run check`       | Lint and format check (`npm run check:fix` to fix)                                                                                     |
+| `npm run types:check` | vue-tsc                                                                                                                                |
+| `npm run test:js`     | Dependency-free checks of the format, pricing, phone, branch, rate import and scanner helpers, and a barcode read-back with zxing-wasm |
 
 Run `npm run build` once before `check` and `types:check`, so the Wayfinder
 helpers exist.
@@ -75,9 +75,11 @@ resources/
     components/          shared components (StatusChip, TrackingNumber, Timeline, CloseButton…)
       brand/             the SVG illustrations: van, parcels, packaging tape, JourneyConveyor
       ui/                shadcn-vue primitives
-    composables/         useFitsViewport and friends
-    lib/                 formatting (money, weight, dates in Asia/Kuala_Lumpur), pricing (rate cards), rate imports, phone
+    composables/         useFitsViewport, useTrackingScanner (the camera scanner's moving parts) and friends
+    lib/                 formatting (money, weight, dates in Asia/Kuala_Lumpur), pricing (rate cards), rate imports, phone, Code 39, scanner rules
+      scanner/           the barcode worker (zxing-wasm) and the OCR reader (PaddleOCR.js)
     types/               page props, typed to match the backend's API Resources
+  models/                the PP-OCRv6 tiny OCR models (.tar) with their license, built into public/build with hashed names
 tests/js/                small checks that run on plain Node
   fixtures/              price cases shared with the backend's PriceCalculatorTest
 ```
@@ -178,6 +180,39 @@ tests/js/                small checks that run on plain Node
   `PriceCalculator` does, for live estimates only; the server sets the
   price. The cases in `tests/js/fixtures/pricing-cases.json` run on both
   sides, so add a case there when the rules change.
+- **The camera scanner is one component.** `TrackingScanner.vue` is the
+  "Scan with camera" button and its full-screen sheet; a page only says what
+  a number opens (`resolve`: open it, or a message and scanning goes on;
+  `retry` on a message for a failure worth trying again, such as no
+  connection, so the same label is read again 2 seconds later). The counter,
+  My jobs and a job's pick-up use it. The camera, the barcode reads
+  (zxing-wasm in `lib/scanner/barcode.worker.ts`, about 10 a second) and the
+  OCR (PaddleOCR.js with PP-OCRv6 tiny, in its own worker, after 3 seconds
+  without a barcode) are in `composables/useTrackingScanner.ts`; the camera
+  is on only while its picture shows, so not for the typed entry or while
+  the page is hidden. The steps of a scan are `ScanFlow` in `lib/scan.ts`: a
+  barcode opens at once, an OCR reading needs two of the latest 8 frames to
+  agree and a tap, and a refused number is skipped until "Scan again". They
+  and `readTrackingNumber` (`lib/format.ts`) are checked by `tests/js`,
+  partly with recorded PaddleOCR output (`tests/js/fixtures/ocr-readings.json`),
+  which also reads the counter pass's Code 39 (`lib/code39.ts`, the bars
+  `TrackingBarcode.vue` draws) back with zxing-wasm.
+- **The scanner's assets stay on this site and load late.** The `.wasm`
+  files, PaddleOCR.js's worker and the models are Vite assets with hashed
+  names, fetched only when the scanner opens. `onnxruntime-web` is pinned to
+  1.24.3, the version PaddleOCR.js 0.4.2's prebuilt worker is built with,
+  because the worker loads that version's `.wasm` (passed as `wasmPaths`).
+  PaddleOCR.js's main entry imports OpenCV.js only for the pipeline it can
+  run on the page, so `vite.config.ts` points that import at a stub
+  (`lib/scanner/opencvInWorker.ts`) and the 10 MB copy is never downloaded;
+  the worker brings its own. The models are PaddlePaddle's PP-OCRv6 tiny
+  ONNX archives, committed unmodified so the build needs no download; where
+  they come from, their checksums and their license (Apache-2.0) are in
+  `resources/models`.
+- **Built files are compressed once.** The build writes a gzip copy
+  (`name.gz`) next to every asset over 1 KB, and nginx sends those copies
+  (`gzip_static`) rather than compressing each request: the scanner's
+  WebAssembly runtime alone is 25 MB.
 - **Pages waiting on the queue ask again.** A rate import's page polls with
   Inertia's `usePoll` (only its own props) while a job reads or checks the
   file, and stops once the job is done. A screen-reader live region says

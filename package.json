@@ -10,25 +10,28 @@
         "check:fix": "vp check --fix",
         "types:check": "vue-tsc --noEmit",
         "test:format": "node --experimental-strip-types --no-warnings tests/js/format.check.ts",
-        "test:js": "npm run test:format && node --experimental-strip-types --no-warnings tests/js/pricing.check.ts && node --experimental-strip-types --no-warnings tests/js/branches.check.ts && node --experimental-strip-types --no-warnings tests/js/phone.check.ts && node --experimental-strip-types --no-warnings tests/js/rateImport.check.ts"
+        "test:js": "npm run test:format && node --experimental-strip-types --no-warnings tests/js/pricing.check.ts && node --experimental-strip-types --no-warnings tests/js/branches.check.ts && node --experimental-strip-types --no-warnings tests/js/phone.check.ts && node --experimental-strip-types --no-warnings tests/js/rateImport.check.ts && node --experimental-strip-types --no-warnings tests/js/scan.check.ts && node --experimental-strip-types --no-warnings tests/js/barcode.check.ts"
     },
     "dependencies": {
         "@inertiajs/vite": "^3.0.0",
         "@inertiajs/vue3": "^3.0.0",
         "@laravel/passkeys": "^0.2.0",
         "@lucide/vue": "^1.17.0",
+        "@paddleocr/paddleocr-js": "0.4.2",
         "@vueuse/core": "^12.8.2",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
         "laravel-vite-plugin": "^3.0.0",
         "libphonenumber-js": "^1.13.14",
+        "onnxruntime-web": "1.24.3",
         "reka-ui": "^2.9.8",
         "tailwind-merge": "^3.2.0",
         "tailwindcss": "^4.1.1",
         "tw-animate-css": "^1.2.5",
         "vue": "^3.5.13",
         "vue-input-otp": "^0.3.2",
-        "vue-sonner": "^2.0.0"
+        "vue-sonner": "^2.0.0",
+        "zxing-wasm": "^3.1.4"
     },
     "devDependencies": {
         "@laravel/vite-plugin-wayfinder": "^0.1.3",

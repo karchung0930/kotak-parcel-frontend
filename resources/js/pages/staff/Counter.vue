@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
 import { ArrowRight, ChevronRight, MapPin, ScanLine } from '@lucide/vue';
 import { computed, onMounted, useTemplateRef } from 'vue';
 import BranchName from '@/components/BranchName.vue';
@@ -11,18 +11,21 @@ import Money from '@/components/Money.vue';
 import PageHeader from '@/components/PageHeader.vue';
 import StatusChip from '@/components/StatusChip.vue';
 import TrackingNumber from '@/components/TrackingNumber.vue';
+import TrackingScanner from '@/components/TrackingScanner.vue';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import Weight from '@/components/Weight.vue';
+import type { ScanOutcome } from '@/composables/useTrackingScanner';
 import { formatDeliveryArea, pluralize, toTrackingQuery } from '@/lib/format';
 import { counter } from '@/routes/staff';
 import { show } from '@/routes/staff/orders';
 import type { StaffCounterPageProps } from '@/types';
 
 /**
- * The branch counter: scan or type a tracking number to open the parcel
- * (a match redirects straight to it), plus the parcels most recently
- * received here.
+ * The branch counter: scan a tracking number (with a USB scanner, which
+ * types it into the field, or with the camera) or type it to open the
+ * parcel (a match redirects straight to it), plus the parcels most
+ * recently received here.
  */
 const props = defineProps<StaffCounterPageProps>();
 
@@ -60,6 +63,49 @@ function submit(): void {
     form.transform(({ number }) => ({
         number: toTrackingQuery(number),
     })).get(counter.url());
+}
+
+/**
+ * A number read by the camera goes through the same search: a match opens
+ * the parcel; otherwise the counter comes back with nothing found (the
+ * field shows the number, as after a typed search), and the scanner says
+ * so and keeps scanning. Misses replace the counter's history entry
+ * rather than adding one each.
+ */
+function openScanned(number: string): Promise<ScanOutcome> {
+    return new Promise((resolve) => {
+        let outcome: ScanOutcome = {
+            found: false,
+            message: `Could not look up ${number}. Check the connection and scan again.`,
+            retry: true,
+        };
+
+        router.get(
+            counter.url({ query: { number } }),
+            {},
+            {
+                replace: true,
+                preserveState: true,
+                // The parcel's page opens at its top.
+                preserveScroll: (page) => page.component === 'staff/Counter',
+                onSuccess: (page) => {
+                    if (page.component === 'staff/Counter') {
+                        form.number = number;
+                        outcome = {
+                            found: false,
+                            message: `No parcel matches ${number}.`,
+                        };
+                    } else {
+                        outcome = { found: true };
+                    }
+                },
+                // No connection: the scanner says so, and reads the same
+                // label again after a pause.
+                onNetworkError: () => false,
+                onFinish: () => resolve(outcome),
+            },
+        );
+    });
 }
 
 const STEPS = [
@@ -179,12 +225,22 @@ const STEPS = [
                                 />
                             </Button>
                         </div>
-                        <p
-                            id="scan-hint"
-                            class="mt-2.5 text-[13px] leading-5 text-muted-foreground"
+                        <!-- The camera scanner sits with the hint, so the
+                             field keeps the row's width for the number. -->
+                        <div
+                            class="mt-2.5 flex flex-wrap items-center justify-between gap-x-4 gap-y-2.5"
                         >
-                            KT- is optional, and spaces or dashes are fine.
-                        </p>
+                            <p
+                                id="scan-hint"
+                                class="text-[13px] leading-5 text-muted-foreground"
+                            >
+                                KT- is optional, and spaces or dashes are fine.
+                            </p>
+                            <TrackingScanner
+                                :resolve="openScanned"
+                                class="h-11 rounded-lg px-4 text-[15px] font-bold"
+                            />
+                        </div>
                     </form>
 
                     <div

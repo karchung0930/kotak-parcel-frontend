@@ -16,14 +16,18 @@ import JobCard from '@/components/driver/JobCard.vue';
 import EmptyState from '@/components/EmptyState.vue';
 import Notice from '@/components/Notice.vue';
 import TextLink from '@/components/TextLink.vue';
+import TrackingScanner from '@/components/TrackingScanner.vue';
 import { Button } from '@/components/ui/button';
+import type { ScanOutcome } from '@/composables/useTrackingScanner';
 import {
     formatShortDate,
     formatWeekdayDate,
+    normalizeTrackingNumber,
     pluralize,
     todayInKualaLumpur,
 } from '@/lib/format';
 import { jobs as jobsRoute } from '@/routes/driver';
+import { show } from '@/routes/driver/jobs';
 import type { DriverJobsPageProps } from '@/types';
 
 /**
@@ -138,6 +142,26 @@ const COUNTS = [
     },
 ] as const;
 
+/** A scanned label opens its job, if it is on the list shown. */
+function openScanned(number: string): Promise<ScanOutcome> {
+    const job = props.jobs.find(
+        (item) =>
+            normalizeTrackingNumber(item.tracking_number) ===
+            normalizeTrackingNumber(number),
+    );
+
+    if (!job) {
+        return Promise.resolve({
+            found: false,
+            message: `${number} is not on ${isToday.value ? "today's list" : 'the list for this day'}.`,
+        });
+    }
+
+    router.visit(show(job.id));
+
+    return Promise.resolve({ found: true });
+}
+
 const navButton =
     'inline-flex size-11 flex-none items-center justify-center rounded-xl text-ink-2 transition-colors hover:bg-surface hover:text-ink';
 </script>
@@ -146,15 +170,30 @@ const navButton =
     <Head :title="isToday ? 'My jobs' : `My jobs, ${formatShortDate(date)}`" />
 
     <div class="grid grid-cols-1 gap-5">
-        <header>
-            <h1
-                class="text-[28px] leading-[34px] font-extrabold tracking-display text-ink sm:text-[32px] sm:leading-10"
+        <!-- The scan button sits beside the title, so the intro keeps
+             its one line. Where both do not fit (320px), it goes under
+             the intro (a container query on the header). -->
+        <header class="@container">
+            <div
+                class="grid grid-cols-1 items-center gap-x-4 @[19.5rem]:grid-cols-[minmax(0,1fr)_auto]"
             >
-                My jobs
-            </h1>
-            <p class="mt-1 text-[15px] leading-6 text-muted-foreground">
-                Your deliveries in the order to do them.
-            </p>
+                <h1
+                    class="text-[28px] leading-[34px] font-extrabold tracking-display text-ink sm:text-[32px] sm:leading-10"
+                >
+                    My jobs
+                </h1>
+                <TrackingScanner
+                    v-if="jobs.length > 0"
+                    :resolve="openScanned"
+                    action-label="Open job"
+                    class="order-last mt-3 h-11 justify-self-start rounded-lg px-4 text-[15px] font-bold @[19.5rem]:order-none @[19.5rem]:mt-0"
+                />
+                <p
+                    class="mt-1 text-[15px] leading-6 text-muted-foreground @[19.5rem]:col-span-2"
+                >
+                    Your deliveries in the order to do them.
+                </p>
+            </div>
         </header>
 
         <!-- Day switcher -->

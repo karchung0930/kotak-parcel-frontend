@@ -385,6 +385,52 @@ export function formatTrackingNumber(input: string | null | undefined): string {
 }
 
 /**
+ * Text read off a label by the camera (OCR), tidied for the tracking-number
+ * search: upper case, any dash as "-", spaces and tabs removed, and the
+ * letters OCR mixes up with the ones Crockford leaves out mapped to them
+ * (O → 0, I and L → 1, U → V). Line breaks stay, so text from two lines of
+ * a label is never joined into one number.
+ */
+function tidyReadText(text: string): string {
+    return text
+        .toUpperCase()
+        .replace(/[‐-―−]/g, '-')
+        .replace(/[^\S\n]+/g, '')
+        .replace(/O/g, '0')
+        .replace(/[IL]/g, '1')
+        .replace(/U/g, 'V');
+}
+
+const READ_NUMBER = /KT-?([0-9ABCDEFGHJKMNPQRSTVWXYZ]{8})/;
+
+const READ_PREFIX = /KT-?([0-9ABCDEFGHJKMNPQRSTVWXYZ]{0,8})/;
+
+/**
+ * The first tracking number in text read off a label by the camera, as
+ * "KT-7Q4M92XD", or null: "Tracking number\nKT-7Q4M 92XD" → "KT-7Q4M92XD".
+ * Where more characters follow, the first 8 after "KT" count.
+ */
+export function readTrackingNumber(
+    text: string | null | undefined,
+): string | null {
+    const match = READ_NUMBER.exec(tidyReadText(text ?? ''));
+
+    return match ? `KT-${match[1]}` : null;
+}
+
+/**
+ * As much of a tracking number as the camera read, to start the typed
+ * entry with: "KT-7Q4M" from "kt 7q4m", or "" when no "KT" was read.
+ */
+export function readPartialTrackingNumber(
+    text: string | null | undefined,
+): string {
+    const match = READ_PREFIX.exec(tidyReadText(text ?? ''));
+
+    return match ? `KT-${match[1]}` : '';
+}
+
+/**
  * What a search box sends: "kt 7q4m 92xd" and the bare "7Q4M92XD" (a scan
  * or a typed code without the prefix) both become "KT-7Q4M92XD". Anything
  * else is sent trimmed, so the page can say that nothing matched.

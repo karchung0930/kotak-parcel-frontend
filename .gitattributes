@@ -6,6 +6,9 @@
 *.md diff=markdown
 *.php diff=php
 
+# The OCR model archives (resources/models).
+*.tar binary
+
 CHANGELOG.md export-ignore
 README.md export-ignore
 .github/workflows/browser-tests.yml export-ignore
