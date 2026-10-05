@@ -238,7 +238,7 @@ const STEPS = [
                             </p>
                             <TrackingScanner
                                 :resolve="openScanned"
-                                class="h-11 rounded-lg px-4 text-[15px] font-bold"
+                                size="touch"
                             />
                         </div>
                     </form>

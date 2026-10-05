@@ -4,7 +4,7 @@ import { cva } from "class-variance-authority"
 export { default as Button } from "./Button.vue"
 
 export const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 aria-disabled:cursor-not-allowed aria-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
   {
     variants: {
       // No black (secondary) button: a dark fill reads as the main step.
@@ -26,8 +26,10 @@ export const buttonVariants = cva(
         // "selected" or "you are here" (the open row, the active tab), not
         // "pointed at". At rest it lies flat, so the shadow only ever means
         // "pointed at".
+        // A button that is there but cannot be used right now
+        // (aria-disabled, so it keeps the focus) does not lift.
         outline:
-          "border border-button-edge bg-background text-ink hover:border-ink-2 hover:text-ink hover:shadow-[0_1px_2px_rgb(22_24_29_/_0.10),0_3px_8px_rgb(22_24_29_/_0.12)] dark:bg-input/30 dark:border-input dark:hover:bg-input/50",
+          "border border-button-edge bg-background text-ink hover:border-ink-2 hover:text-ink hover:shadow-[0_1px_2px_rgb(22_24_29_/_0.10),0_3px_8px_rgb(22_24_29_/_0.12)] aria-disabled:hover:border-button-edge aria-disabled:hover:shadow-none dark:bg-input/30 dark:border-input dark:hover:bg-input/50",
         // A negative step that cannot be undone (return a parcel, record a
         // failed delivery): caution yellow with ink text, so it warns
         // without looking like the red "next step" button. Its focus ring
@@ -48,6 +50,10 @@ export const buttonVariants = cva(
         // Table row actions (Edit, Assign...): 32px tall for a mouse, and
         // 44px on touch screens (iPads) so they are easy to tap.
         "row": "h-8 pointer-coarse:h-11 rounded-md gap-1.5 px-3 text-[13px] font-bold has-[>svg]:px-2.5",
+        // The 44px buttons of the pages used on a phone (the scanner, My
+        // jobs' Reorder stops and Move up/down, the counter): one padding
+        // with or without an icon.
+        "touch": "h-11 rounded-lg gap-2 px-4 text-[15px] font-bold",
       },
     },
     defaultVariants: {

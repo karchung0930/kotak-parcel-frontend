@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import { Banknote, Info, PackagePlus, Receipt } from '@lucide/vue';
 import { computed, useTemplateRef } from 'vue';
 import ActionDivider from '@/components/ActionDivider.vue';
@@ -20,6 +20,7 @@ import ReceiptNumber from '@/components/ReceiptNumber.vue';
 import Timeline from '@/components/Timeline.vue';
 import { Button } from '@/components/ui/button';
 import Weight from '@/components/Weight.vue';
+import { useDeliveryProgress } from '@/composables/useDeliveryProgress';
 import { useFitsViewport } from '@/composables/useFitsViewport';
 import {
     formatDateTime,
@@ -45,6 +46,23 @@ const trackingNumber = computed(() =>
 );
 const status = computed(() => props.order.status.value);
 const events = computed(() => props.order.status_events ?? []);
+
+/*
+ * Out for delivery: how many stops before this parcel, kept up to date
+ * over Reverb on the order's private channel. A new status fetches the
+ * order again, so the whole page moves on with it.
+ */
+const { progress, asOf: progressAsOf } = useDeliveryProgress({
+    channel: () =>
+        props.liveChannel ? { name: props.liveChannel, private: true } : null,
+    status: () => props.order.status.value,
+    progress: () => props.progress,
+    reload: (callbacks) =>
+        router.reload({
+            only: ['order', 'canCancel', 'progress', 'liveChannel'],
+            ...callbacks,
+        }),
+});
 
 const breadcrumbs = computed(() => [
     { title: 'My parcels', href: index() },
@@ -128,7 +146,11 @@ const historyFits = useFitsViewport(historyCard, 24);
     </PageHeader>
 
     <div class="mt-6 flex flex-col gap-5 sm:gap-6">
-        <OrderStatusCard :order="order" />
+        <OrderStatusCard
+            :order="order"
+            :progress="progress"
+            :progress-as-of="progressAsOf"
+        />
 
         <!-- On phones the pass comes first: the status card is long there,
              and the barcode is what the customer needs at the counter. -->

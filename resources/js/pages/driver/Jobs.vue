@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
 import {
+    ArrowUpDown,
     CalendarDays,
+    Check,
     ChevronLeft,
     ChevronRight,
     PackageCheck,
@@ -9,7 +11,16 @@ import {
     TriangleAlert,
     Truck,
 } from '@lucide/vue';
-import { computed, useTemplateRef } from 'vue';
+import {
+    computed,
+    nextTick,
+    onBeforeUnmount,
+    onMounted,
+    ref,
+    useTemplateRef,
+    watch,
+} from 'vue';
+import { toast } from 'vue-sonner';
 import BranchName from '@/components/BranchName.vue';
 import KotakVan from '@/components/brand/KotakVan.vue';
 import JobCard from '@/components/driver/JobCard.vue';
@@ -20,6 +31,7 @@ import TrackingScanner from '@/components/TrackingScanner.vue';
 import { Button } from '@/components/ui/button';
 import type { ScanOutcome } from '@/composables/useTrackingScanner';
 import {
+    formatDeliveryArea,
     formatShortDate,
     formatWeekdayDate,
     normalizeTrackingNumber,
@@ -27,18 +39,48 @@ import {
     todayInKualaLumpur,
 } from '@/lib/format';
 import { jobs as jobsRoute } from '@/routes/driver';
-import { show } from '@/routes/driver/jobs';
-import type { DriverJobsPageProps } from '@/types';
+import { move, show } from '@/routes/driver/jobs';
+import type { DriverJob, DriverJobsPageProps } from '@/types';
 
 /**
  * The driver's round for a day (today by default): how far along it is,
  * where to collect parcels and every stop in delivery order. Today's list
- * starts with overdue jobs carried over from earlier days.
+ * also has the overdue jobs carried over from earlier days, first until
+ * the driver moves them among today's stops. Each parcel on the van shows
+ * its stop as the server works it out for its customer (`stops`).
  */
 const props = defineProps<DriverJobsPageProps>();
 
-const today = todayInKualaLumpur();
-const isToday = computed(() => props.date === today);
+// Today comes from the server with the list, so a page left open past
+// midnight moves on to the new day with its next visit.
+const isToday = computed(() => props.date === props.today);
+
+/*
+ * A tab left open overnight (a phone restored in the morning) catches up
+ * as soon as it is looked at again: once the browser's day has moved on
+ * since the list came, it asks for the list again.
+ */
+let dayOfList = todayInKualaLumpur();
+
+watch(
+    () => props.today,
+    () => (dayOfList = todayInKualaLumpur()),
+);
+
+function catchUp(): void {
+    if (
+        document.visibilityState === 'visible' &&
+        todayInKualaLumpur() !== dayOfList
+    ) {
+        dayOfList = todayInKualaLumpur();
+        router.reload();
+    }
+}
+
+onMounted(() => document.addEventListener('visibilitychange', catchUp));
+onBeforeUnmount(() =>
+    document.removeEventListener('visibilitychange', catchUp),
+);
 
 /** A "YYYY-MM-DD" day moved by a number of days. */
 function shiftDay(day: string, days: number): string {
@@ -50,22 +92,24 @@ function shiftDay(day: string, days: number): string {
 }
 
 function dayHref(day: string) {
-    return day === today ? jobsRoute() : jobsRoute({ query: { date: day } });
+    return day === props.today
+        ? jobsRoute()
+        : jobsRoute({ query: { date: day } });
 }
 
 const previousDay = computed(() => shiftDay(props.date, -1));
 const nextDay = computed(() => shiftDay(props.date, 1));
 
 const dayName = computed(() => {
-    if (props.date === today) {
+    if (props.date === props.today) {
         return 'Today';
     }
 
-    if (props.date === shiftDay(today, 1)) {
+    if (props.date === shiftDay(props.today, 1)) {
         return 'Tomorrow';
     }
 
-    return props.date === shiftDay(today, -1) ? 'Yesterday' : null;
+    return props.date === shiftDay(props.today, -1) ? 'Yesterday' : null;
 });
 
 // The day picker: the native date input sits over the day label.
@@ -162,6 +206,133 @@ function openScanned(number: string): Promise<ScanOutcome> {
     return Promise.resolve({ found: true });
 }
 
+/*
+ * Reordering today's stops. Any stop on today's list moves, the jobs
+ * carried over from earlier days too: the first move puts the whole list
+ * on today's run. Each move is saved straight away, and customers following
+ * a parcel on the van see its new place over Reverb.
+ */
+type Direction = 'up' | 'down';
+
+/** Whether the stop has another one before or after it to swap places with. */
+function canMove(index: number, direction: Direction): boolean {
+    return (
+        isToday.value &&
+        props.jobs[index + (direction === 'up' ? -1 : 1)] !== undefined
+    );
+}
+
+const canReorder = computed(() => isToday.value && props.jobs.length > 1);
+
+const reordering = ref(false);
+/** The move being saved; the Move buttons wait until it is. */
+const saving = ref<{ id: number; direction: Direction } | null>(null);
+const busy = computed(() => saving.value !== null);
+/** Read out after each move (the list itself changes silently). */
+const announcement = ref('');
+
+watch(canReorder, (can) => {
+    if (!can) {
+        reordering.value = false;
+    }
+});
+
+function toggleReordering(): void {
+    reordering.value = !reordering.value;
+    announcement.value = reordering.value
+        ? 'Each stop now has Move up and Move down.'
+        : '';
+}
+
+/** The stop just moved, highlighted for a moment so the eye finds it. */
+const movedId = ref<number | null>(null);
+let movedTimer: ReturnType<typeof setTimeout> | undefined;
+
+function highlight(id: number): void {
+    clearTimeout(movedTimer);
+    movedId.value = id;
+    movedTimer = setTimeout(() => (movedId.value = null), 1500);
+}
+
+onBeforeUnmount(() => clearTimeout(movedTimer));
+
+function moveButton(job: DriverJob, direction: Direction): HTMLElement | null {
+    return document.getElementById(`move-${direction}-${job.id}`);
+}
+
+function announceMove(job: DriverJob): void {
+    const index = props.jobs.findIndex((item) => item.id === job.id);
+    const area = formatDeliveryArea(job.city, job.postcode);
+    const stop = props.stops[index];
+
+    announcement.value =
+        stop !== null && stop !== undefined
+            ? `${area} is now stop ${stop}.`
+            : `${area} is now ${index + 1} of ${props.jobs.length} on your list.`;
+}
+
+function refuseMove(message: string): void {
+    announcement.value = message;
+    toast.error(message);
+}
+
+/*
+ * The page keeps its scroll, so after a swap the other stop's button would
+ * sit under the thumb, and a second tap would undo the move. The page
+ * scrolls by as much as the pressed button moved instead: it stays under
+ * the thumb, keeps the focus, and each tap moves the same stop again.
+ */
+function moveStop(job: DriverJob, direction: Direction): void {
+    if (saving.value) {
+        return;
+    }
+
+    const before = moveButton(job, direction)?.getBoundingClientRect().top;
+    saving.value = { id: job.id, direction };
+
+    router.post(
+        move.url(job.id),
+        { direction },
+        {
+            preserveScroll: true,
+            preserveState: true,
+            onSuccess: () => {
+                announceMove(job);
+                highlight(job.id);
+                void nextTick(() => {
+                    const button = moveButton(job, direction);
+
+                    if (button && before !== undefined) {
+                        window.scrollBy({
+                            top: button.getBoundingClientRect().top - before,
+                            behavior: 'instant',
+                        });
+                    }
+
+                    button?.focus({ preventScroll: true });
+                });
+            },
+            onError: (errors) =>
+                refuseMove(
+                    errors.direction ??
+                        'The stop could not be moved. Try again.',
+                ),
+            onHttpException: (response) => {
+                if (response.status !== 429) {
+                    return;
+                }
+
+                refuseMove(
+                    'That is a lot of moves in a minute. Wait a moment, then try again.',
+                );
+
+                return false;
+            },
+            onFinish: () => (saving.value = null),
+        },
+    );
+}
+
 const navButton =
     'inline-flex size-11 flex-none items-center justify-center rounded-xl text-ink-2 transition-colors hover:bg-surface hover:text-ink';
 </script>
@@ -186,7 +357,8 @@ const navButton =
                     v-if="jobs.length > 0"
                     :resolve="openScanned"
                     action-label="Open job"
-                    class="order-last mt-3 h-11 justify-self-start rounded-lg px-4 text-[15px] font-bold @[19.5rem]:order-none @[19.5rem]:mt-0"
+                    size="touch"
+                    class="order-last mt-3 justify-self-start @[19.5rem]:order-none @[19.5rem]:mt-0"
                 />
                 <p
                     class="mt-1 text-[15px] leading-6 text-muted-foreground @[19.5rem]:col-span-2"
@@ -355,25 +527,90 @@ const navButton =
             title="Carried over from earlier days"
         >
             {{ pluralize(overdue.length, 'job') }} left open before today
-            {{ overdue.length === 1 ? 'is' : 'are' }} at the top of your list.
+            {{ overdue.length === 1 ? 'is' : 'are' }} on your list, marked
+            Overdue.<template v-if="canReorder">
+                Use Reorder stops to fit
+                {{ overdue.length === 1 ? 'it' : 'them' }} into today's
+                round.</template
+            >
+        </Notice>
+
+        <!-- An earlier day: what is still open of it is on today's list,
+             listed here in today's order with today's stop numbers. -->
+        <Notice
+            v-else-if="overdue.length > 0"
+            :icon="TriangleAlert"
+            tone="warning"
+            title="Carried over to today"
+        >
+            {{ overdue.length === 1 ? 'This job is' : 'These jobs are' }}
+            still open, so {{ overdue.length === 1 ? 'it is' : 'they are' }} on
+            <TextLink :href="jobsRoute()">today's list</TextLink> now. The stop
+            numbers are today's.
         </Notice>
 
         <!-- Stops -->
         <section v-if="jobs.length > 0" aria-labelledby="stops-title">
-            <div class="mb-3 flex items-baseline justify-between gap-3">
-                <h2
-                    id="stops-title"
-                    class="text-lg leading-7 font-extrabold tracking-heading text-ink"
+            <div class="mb-3 flex items-center justify-between gap-3">
+                <div class="min-w-0">
+                    <h2
+                        id="stops-title"
+                        class="text-lg leading-7 font-extrabold tracking-heading text-ink"
+                    >
+                        Stops
+                    </h2>
+                    <!-- Where it wraps (320px), it wraps after the comma. -->
+                    <p class="text-[13px] leading-5 text-muted-foreground">
+                        {{ pluralize(jobs.length, 'stop') }},
+                        <span class="whitespace-nowrap">in delivery order</span>
+                    </p>
+                </div>
+                <!-- A switch: the same label on and off (so the header
+                     never reflows), pressed and pale red while on, like
+                     the other switches. -->
+                <Button
+                    v-if="canReorder"
+                    type="button"
+                    variant="outline"
+                    size="touch"
+                    :aria-pressed="reordering"
+                    :class="[
+                        'flex-none',
+                        reordering &&
+                            'border-brand bg-brand-tint text-brand-strong hover:border-brand hover:text-brand-strong',
+                    ]"
+                    @click="toggleReordering"
                 >
-                    Stops
-                </h2>
-                <p class="text-[13px] leading-5 text-muted-foreground">
-                    {{ pluralize(jobs.length, 'stop') }}, in delivery order
-                </p>
+                    <component
+                        :is="reordering ? Check : ArrowUpDown"
+                        aria-hidden="true"
+                    />
+                    Reorder stops
+                </Button>
             </div>
-            <ol class="grid grid-cols-1 gap-3">
+            <p class="sr-only" role="status" aria-live="polite">
+                {{ announcement }}
+            </p>
+            <ol class="grid grid-cols-1 gap-3" :aria-busy="busy">
                 <li v-for="(job, index) in jobs" :key="job.id">
-                    <JobCard :job="job" :stop="index + 1" />
+                    <JobCard
+                        :job="job"
+                        :stop="stops[index] ?? null"
+                        :reorder="
+                            reordering
+                                ? {
+                                      up: canMove(index, 'up'),
+                                      down: canMove(index, 'down'),
+                                  }
+                                : null
+                        "
+                        :busy="busy"
+                        :saving="
+                            saving?.id === job.id ? saving.direction : null
+                        "
+                        :moved="movedId === job.id"
+                        @move="moveStop(job, $event)"
+                    />
                 </li>
             </ol>
         </section>

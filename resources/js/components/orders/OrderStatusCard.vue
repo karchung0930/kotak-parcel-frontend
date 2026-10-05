@@ -5,6 +5,7 @@ import JourneyConveyor from '@/components/brand/JourneyConveyor.vue';
 import ParcelBox from '@/components/brand/ParcelBox.vue';
 import DateTime from '@/components/DateTime.vue';
 import StatusChip from '@/components/StatusChip.vue';
+import StopCount from '@/components/StopCount.vue';
 import TrackingNumber from '@/components/TrackingNumber.vue';
 import {
     formatDateTime,
@@ -13,17 +14,25 @@ import {
     formatWeight,
 } from '@/lib/format';
 import { journeyTimes } from '@/lib/journey';
-import type { Order, OrderStatusValue } from '@/types';
+import type { Order, OrderStatusValue, StopProgress } from '@/types';
 
 /**
  * The top of a customer's order page (the D1 tracking status card): the
  * tracking number with copy, the status as a big headline with the
- * server's explanation, three key facts, a picture of where the parcel is
- * and the journey conveyor with the current stage highlighted.
+ * server's explanation, out for delivery how many stops come before it,
+ * three key facts, a picture of where the parcel is and the journey
+ * conveyor with the current stage highlighted.
  */
-const props = defineProps<{
-    order: Order;
-}>();
+const props = withDefaults(
+    defineProps<{
+        order: Order;
+        /** Out for delivery: the parcel's stop on the driver's round. */
+        progress?: StopProgress | null;
+        /** The time of the last update while the stop count is not live. */
+        progressAsOf?: string | null;
+    }>(),
+    { progress: null, progressAsOf: null },
+);
 
 const HEADLINES: Record<OrderStatusValue, string> = {
     created: 'Ready for drop-off',
@@ -70,7 +79,7 @@ const when = computed((): { label: string; value: string } => {
         case 'picked_up':
             return {
                 label: 'Delivery date',
-                value: formatWeekdayDate(order.scheduled_for),
+                value: formatWeekdayDate(order.expected_delivery),
             };
         case 'created':
             // The most urgent fact while it waits: the server's deadline.
@@ -152,6 +161,8 @@ const scene = computed(() => {
                         {{ order.status_description }}
                     </p>
                 </div>
+                <!-- Its own live region: a new count is read out on its own -->
+                <StopCount :progress="progress" :as-of="progressAsOf" />
 
                 <!-- No rule under the last fact on phones: the conveyor's
                      own rule follows it. -->
@@ -208,7 +219,7 @@ const scene = computed(() => {
                 :status="status"
                 compact
                 :times="journeyTimes(events)"
-                :expected-delivery="order.scheduled_for"
+                :expected-delivery="order.expected_delivery"
             />
         </div>
     </section>

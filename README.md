@@ -43,22 +43,31 @@ composer setup                           # composer install, app key, migrations
 php artisan db:seed --class=DemoSeeder   # demo data and accounts
 
 cd ../kotak-parcel-frontend
+cp .env.example .env                     # where the backend is, and where the pages reach Reverb
 npm ci                                   # the exact versions in package-lock.json
 npm run build                            # while editing the pages, run npm run dev in a second terminal instead
 
 cd ../kotak-parcel-backend
-composer run dev                         # http://localhost:8000 and a queue listener
+composer run dev                         # http://localhost:8000, a queue listener and Reverb
 ```
+
+The build reads `.env`: `KOTAK_BACKEND_PATH`, and `VITE_REVERB_APP_KEY`,
+`VITE_REVERB_HOST`, `VITE_REVERB_PORT` and `VITE_REVERB_SCHEME`, where the
+pages reach Laravel Reverb for live delivery progress. The key is the
+backend's `REVERB_APP_KEY`. Locally that is `localhost:8080` over `http`; on
+a server, the site's own address on port 443 over `https`, as nginx passes
+`/app` on to Reverb. They are built into the pages, so build again after a
+change. Without a key the pages show the stops as they were when opened.
 
 ## Scripts
 
-| Command               | What it does                                                                                                                           |
-| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `npm run dev`         | Vite dev server with hot reload                                                                                                        |
-| `npm run build`       | Production build into the backend's `public/build`                                                                                     |
-| `npm run check`       | Lint and format check (`npm run check:fix` to fix)                                                                                     |
-| `npm run types:check` | vue-tsc                                                                                                                                |
-| `npm run test:js`     | Dependency-free checks of the format, pricing, phone, branch, rate import and scanner helpers, and a barcode read-back with zxing-wasm |
+| Command               | What it does                                                                                                                                                   |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run dev`         | Vite dev server with hot reload                                                                                                                                |
+| `npm run build`       | Production build into the backend's `public/build`                                                                                                             |
+| `npm run check`       | Lint and format check (`npm run check:fix` to fix)                                                                                                             |
+| `npm run types:check` | vue-tsc                                                                                                                                                        |
+| `npm run test:js`     | Dependency-free checks of the format, pricing, phone, branch, rate import, scanner and live delivery progress helpers, and a barcode read-back with zxing-wasm |
 
 Run `npm run build` once before `check` and `types:check`, so the Wayfinder
 helpers exist.
@@ -75,8 +84,8 @@ resources/
     components/          shared components (StatusChip, TrackingNumber, Timeline, CloseButton…)
       brand/             the SVG illustrations: van, parcels, packaging tape, JourneyConveyor
       ui/                shadcn-vue primitives
-    composables/         useFitsViewport, useTrackingScanner (the camera scanner's moving parts) and friends
-    lib/                 formatting (money, weight, dates in Asia/Kuala_Lumpur), pricing (rate cards), rate imports, phone, Code 39, scanner rules
+    composables/         useFitsViewport, useTrackingScanner (the camera scanner's moving parts), useDeliveryProgress and friends
+    lib/                 formatting (money, weight, dates in Asia/Kuala_Lumpur), pricing (rate cards), rate imports, phone, Code 39, scanner rules, delivery progress and the Reverb connection (echo.ts)
       scanner/           the barcode worker (zxing-wasm) and the OCR reader (PaddleOCR.js)
     types/               page props, typed to match the backend's API Resources
   models/                the PP-OCRv6 tiny OCR models (.tar) with their license, built into public/build with hashed names
@@ -118,7 +127,12 @@ tests/js/                small checks that run on plain Node
   `TextLink.vue`, whose own 44px area grows upwards, clear of a field just
   below. Rows of links (the footer, the account menu, the admin's contact
   links) and compact filter controls grow with `pointer-coarse:` sizes,
-  and the compact filter fields get 16px text there too.
+  and the compact filter fields get 16px text there too. The 44px buttons
+  of the phone screens (the camera scanner, My jobs' **Reorder stops** and
+  **Move up/down**) use the Button's `size="touch"`. A button that is
+  there but cannot be used right now takes `aria-disabled` rather than
+  `disabled`, so it keeps the focus; the Button dims it and stops it
+  lifting on hover.
 - **One component per repeated element**, for example `CloseButton.vue` for
   every close button in dialogs, sheets and panels, `UnitInput.vue` for the
   short number fields in the estimator and the order, counter and admin
@@ -217,4 +231,37 @@ tests/js/                small checks that run on plain Node
   Inertia's `usePoll` (only its own props) while a job reads or checks the
   file, and stops once the job is done. A screen-reader live region says
   where the import stands each time it moves on.
+- **Live delivery progress, without polling.** `StopCount.vue` is the
+  "Your parcel is stop 3 — 2 stops before yours" line on the track page
+  and the customer's order page: the shared `Notice` (`size="lg"`) in a
+  polite live region. Each page passes its props to `useDeliveryProgress`,
+  which listens on the parcel's channel (public on Track, private on the
+  order page) through the one Reverb connection in `lib/echo.ts`: opened
+  when a page first listens, with Laravel Echo and pusher-js loaded only
+  then, WebSockets only, and closed when the last page stops. A new stop
+  changes the line. Each time the channel is subscribed (on opening, and
+  again after a lost connection is back) the page fetches its props once
+  (an Inertia partial reload), as a message sent before then never
+  arrives; a new status does too. A fetch that a message overtakes keeps
+  the message's numbers and runs once more, so an older count never comes
+  back. While the connection is down for good, the line adds "as of
+  09:42". Nothing runs on a timer. The rules (subscribing, the shared
+  connection, a page's listening, the reload guard) are plain TypeScript
+  in `lib/deliveryProgress.ts`, checked by `tests/js` with a stand-in for
+  Echo.
+- **Stops can be reordered.** On My jobs, **Reorder stops** (a switch:
+  `aria-pressed`, pale red while on, the same label either way) gives each
+  of today's stops **Move up** and **Move down** (`JobCard.vue`), 44px tall,
+  over the card's link. Overdue jobs carried over from earlier days move
+  among today's stops like the rest: the first move puts the whole list on
+  today's run (`MoveJob`), so each keeps the place it is given. After a move
+  the page scrolls by as much as the stop moved, so the pressed button stays
+  under the thumb with the focus, and the next tap moves the same stop
+  again; the card glows briefly, a spinner shows while the move is saved,
+  and a live region says where it is now. Only parcels on the van carry a
+  stop number, which the server sends with the list (`stops`), worked out
+  as the customer's is, so both screens say the same "stop 2" on any day.
+  The page takes today from the server (`today`) rather than the browser,
+  and a tab left open overnight asks for the list again when it is next
+  looked at, so it never shows yesterday as today.
 - **Light theme only**, with colours from the brand tokens.

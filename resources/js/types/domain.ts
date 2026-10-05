@@ -360,6 +360,11 @@ export type OrderSummary = {
     final_price_sen: number | null;
     scheduled_for: string | null;
     /**
+     * The day the customer can expect it: the scheduled day, or today while
+     * a delivery carried over from an earlier day is still on the run.
+     */
+    expected_delivery: string | null;
+    /**
      * While waiting for drop-off: the last day to drop it off (Malaysia),
      * after which the order is cancelled automatically. Null otherwise.
      */
@@ -440,6 +445,17 @@ export type DriverJob = {
     failed_attempts?: number;
 };
 
+/**
+ * A parcel's stop on its driver's run while it is out for delivery
+ * (App\Support\DeliveryProgress): a count only, never where the driver is.
+ */
+export type StopProgress = {
+    /** Its stop among the parcels on the van, from 1. */
+    position: number;
+    /** The stops the driver makes before it. */
+    stops_before: number;
+};
+
 /** TrackingResource: public, contains no personal data. */
 export type Tracking = {
     tracking_number: string;
@@ -450,9 +466,21 @@ export type Tracking = {
     branch: { name: string; city: string };
     chargeable_weight_g: number;
     scheduled_for: string | null;
+    /**
+     * The day the customer can expect it: the scheduled day, or today while
+     * a delivery carried over from an earlier day is still on the run.
+     */
+    expected_delivery: string | null;
     created_at: string | null;
     delivered_at: string | null;
     events: TrackingEvent[];
+    /** Out for delivery: its stop on the driver's run; null otherwise. */
+    progress: StopProgress | null;
+    /**
+     * On a driver's run (assigned or picked up): the public channel its new
+     * stop and status are sent on, a name that cannot be guessed; null otherwise.
+     */
+    live_channel: string | null;
 };
 
 export type TrackingEvent = {
@@ -556,6 +584,10 @@ export type OrdersCreatePageProps = {
 export type OrdersShowPageProps = {
     order: Order;
     canCancel: boolean;
+    /** Out for delivery: its stop on the driver's run; null otherwise. */
+    progress: StopProgress | null;
+    /** On a driver's run: the private channel of its updates ("orders.12"); null otherwise. */
+    liveChannel: string | null;
 };
 
 /**
@@ -768,11 +800,21 @@ export type AdminRateImportsShowPageProps = {
 export type DriverJobsPageProps = {
     /** The day shown, YYYY-MM-DD (Malaysia time; defaults to today). */
     date: string;
+    /** Today on the server, YYYY-MM-DD (Malaysia time). */
+    today: string;
     /**
-     * Open jobs (assigned or picked up) scheduled for the day, by postcode; each
-     * has branch and failed_attempts. Today's list starts with overdue jobs.
+     * Open jobs (assigned or picked up) scheduled for the day, in the driver's
+     * order; each has branch and failed_attempts. Today's list also has the
+     * overdue jobs, first until the driver moves them among today's stops.
+     * An earlier day's are on today's list now, and listed in its order.
      */
     jobs: DriverJob[];
+    /**
+     * The stop of each job, in the order of `jobs`: its place among the
+     * parcels on the van, the number its customer is told; null while it
+     * is still to collect.
+     */
+    stops: (number | null)[];
     counts: {
         /** Open jobs still to be collected from the branch. */
         assigned: number;

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, Link, usePage } from '@inertiajs/vue3';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import {
     ArrowRight,
     Info,
@@ -19,11 +19,13 @@ import DescriptionItem from '@/components/DescriptionItem.vue';
 import DescriptionList from '@/components/DescriptionList.vue';
 import PublicPageBand from '@/components/public/PublicPageBand.vue';
 import StatusChip from '@/components/StatusChip.vue';
+import StopCount from '@/components/StopCount.vue';
 import TextLink from '@/components/TextLink.vue';
 import Timeline from '@/components/Timeline.vue';
 import TrackingNumber from '@/components/TrackingNumber.vue';
 import TrackingSearch from '@/components/TrackingSearch.vue';
 import { Button } from '@/components/ui/button';
+import { useDeliveryProgress } from '@/composables/useDeliveryProgress';
 import { useFitsViewport } from '@/composables/useFitsViewport';
 import {
     formatDate,
@@ -73,6 +75,21 @@ const headline = computed(() =>
     props.result ? HEADLINES[props.result.status.value] : '',
 );
 
+/*
+ * Out for delivery: how many stops before this parcel, kept up to date
+ * over Reverb on the parcel's public channel. A new status fetches the
+ * result again, so the whole page moves on with it.
+ */
+const { progress, asOf: progressAsOf } = useDeliveryProgress({
+    channel: () =>
+        props.result?.live_channel
+            ? { name: props.result.live_channel, private: false }
+            : null,
+    status: () => props.result?.status.value ?? 'created',
+    progress: () => props.result?.progress ?? null,
+    reload: (callbacks) => router.reload({ only: ['result'], ...callbacks }),
+});
+
 const lastUpdate = computed(() => {
     const events = props.result?.events ?? [];
 
@@ -96,7 +113,7 @@ const expectedDelivery = computed(() => {
         return null;
     }
 
-    return result.scheduled_for;
+    return result.expected_delivery;
 });
 
 /** The first detail on the status card: when it arrives (or arrived). */
@@ -309,6 +326,7 @@ const detailsFits = useFitsViewport(detailsCard, 24);
                         >
                             {{ result.description }}
                         </p>
+                        <StopCount :progress="progress" :as-of="progressAsOf" />
 
                         <!-- Two by two at 768px, one row from 1024px. In the
                              row each column is as wide as its text plus an

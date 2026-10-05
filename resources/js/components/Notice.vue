@@ -6,6 +6,8 @@ import type { Component } from 'vue';
  * A quiet inline note with an icon, e.g. "Pay at the branch by cash or
  * card" or the tracking page's privacy note. Default slot: the text.
  * For messages that appear after an action, add aria-live on a wrapper.
+ * `size="lg"` sets the text at body size, for a note that is the news on
+ * its page, such as the stops before a parcel out for delivery.
  */
 withDefaults(
     defineProps<{
@@ -13,11 +15,13 @@ withDefaults(
         /** A lucide icon; defaults to Info. */
         icon?: Component | null;
         tone?: 'neutral' | 'brand' | 'warning' | 'success';
+        size?: 'default' | 'lg';
     }>(),
     {
         title: null,
         icon: null,
         tone: 'neutral',
+        size: 'default',
     },
 );
 
@@ -34,19 +38,25 @@ const iconClass = {
     warning: 'text-status-failed',
     success: 'text-status-delivered',
 };
+
+const sizeClass = {
+    default: { text: 'text-[13px] leading-5', icon: 'mt-px size-[18px]' },
+    lg: { text: 'text-[15px] leading-6', icon: 'mt-0.5 size-5' },
+};
 </script>
 
 <template>
     <div
         :class="[
-            'flex gap-3 rounded-xl px-4 py-3 text-[13px] leading-5',
+            'flex gap-3 rounded-xl px-4 py-3',
+            sizeClass[size].text,
             toneClass[tone],
         ]"
     >
         <component
             :is="icon ?? Info"
             aria-hidden="true"
-            :class="['mt-px size-[18px] flex-none', iconClass[tone]]"
+            :class="['flex-none', sizeClass[size].icon, iconClass[tone]]"
         />
         <div class="min-w-0">
             <p v-if="title" class="text-sm font-bold text-ink">{{ title }}</p>

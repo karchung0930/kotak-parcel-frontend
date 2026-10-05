@@ -10,7 +10,7 @@
         "check:fix": "vp check --fix",
         "types:check": "vue-tsc --noEmit",
         "test:format": "node --experimental-strip-types --no-warnings tests/js/format.check.ts",
-        "test:js": "npm run test:format && node --experimental-strip-types --no-warnings tests/js/pricing.check.ts && node --experimental-strip-types --no-warnings tests/js/branches.check.ts && node --experimental-strip-types --no-warnings tests/js/phone.check.ts && node --experimental-strip-types --no-warnings tests/js/rateImport.check.ts && node --experimental-strip-types --no-warnings tests/js/scan.check.ts && node --experimental-strip-types --no-warnings tests/js/barcode.check.ts"
+        "test:js": "npm run test:format && node --experimental-strip-types --no-warnings tests/js/pricing.check.ts && node --experimental-strip-types --no-warnings tests/js/branches.check.ts && node --experimental-strip-types --no-warnings tests/js/phone.check.ts && node --experimental-strip-types --no-warnings tests/js/rateImport.check.ts && node --experimental-strip-types --no-warnings tests/js/scan.check.ts && node --experimental-strip-types --no-warnings tests/js/barcode.check.ts && node --experimental-strip-types --no-warnings tests/js/deliveryProgress.check.ts"
     },
     "dependencies": {
         "@inertiajs/vite": "^3.0.0",
@@ -21,9 +21,11 @@
         "@vueuse/core": "^12.8.2",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
+        "laravel-echo": "^2.5.0",
         "laravel-vite-plugin": "^3.0.0",
         "libphonenumber-js": "^1.13.14",
         "onnxruntime-web": "1.24.3",
+        "pusher-js": "^8.6.0",
         "reka-ui": "^2.9.8",
         "tailwind-merge": "^3.2.0",
         "tailwindcss": "^4.1.1",
