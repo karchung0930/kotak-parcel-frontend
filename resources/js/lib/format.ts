@@ -357,11 +357,14 @@ const TRACKING_CODE = /^[0-9ABCDEFGHJKMNPQRSTVWXYZ]{8}$/;
 /**
  * "kt-7q4m 92xd" → "KT7Q4M92XD", or null when the input cannot be a
  * tracking number. Commonly confused letters map to digits (O → 0, I/L → 1).
+ * Any hyphen or dash counts, such as the non-breaking one in emails.
  */
 export function normalizeTrackingNumber(
     input: string | null | undefined,
 ): string | null {
-    const value = (input ?? '').replace(/[\s-]+/g, '').toUpperCase();
+    const value = (input ?? '')
+        .replace(/[\s\u2010-\u2015\u2212-]+/g, '')
+        .toUpperCase();
 
     if (!value.startsWith('KT')) {
         return null;

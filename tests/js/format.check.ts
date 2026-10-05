@@ -167,6 +167,16 @@ const checks: [string, () => void][] = [
                 normalizeTrackingNumber(' kt 7q4m 92xd '),
                 'KT7Q4M92XD',
             );
+            // Copied from an email (non-breaking hyphen) or typed with a dash.
+            assert.equal(
+                normalizeTrackingNumber('KT\u20117Q4M92XD'),
+                'KT7Q4M92XD',
+            );
+            assert.equal(
+                normalizeTrackingNumber('KT\u20137Q4M92XD'),
+                'KT7Q4M92XD',
+            );
+            assert.equal(toTrackingQuery('KT\u20117Q4M92XD'), 'KT-7Q4M92XD');
             // Crockford: O reads as 0, I and L as 1.
             assert.equal(normalizeTrackingNumber('KT-O1LIABCD'), 'KT0111ABCD');
             assert.equal(normalizeTrackingNumber('KT-7Q4M92X'), null);
