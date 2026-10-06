@@ -1,11 +1,9 @@
 <script setup lang="ts">
 import { Form } from '@inertiajs/vue3';
-import { TriangleAlert } from '@lucide/vue';
 import { useTemplateRef } from 'vue';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
-import Heading from '@/components/Heading.vue';
+import FormSection from '@/components/admin/FormSection.vue';
 import InputError from '@/components/InputError.vue';
-import Notice from '@/components/Notice.vue';
 import PasswordInput from '@/components/PasswordInput.vue';
 import { Button } from '@/components/ui/button';
 import {
@@ -24,23 +22,21 @@ const passwordInput = useTemplateRef('passwordInput');
 </script>
 
 <template>
-    <div class="space-y-6">
-        <Heading
-            variant="small"
-            title="Delete account"
-            description="Delete your account and all of its resources."
-        />
-        <!-- The shared warning note, as on the return panel: pale red means
-             "selected" on this site, so a warning is amber. -->
-        <Notice tone="warning" :icon="TriangleAlert" title="Warning">
-            <p>Please proceed with caution, this cannot be undone.</p>
+    <!-- A card like the others: the button that opens the dialog sits at
+         the top right; the step that cannot be undone is the dialog's own
+         button. -->
+    <FormSection
+        title="Delete account"
+        description="Delete your account and all of its resources. This cannot be undone."
+    >
+        <template #actions>
             <Dialog>
                 <!-- Only opens the dialog, so a plain outline button; the
                      step that cannot be undone is the dialog's own button. -->
                 <DialogTrigger as-child>
                     <Button
                         variant="outline"
-                        class="mt-3 h-11 px-5 font-bold"
+                        class="h-11 rounded-lg px-5 text-[15px] font-bold"
                         data-test="delete-user-button"
                         >Delete account</Button
                     >
@@ -118,6 +114,6 @@ const passwordInput = useTemplateRef('passwordInput');
                     </Form>
                 </DialogContent>
             </Dialog>
-        </Notice>
-    </div>
+        </template>
+    </FormSection>
 </template>

@@ -3,6 +3,8 @@ import { Head, Link, useForm } from '@inertiajs/vue3';
 import { ExternalLink, TriangleAlert } from '@lucide/vue';
 import { computed, nextTick } from 'vue';
 import FormField from '@/components/admin/FormField.vue';
+import FormGroup from '@/components/admin/FormGroup.vue';
+import FormRow from '@/components/admin/FormRow.vue';
 import FormSection from '@/components/admin/FormSection.vue';
 import NativeSelect from '@/components/NativeSelect.vue';
 import SwitchField from '@/components/admin/SwitchField.vue';
@@ -136,11 +138,33 @@ function submit(): void {
         </PageHeader>
 
         <form class="space-y-6" novalidate @submit.prevent="submit">
+            <!-- One card, as one button saves it all: the buttons in its
+                 header, the five parts as labelled groups of rows. -->
             <FormSection
-                title="Branch"
-                description="The short code appears on receipts and in staff screens."
+                title="Branch details"
+                description="Where it is, when it is open and whether it takes new orders."
             >
-                <div class="grid gap-5 sm:grid-cols-[14rem_minmax(0,1fr)]">
+                <template #actions>
+                    <Button
+                        variant="outline"
+                        as-child
+                        class="h-11 rounded-lg px-5 text-[15px] font-bold"
+                    >
+                        <Link :href="index()">Cancel</Link>
+                    </Button>
+                    <Button
+                        type="submit"
+                        :disabled="form.processing"
+                        class="h-11 rounded-lg px-5 text-[15px] font-bold"
+                    >
+                        <Spinner v-if="form.processing" />
+                        {{ branch ? 'Save changes' : 'Create branch' }}
+                    </Button>
+                </template>
+                <FormGroup
+                    title="Branch"
+                    description="The short code appears on receipts and in staff screens."
+                >
                     <FormField
                         id="branch-code"
                         label="Code"
@@ -181,39 +205,30 @@ function submit(): void {
                             />
                         </template>
                     </FormField>
-                </div>
-            </FormSection>
+                </FormGroup>
 
-            <FormSection
-                title="Address"
-                description="Where customers bring their parcels."
-            >
-                <FormField
-                    id="branch-address"
-                    label="Street address"
-                    :error="errors.address"
+                <FormGroup
+                    title="Address"
+                    description="Where customers bring their parcels."
                 >
-                    <template #default="{ describedby, invalid }">
-                        <Input
-                            id="branch-address"
-                            v-model="form.address"
-                            required
-                            maxlength="255"
-                            autocomplete="off"
-                            :aria-describedby="describedby"
-                            :aria-invalid="invalid"
-                            class="h-11 rounded-lg bg-white text-base md:text-[15px]"
-                        />
-                    </template>
-                </FormField>
-                <!-- A 5-digit postcode needs little room, so from 640px it
-                     shares a row with the city, in a column still wide
-                     enough for its error message on two lines. On phones
-                     each field takes the full width, like the fields
-                     above. -->
-                <div
-                    class="grid gap-5 sm:grid-cols-[9rem_minmax(0,1fr)] xl:grid-cols-[9rem_minmax(0,1fr)_minmax(0,1fr)]"
-                >
+                    <FormField
+                        id="branch-address"
+                        label="Street address"
+                        :error="errors.address"
+                    >
+                        <template #default="{ describedby, invalid }">
+                            <Input
+                                id="branch-address"
+                                v-model="form.address"
+                                required
+                                maxlength="255"
+                                autocomplete="off"
+                                :aria-describedby="describedby"
+                                :aria-invalid="invalid"
+                                class="h-11 rounded-lg bg-white text-base md:text-[15px]"
+                            />
+                        </template>
+                    </FormField>
                     <FormField
                         id="branch-postcode"
                         label="Postcode"
@@ -255,7 +270,6 @@ function submit(): void {
                         id="branch-state"
                         label="State"
                         :error="errors.state"
-                        class="sm:col-span-2 xl:col-span-1"
                     >
                         <template #default="{ describedby, invalid }">
                             <NativeSelect
@@ -278,14 +292,12 @@ function submit(): void {
                             </NativeSelect>
                         </template>
                     </FormField>
-                </div>
-            </FormSection>
+                </FormGroup>
 
-            <FormSection
-                title="Contact and hours"
-                description="Shown to customers on the branches page and on receipts."
-            >
-                <div class="grid gap-5 sm:grid-cols-[14rem_minmax(0,1fr)]">
+                <FormGroup
+                    title="Contact and hours"
+                    description="Shown to customers on the branches page and on receipts."
+                >
                     <FormField
                         id="branch-phone"
                         label="Phone"
@@ -326,67 +338,55 @@ function submit(): void {
                             />
                         </template>
                     </FormField>
-                </div>
-            </FormSection>
+                </FormGroup>
 
-            <FormSection
-                title="Map location"
-                description="For finding the nearest branch."
-            >
-                <p class="text-[13px] leading-5 text-ink-2">
-                    In Google Maps, right-click the branch and click the numbers
-                    at the top to copy them. Paste them into either field below
-                    and both are filled in.
-                </p>
-                <!-- The warning's live region shares a wrapper with the
-                     fields, so while empty it adds no gap of its own -->
-                <div>
-                    <div class="grid gap-5 sm:grid-cols-2">
-                        <FormField
-                            id="branch-latitude"
-                            label="Latitude"
-                            hint="Between 0.8 and 7.5, e.g. 3.1177"
-                            :error="errors.latitude"
-                        >
-                            <template #default="{ describedby, invalid }">
-                                <Input
-                                    id="branch-latitude"
-                                    v-model="form.latitude"
-                                    required
-                                    inputmode="decimal"
-                                    autocomplete="off"
-                                    :aria-describedby="describedby"
-                                    :aria-invalid="invalid"
-                                    class="h-11 rounded-lg bg-white font-mono text-base md:text-[15px]"
-                                    @paste="pasteCoordinates"
-                                />
-                            </template>
-                        </FormField>
-                        <FormField
-                            id="branch-longitude"
-                            label="Longitude"
-                            hint="Between 99.5 and 119.5, e.g. 101.6168"
-                            :error="errors.longitude"
-                        >
-                            <template #default="{ describedby, invalid }">
-                                <Input
-                                    id="branch-longitude"
-                                    v-model="form.longitude"
-                                    required
-                                    inputmode="decimal"
-                                    autocomplete="off"
-                                    :aria-describedby="describedby"
-                                    :aria-invalid="invalid"
-                                    class="h-11 rounded-lg bg-white font-mono text-base md:text-[15px]"
-                                    @paste="pasteCoordinates"
-                                />
-                            </template>
-                        </FormField>
-                    </div>
-                    <div aria-live="polite">
+                <FormGroup
+                    title="Map location"
+                    description="For finding the nearest branch. In Google Maps, right-click the branch and click the numbers at the top to copy them. Paste them into either field below and both are filled in."
+                >
+                    <FormField
+                        id="branch-latitude"
+                        label="Latitude"
+                        hint="Between 0.8 and 7.5, e.g. 3.1177"
+                        :error="errors.latitude"
+                    >
+                        <template #default="{ describedby, invalid }">
+                            <Input
+                                id="branch-latitude"
+                                v-model="form.latitude"
+                                required
+                                inputmode="decimal"
+                                autocomplete="off"
+                                :aria-describedby="describedby"
+                                :aria-invalid="invalid"
+                                class="h-11 rounded-lg bg-white font-mono text-base md:text-[15px]"
+                                @paste="pasteCoordinates"
+                            />
+                        </template>
+                    </FormField>
+                    <FormField
+                        id="branch-longitude"
+                        label="Longitude"
+                        hint="Between 99.5 and 119.5, e.g. 101.6168"
+                        :error="errors.longitude"
+                    >
+                        <template #default="{ describedby, invalid }">
+                            <Input
+                                id="branch-longitude"
+                                v-model="form.longitude"
+                                required
+                                inputmode="decimal"
+                                autocomplete="off"
+                                :aria-describedby="describedby"
+                                :aria-invalid="invalid"
+                                class="h-11 rounded-lg bg-white font-mono text-base md:text-[15px]"
+                                @paste="pasteCoordinates"
+                            />
+                        </template>
+                    </FormField>
+                    <FormRow v-if="outsideMalaysia" attached>
                         <p
-                            v-if="outsideMalaysia"
-                            class="mt-5 flex items-start gap-1.5 text-[13px] leading-5 font-semibold text-status-failed"
+                            class="flex items-start gap-1.5 text-[13px] leading-5 font-semibold text-status-failed"
                         >
                             <TriangleAlert
                                 aria-hidden="true"
@@ -395,61 +395,44 @@ function submit(): void {
                             This point is outside Malaysia. Check that latitude
                             and longitude are not swapped.
                         </p>
-                    </div>
-                </div>
-                <a
-                    v-if="mapUrl"
-                    :href="mapUrl"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="-my-3 inline-flex min-h-11 w-fit items-center gap-1.5 text-sm font-semibold text-brand-strong underline decoration-brand-edge underline-offset-4 hover:text-brand-deep hover:decoration-current"
-                >
-                    Check the pin on Google Maps
-                    <ExternalLink aria-hidden="true" class="size-3.5" />
-                    <span class="sr-only">(opens in a new tab)</span>
-                </a>
-            </FormSection>
+                    </FormRow>
+                    <FormRow v-if="mapUrl" attached>
+                        <a
+                            :href="mapUrl"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="-my-2 inline-flex min-h-11 w-fit items-center gap-1.5 text-sm font-semibold text-brand-strong underline decoration-brand-edge underline-offset-4 hover:text-brand-deep hover:decoration-current"
+                        >
+                            Check the pin on Google Maps
+                            <ExternalLink aria-hidden="true" class="size-3.5" />
+                            <span class="sr-only">(opens in a new tab)</span>
+                        </a>
+                    </FormRow>
+                </FormGroup>
 
-            <FormSection
-                title="Status"
-                description="Branches are never deleted, so past orders keep their branch."
-            >
-                <SwitchField
-                    id="branch-active"
-                    v-model="form.is_active"
-                    label="Open for new orders"
-                    description="Customers can choose this branch when they send a parcel, and staff can be assigned to it. Parcels already here are not affected."
-                    on-label="Open"
-                    off-label="Closed"
-                    :describedby="
-                        errors.is_active ? 'branch-active-error' : undefined
-                    "
-                />
-                <InputError
-                    id="branch-active-error"
-                    :message="errors.is_active"
-                />
+                <FormGroup
+                    title="Status"
+                    description="Branches are never deleted, so past orders keep their branch."
+                >
+                    <SwitchField
+                        id="branch-active"
+                        v-model="form.is_active"
+                        label="Open for new orders"
+                        description="Customers can choose this branch when they send a parcel, and staff can be assigned to it. Parcels already here are not affected."
+                        on-label="Open"
+                        off-label="Closed"
+                        :describedby="
+                            errors.is_active ? 'branch-active-error' : undefined
+                        "
+                    />
+                    <FormRow v-if="errors.is_active" attached>
+                        <InputError
+                            id="branch-active-error"
+                            :message="errors.is_active"
+                        />
+                    </FormRow>
+                </FormGroup>
             </FormSection>
-
-            <div
-                class="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-end"
-            >
-                <Button
-                    variant="outline"
-                    as-child
-                    class="h-12 rounded-lg px-5 text-[15px] font-bold"
-                >
-                    <Link :href="index()">Cancel</Link>
-                </Button>
-                <Button
-                    type="submit"
-                    :disabled="form.processing"
-                    class="h-12 rounded-lg px-6 text-[15px] font-bold"
-                >
-                    <Spinner v-if="form.processing" />
-                    {{ branch ? 'Save changes' : 'Create branch' }}
-                </Button>
-            </div>
         </form>
     </div>
 </template>

@@ -34,30 +34,7 @@ function submit(): void {
             title="Sheet"
             description="The workbook has more than one sheet. Read another one if the prices are there."
         >
-            <div class="flex flex-wrap items-end gap-x-2.5 gap-y-5">
-                <FormField
-                    :id="id"
-                    label="Sheet to read"
-                    :error="form.errors.sheet"
-                    class="w-full sm:w-72"
-                >
-                    <template #default="{ describedby, invalid }">
-                        <NativeSelect
-                            :id="id"
-                            v-model="form.sheet"
-                            :aria-describedby="describedby"
-                            :aria-invalid="invalid"
-                        >
-                            <option
-                                v-for="name in rateImport.preview?.sheets ?? []"
-                                :key="name"
-                                :value="name"
-                            >
-                                {{ name }}
-                            </option>
-                        </NativeSelect>
-                    </template>
-                </FormField>
+            <template #actions>
                 <Button
                     type="submit"
                     variant="outline"
@@ -70,7 +47,29 @@ function submit(): void {
                     <FileSearch v-else aria-hidden="true" />
                     Read this sheet
                 </Button>
-            </div>
+            </template>
+            <FormField
+                :id="id"
+                label="Sheet to read"
+                :error="form.errors.sheet"
+            >
+                <template #default="{ describedby, invalid }">
+                    <NativeSelect
+                        :id="id"
+                        v-model="form.sheet"
+                        :aria-describedby="describedby"
+                        :aria-invalid="invalid"
+                    >
+                        <option
+                            v-for="name in rateImport.preview?.sheets ?? []"
+                            :key="name"
+                            :value="name"
+                        >
+                            {{ name }}
+                        </option>
+                    </NativeSelect>
+                </template>
+            </FormField>
         </FormSection>
     </form>
 </template>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
-import { ChevronRight, Download, FileUp } from '@lucide/vue';
+import { ChevronRight, FileUp } from '@lucide/vue';
 import { computed } from 'vue';
 import NewDraftDialog from '@/components/admin/rates/NewDraftDialog.vue';
 import RateCardPhaseChip from '@/components/admin/RateCardPhaseChip.vue';
@@ -10,7 +10,7 @@ import KeepTogether from '@/components/KeepTogether.vue';
 import PageHeader from '@/components/PageHeader.vue';
 import { Button } from '@/components/ui/button';
 import { pluralize } from '@/lib/format';
-import { download, show } from '@/routes/admin/rates';
+import { show } from '@/routes/admin/rates';
 import { create as importRates } from '@/routes/admin/rates/imports';
 import type { AdminRatesIndexPageProps } from '@/types';
 
@@ -47,19 +47,9 @@ const current = computed(
                     </template>
                 </p>
             </template>
-            <!-- White buttons open or download; starting a draft is the next step. -->
+            <!-- Import opens a page (with the template); starting a draft is
+                 the next step. -->
             <template #actions>
-                <Button
-                    v-if="current"
-                    variant="outline"
-                    as-child
-                    class="h-11 rounded-lg px-4 font-bold"
-                >
-                    <a :href="download([current.id, 'xlsx']).url" download>
-                        <Download aria-hidden="true" />
-                        Download template
-                    </a>
-                </Button>
                 <Button
                     variant="outline"
                     as-child

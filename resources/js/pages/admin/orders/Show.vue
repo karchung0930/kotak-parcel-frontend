@@ -224,7 +224,10 @@ const nextButton =
             :class="[card, 'overflow-hidden']"
         >
             <h2 id="journey-title" class="sr-only">Delivery progress</h2>
+            <!-- Held to the width the staff page gives it, so the drawing
+                 stays a summary rather than filling the screen. -->
             <JourneyConveyor
+                class="mx-auto max-w-3xl"
                 :status="order.status.value"
                 compact
                 :times="journeyTimes(order.status_events ?? [])"
@@ -452,14 +455,6 @@ const nextButton =
                                     "
                                 />
                             </DescriptionItem>
-                            <DescriptionItem
-                                v-if="pricedWith"
-                                label="Priced with"
-                            >
-                                <TextLink :href="showRateCard(pricedWith.id)">
-                                    <KeepTogether :text="pricedWith.name" />
-                                </TextLink>
-                            </DescriptionItem>
                         </DescriptionList>
 
                         <!-- A line between the lists when they are stacked -->
@@ -543,6 +538,15 @@ const nextButton =
                                 >
                                     None yet
                                 </span>
+                            </DescriptionItem>
+                            <!-- With the delivery facts, so the two lists end level. -->
+                            <DescriptionItem
+                                v-if="pricedWith"
+                                label="Priced with"
+                            >
+                                <TextLink :href="showRateCard(pricedWith.id)">
+                                    <KeepTogether :text="pricedWith.name" />
+                                </TextLink>
                             </DescriptionItem>
                         </DescriptionList>
                     </div>
@@ -656,10 +660,7 @@ const nextButton =
                     </p>
                 </section>
 
-                <section
-                    aria-labelledby="history-title"
-                    :class="[card, '@4xl:grow']"
-                >
+                <section aria-labelledby="history-title" :class="card">
                     <h2 id="history-title" :class="cardTitle">History</h2>
                     <p
                         class="mt-1 text-[13px] leading-5 text-balance text-muted-foreground"

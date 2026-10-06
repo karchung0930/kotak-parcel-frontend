@@ -136,13 +136,15 @@ function remove(): void {
             </div>
         </div>
 
-        <!-- Pointed at, it lifts like a white button; the pale red tint only
-             shows while a file is dragged over it (where it will go). -->
+        <!-- A strip: what to do on the left, a Choose file button on the
+             right (the whole strip opens the picker). Pointed at, it lifts
+             like a white button; the pale red tint only shows while a file
+             is dragged over it. On a phone the button goes under the text. -->
         <label
             v-else
             :for="id"
             :class="[
-                'flex min-h-32 cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-6 text-center transition-[background-color,border-color,box-shadow] peer-focus-visible:outline-3 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-brand',
+                'flex cursor-pointer flex-col items-stretch gap-3 rounded-xl border-2 border-dashed px-4 py-4 transition-[background-color,border-color,box-shadow] peer-focus-visible:outline-3 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-brand sm:min-h-22 sm:flex-row sm:items-center sm:justify-between sm:px-5',
                 dragging
                     ? 'border-brand bg-brand-tint/40'
                     : error
@@ -153,19 +155,36 @@ function remove(): void {
             @dragleave="dragging = false"
             @drop.prevent="drop"
         >
-            <span
-                class="flex size-11 items-center justify-center rounded-full bg-white text-brand ring-1 ring-line"
-            >
-                <FileSpreadsheet aria-hidden="true" class="size-5" />
-            </span>
-            <span class="text-[15px] leading-6 font-bold text-ink">
-                Choose a spreadsheet
-                <span class="font-semibold text-muted-foreground max-sm:hidden">
-                    or drop it here
+            <span class="flex min-w-0 items-center gap-3">
+                <span
+                    class="flex size-10 flex-none items-center justify-center rounded-full bg-white text-brand ring-1 ring-line"
+                >
+                    <FileSpreadsheet aria-hidden="true" class="size-5" />
+                </span>
+                <span class="min-w-0 text-[15px] leading-5">
+                    <span class="font-bold text-ink">
+                        <span class="max-sm:hidden"
+                            >Drop a spreadsheet here</span
+                        >
+                        <span class="sm:hidden">Choose a spreadsheet</span>
+                    </span>
+                    <span
+                        class="font-semibold text-muted-foreground max-sm:hidden"
+                    >
+                        or choose one
+                    </span>
+                    <span
+                        class="mt-0.5 block text-[13px] leading-5 text-muted-foreground"
+                    >
+                        Excel (.xlsx) or CSV, up to {{ limit }}
+                    </span>
                 </span>
             </span>
-            <span class="text-[13px] leading-5 text-muted-foreground">
-                Excel (.xlsx) or CSV, up to {{ limit }}
+            <span
+                aria-hidden="true"
+                class="inline-flex h-11 flex-none items-center justify-center rounded-lg border border-line-strong bg-white px-4 text-sm font-bold text-ink"
+            >
+                Choose file
             </span>
         </label>
     </div>

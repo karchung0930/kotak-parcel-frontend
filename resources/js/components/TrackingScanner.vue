@@ -62,6 +62,11 @@ const props = withDefaults(
          * works: "Opening KT-…", "Recording the pick-up of KT-…".
          */
         busyLabel?: string;
+        /**
+         * A compact "Scan" button laid inside a tracking-number field, at its
+         * right end. Its accessible name stays "Scan with camera".
+         */
+        inField?: boolean;
     }>(),
     {
         title: 'Scan a parcel',
@@ -344,11 +349,18 @@ const actionClass = 'h-12 rounded-lg px-5 text-[15px] font-bold';
             <Button
                 type="button"
                 variant="outline"
+                :title="inField ? 'Scan with camera' : undefined"
                 v-bind="$attrs"
                 @click="onTriggerClick"
             >
-                <Camera aria-hidden="true" class="size-5" />
-                <slot>Scan with camera</slot>
+                <template v-if="inField">
+                    <Camera aria-hidden="true" class="size-5" />
+                    <span class="sr-only">Scan with camera</span>
+                </template>
+                <template v-else>
+                    <Camera aria-hidden="true" class="size-5" />
+                    <slot>Scan with camera</slot>
+                </template>
             </Button>
         </SheetTrigger>
 

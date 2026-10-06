@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
-import { ArrowRight, ChevronRight, MapPin, ScanLine } from '@lucide/vue';
+import { ArrowRight, ChevronRight, MapPin } from '@lucide/vue';
 import { computed, onMounted, useTemplateRef } from 'vue';
 import BranchName from '@/components/BranchName.vue';
 import EmptyParcel from '@/components/brand/EmptyParcel.vue';
@@ -174,7 +174,7 @@ const STEPS = [
                         method="get"
                         role="search"
                         aria-label="Find a parcel by tracking number"
-                        class="mt-5"
+                        class="@container mt-5"
                         @submit.prevent="submit"
                     >
                         <label
@@ -183,38 +183,60 @@ const STEPS = [
                         >
                             Tracking number
                         </label>
-                        <div class="mt-1.5 flex flex-col gap-2.5 sm:flex-row">
-                            <div class="relative min-w-0 flex-1">
-                                <ScanLine
-                                    aria-hidden="true"
-                                    class="pointer-events-none absolute top-1/2 left-4 size-6 -translate-y-1/2 text-muted-foreground"
-                                />
-                                <input
-                                    id="scan-number"
-                                    ref="scanInput"
-                                    name="number"
-                                    type="text"
-                                    required
-                                    maxlength="32"
-                                    v-model="form.number"
-                                    autocomplete="off"
-                                    autocapitalize="characters"
-                                    spellcheck="false"
-                                    enterkeyhint="go"
-                                    placeholder="KT-7Q4M92XD"
-                                    :aria-invalid="query ? 'true' : undefined"
-                                    :aria-describedby="
-                                        query
-                                            ? 'scan-hint scan-not-found'
-                                            : 'scan-hint'
-                                    "
-                                    class="h-16 w-full rounded-xl border-[1.5px] border-field bg-white pr-4 pl-14 font-mono text-xl font-bold tracking-[0.04em] text-ink uppercase outline-none placeholder:font-medium placeholder:text-subtle focus-visible:border-brand focus-visible:ring-[3px] focus-visible:ring-brand/25 aria-invalid:border-brand-strong sm:text-[22px]"
-                                />
+                        <!-- One row once the form is wide enough for the number
+                             and the button; stacked below that. -->
+                        <div
+                            class="mt-1.5 flex flex-col gap-2.5 @[28rem]:flex-row @[28rem]:items-start"
+                        >
+                            <div class="min-w-0 flex-1">
+                                <div class="relative">
+                                    <input
+                                        id="scan-number"
+                                        ref="scanInput"
+                                        name="number"
+                                        type="text"
+                                        required
+                                        maxlength="32"
+                                        v-model="form.number"
+                                        autocomplete="off"
+                                        autocapitalize="characters"
+                                        spellcheck="false"
+                                        enterkeyhint="go"
+                                        placeholder="KT-7Q4M92XD"
+                                        :aria-invalid="
+                                            query ? 'true' : undefined
+                                        "
+                                        :aria-describedby="
+                                            query
+                                                ? 'scan-hint scan-not-found'
+                                                : 'scan-hint'
+                                        "
+                                        class="h-16 w-full rounded-xl border-[1.5px] border-field bg-white pr-16 pl-4 font-mono text-xl font-bold tracking-[0.04em] text-ink uppercase outline-none placeholder:font-medium placeholder:text-subtle focus-visible:border-brand focus-visible:ring-[3px] focus-visible:ring-brand/25 aria-invalid:border-brand-strong sm:text-[22px]"
+                                    />
+                                    <!-- The camera button sits inside the
+                                         field at its right end; the field's
+                                         right padding keeps the number clear
+                                         of it. -->
+                                    <TrackingScanner
+                                        :resolve="openScanned"
+                                        in-field
+                                        class="absolute top-1/2 right-2 size-11 -translate-y-1/2 rounded-lg bg-white p-0"
+                                    />
+                                </div>
+                                <!-- Right under the number it explains, at
+                                     every width. -->
+                                <p
+                                    id="scan-hint"
+                                    class="mt-1.5 text-[13px] leading-5 text-muted-foreground"
+                                >
+                                    KT- is optional, and spaces or dashes are
+                                    fine.
+                                </p>
                             </div>
                             <Button
                                 type="submit"
                                 :disabled="form.processing"
-                                class="h-16 rounded-xl px-7 text-base font-bold hover:bg-brand-strong"
+                                class="h-14 rounded-xl px-7 text-base font-bold hover:bg-brand-strong @[28rem]:h-16"
                             >
                                 <Spinner v-if="form.processing" />
                                 Open parcel
@@ -224,22 +246,6 @@ const STEPS = [
                                     class="size-5"
                                 />
                             </Button>
-                        </div>
-                        <!-- The camera scanner sits with the hint, so the
-                             field keeps the row's width for the number. -->
-                        <div
-                            class="mt-2.5 flex flex-wrap items-center justify-between gap-x-4 gap-y-2.5"
-                        >
-                            <p
-                                id="scan-hint"
-                                class="text-[13px] leading-5 text-muted-foreground"
-                            >
-                                KT- is optional, and spaces or dashes are fine.
-                            </p>
-                            <TrackingScanner
-                                :resolve="openScanned"
-                                size="touch"
-                            />
                         </div>
                     </form>
 

@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { inject } from 'vue';
+import { formRowsKey } from '@/components/admin/formRows';
+
 /**
  * An on/off setting: a switch with its label, the current state in words
  * and an explanation. It is a native checkbox with role="switch", so Space
@@ -29,6 +32,10 @@ const props = withDefaults(
 const model = defineModel<boolean>({ required: true });
 
 const descriptionId = `${props.id}-description`;
+
+// In a FormSection row the label and explanation take the left third and
+// the switch starts the right column, lined up with the controls above.
+const asRow = inject(formRowsKey, false);
 </script>
 
 <template>
@@ -38,7 +45,11 @@ const descriptionId = `${props.id}-description`;
          ("Open for new orders") wraps into balanced lines, not a lone
          last word. -->
     <div
-        class="grid grid-cols-[minmax(0,1fr)_auto] content-start items-center gap-x-5 sm:items-start"
+        :class="
+            asRow
+                ? 'grid grid-cols-[minmax(0,1fr)_auto] content-start items-center gap-x-5 sm:items-start @2xl:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] @2xl:gap-x-8'
+                : 'grid grid-cols-[minmax(0,1fr)_auto] content-start items-center gap-x-5 sm:items-start'
+        "
     >
         <label
             :for="id"
@@ -62,7 +73,10 @@ const descriptionId = `${props.id}-description`;
         </div>
 
         <div
-            class="col-start-2 row-start-1 flex items-center gap-3 pt-0.5 sm:row-end-3"
+            :class="[
+                'col-start-2 row-start-1 flex items-center gap-3 pt-0.5 sm:row-end-3',
+                asRow && '@2xl:flex-row-reverse @2xl:justify-end',
+            ]"
         >
             <span
                 aria-hidden="true"

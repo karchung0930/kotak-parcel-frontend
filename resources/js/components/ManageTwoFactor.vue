@@ -2,7 +2,7 @@
 import { Form } from '@inertiajs/vue3';
 import { ShieldCheck } from '@lucide/vue';
 import { onUnmounted, ref } from 'vue';
-import Heading from '@/components/Heading.vue';
+import FormSection from '@/components/admin/FormSection.vue';
 import TwoFactorRecoveryCodes from '@/components/TwoFactorRecoveryCodes.vue';
 import TwoFactorSetupModal from '@/components/TwoFactorSetupModal.vue';
 import { Button } from '@/components/ui/button';
@@ -30,27 +30,20 @@ onUnmounted(() => clearTwoFactorAuthData());
 // or off is a switch that can be turned back, so both are outline buttons
 // like "Add passkey" (red is for the next step, yellow for a step that
 // cannot be undone).
-const outlineClass = 'h-11 px-6 font-bold';
+// The card's one button; it takes the full width on phones.
+const outlineClass = 'h-11 w-full rounded-lg px-5 text-[15px] font-bold';
 </script>
 
 <template>
-    <div v-if="canManageTwoFactor" class="space-y-6">
-        <Heading
-            variant="small"
-            title="Two-factor authentication"
-            description="Keep your account safe even if someone learns your password."
-        />
-
-        <div
-            v-if="!twoFactorEnabled"
-            class="flex flex-col items-start justify-start space-y-4"
-        >
-            <p class="text-sm text-pretty text-muted-foreground">
-                When it is on, you also enter a 6-digit code from an
-                authenticator app each time you log in.
-            </p>
-
-            <div>
+    <!-- A card like the others: turning it on or off is the card's button,
+         at the top right; what it means (and the recovery codes) below. -->
+    <FormSection
+        v-if="canManageTwoFactor"
+        title="Two-factor authentication"
+        description="Keep your account safe even if someone learns your password."
+    >
+        <template #actions>
+            <template v-if="!twoFactorEnabled">
                 <Button
                     v-if="hasSetupData"
                     variant="outline"
@@ -74,28 +67,31 @@ const outlineClass = 'h-11 px-6 font-bold';
                         Enable 2FA
                     </Button>
                 </Form>
-            </div>
-        </div>
+            </template>
+            <Form v-else v-bind="disable.form()" #default="{ processing }">
+                <Button
+                    variant="outline"
+                    type="submit"
+                    :class="outlineClass"
+                    :disabled="processing"
+                >
+                    Disable 2FA
+                </Button>
+            </Form>
+        </template>
 
-        <div v-else class="flex flex-col items-start justify-start space-y-4">
+        <p
+            v-if="!twoFactorEnabled"
+            class="text-sm text-pretty text-muted-foreground"
+        >
+            When it is on, you also enter a 6-digit code from an authenticator
+            app each time you log in.
+        </p>
+        <div v-else class="grid gap-4">
             <p class="text-sm text-pretty text-muted-foreground">
                 It is on. Each time you log in, you also enter a 6-digit code
                 from your authenticator app.
             </p>
-
-            <div class="relative inline">
-                <Form v-bind="disable.form()" #default="{ processing }">
-                    <Button
-                        variant="outline"
-                        type="submit"
-                        :class="outlineClass"
-                        :disabled="processing"
-                    >
-                        Disable 2FA
-                    </Button>
-                </Form>
-            </div>
-
             <TwoFactorRecoveryCodes />
         </div>
 
@@ -104,5 +100,5 @@ const outlineClass = 'h-11 px-6 font-bold';
             :requiresConfirmation="requiresConfirmation"
             :twoFactorEnabled="twoFactorEnabled"
         />
-    </div>
+    </FormSection>
 </template>

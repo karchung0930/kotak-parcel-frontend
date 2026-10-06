@@ -33,7 +33,8 @@ const getDefaultPasskeyName = () => {
 };
 
 const name = ref(getDefaultPasskeyName());
-const showForm = ref(false);
+// Opened by the Passkeys card's header button; closes itself when done.
+const showForm = defineModel<boolean>('open', { default: false });
 
 const { register, isLoading, error, isSupported } = usePasskeyRegister({
     onSuccess: () => {
@@ -64,17 +65,8 @@ const handleCancel = () => {
         Passkeys are not supported in this browser.
     </div>
 
-    <Button
-        v-else-if="!showForm"
-        variant="outline"
-        class="h-11 px-6 font-bold"
-        @click="showForm = true"
-    >
-        Add passkey
-    </Button>
-
     <form
-        v-else
+        v-else-if="showForm"
         @submit="handleSubmit"
         class="space-y-4 rounded-lg border border-border bg-muted/50 p-4"
     >
@@ -104,10 +96,10 @@ const handleCancel = () => {
         <!-- Red for the next step; Cancel is a plain outline button, like
              every Cancel on the site (a ghost button's pale red hover
              would read as "selected"). -->
-        <div class="flex gap-2.5">
+        <div class="flex flex-wrap gap-2.5">
             <Button
                 type="submit"
-                class="h-11 px-6 font-bold"
+                class="h-11 rounded-lg px-5 font-bold"
                 :disabled="isLoading || !name.trim()"
             >
                 {{ isLoading ? 'Registering...' : 'Register passkey' }}
@@ -115,7 +107,7 @@ const handleCancel = () => {
             <Button
                 type="button"
                 variant="outline"
-                class="h-11 px-5 font-bold"
+                class="h-11 rounded-lg px-5 font-bold"
                 @click="handleCancel"
             >
                 Cancel

@@ -72,6 +72,24 @@ const headingClass =
                 title="File"
                 description="Zone names in the file are matched to the zones of the rates you choose."
             >
+                <template #actions>
+                    <Button
+                        variant="outline"
+                        as-child
+                        class="h-11 rounded-lg px-5 text-[15px] font-bold"
+                    >
+                        <Link :href="index()">Cancel</Link>
+                    </Button>
+                    <Button
+                        type="submit"
+                        :disabled="form.processing"
+                        class="h-11 rounded-lg px-5 text-[15px] font-bold hover:bg-brand-strong"
+                    >
+                        <Spinner v-if="form.processing" />
+                        <FileUp v-else aria-hidden="true" />
+                        Upload and read
+                    </Button>
+                </template>
                 <FormField
                     id="import-file"
                     label="Spreadsheet"
@@ -102,7 +120,6 @@ const headingClass =
                             v-model="form.base_rate_card_id"
                             :aria-describedby="describedby"
                             :aria-invalid="invalid"
-                            class="sm:max-w-md"
                         >
                             <option
                                 v-for="card in rateCards"
@@ -115,49 +132,20 @@ const headingClass =
                     </template>
                 </FormField>
             </FormSection>
-
-            <div
-                class="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-end"
-            >
-                <Button
-                    variant="outline"
-                    as-child
-                    class="h-12 rounded-lg px-5 text-[15px] font-bold"
-                >
-                    <Link :href="index()">Cancel</Link>
-                </Button>
-                <Button
-                    type="submit"
-                    :disabled="form.processing"
-                    class="h-12 rounded-lg px-6 text-[15px] font-bold hover:bg-brand-strong"
-                >
-                    <Spinner v-if="form.processing" />
-                    <FileUp v-else aria-hidden="true" />
-                    Upload and read
-                </Button>
-            </div>
         </form>
 
-        <!-- Reference, not part of the form: the shapes a file may take. -->
-        <section aria-labelledby="layouts-title" class="space-y-3">
-            <div
-                class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"
-            >
-                <div class="min-w-0">
-                    <h2 id="layouts-title" :class="headingClass">
-                        Layouts it reads
-                    </h2>
-                    <p
-                        class="mt-0.5 text-[13.5px] leading-5 text-muted-foreground"
-                    >
-                        Headings can be worded your way. The template has both
-                        layouts.
-                    </p>
-                </div>
+        <!-- Reference, not part of the form: the shapes a file may take,
+             under the same header as the File card, side by side. -->
+        <FormSection
+            plain
+            title="Layouts it reads"
+            description="Headings can be worded your way. The template has both layouts."
+        >
+            <template #actions>
                 <Button
                     variant="outline"
                     as-child
-                    class="h-11 w-fit flex-none rounded-lg px-4 font-bold"
+                    class="h-11 rounded-lg px-5 text-[15px] font-bold"
                 >
                     <a
                         :href="download([currentRateCardId, 'xlsx']).url"
@@ -167,19 +155,20 @@ const headingClass =
                         Download template
                     </a>
                 </Button>
-            </div>
-            <div class="rounded-xl border border-line bg-white p-5 sm:p-6">
-                <LayoutExamples />
-            </div>
-        </section>
+            </template>
+            <LayoutExamples />
+        </FormSection>
 
         <section
             v-if="recent.length > 0"
             aria-labelledby="recent-title"
-            class="@container space-y-3"
+            class="@container overflow-hidden rounded-2xl border border-line bg-white"
         >
-            <h2 id="recent-title" :class="headingClass">Recent imports</h2>
-            <div class="overflow-hidden rounded-xl border border-line bg-white">
+            <!-- The heading inside the card, as in the cards above. -->
+            <div class="border-b border-line px-4 py-4 sm:px-5">
+                <h2 id="recent-title" :class="headingClass">Recent imports</h2>
+            </div>
+            <div>
                 <!-- A table (.data-table in app.css) once the card is 40rem
                      wide, with who uploaded it from 52rem; cards below. -->
                 <div class="hidden overflow-x-auto @[40rem]:block">

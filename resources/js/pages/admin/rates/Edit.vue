@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { Plus, Trash2, TriangleAlert } from '@lucide/vue';
-import { computed, nextTick, reactive, ref } from 'vue';
+import { computed, nextTick, reactive, ref, useTemplateRef } from 'vue';
 import { toast } from 'vue-sonner';
 import FormField from '@/components/admin/FormField.vue';
+import FormGroup from '@/components/admin/FormGroup.vue';
+import FormRow from '@/components/admin/FormRow.vue';
 import FormSection from '@/components/admin/FormSection.vue';
 import InputError from '@/components/InputError.vue';
 import Notice from '@/components/Notice.vue';
@@ -15,6 +17,7 @@ import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 import { Textarea } from '@/components/ui/textarea';
 import UnitInput from '@/components/UnitInput.vue';
+import { useScrollHint } from '@/composables/useScrollHint';
 import { formatKg } from '@/lib/format';
 import {
     kgToGrams,
@@ -562,6 +565,11 @@ const stickyClass =
 const routeCellClass = 'w-38 px-2';
 // The extra-kg row's tint as one opaque colour, so the sticky cell matches.
 const extraRowClass = 'bg-[color-mix(in_srgb,var(--color-surface)_60%,white)]';
+
+// The prices table scrolls sideways when the routes do not fit: a fade on
+// the right and a hint above say so, as on the rates page.
+const pricesScroller = useTemplateRef<HTMLElement>('pricesScroller');
+const pricesHint = useScrollHint(pricesScroller);
 </script>
 
 <template>
@@ -584,11 +592,33 @@ const extraRowClass = 'bg-[color-mix(in_srgb,var(--color-surface)_60%,white)]';
         </Notice>
 
         <form class="space-y-6" novalidate @submit.prevent="submit">
+            <!-- One card, as Save draft saves it all: the buttons in its
+                 header, version, zones and prices as labelled groups. -->
             <FormSection
-                title="Version"
-                description="Staff see the name at the counter and on order details."
+                title="Draft"
+                description="Change the name, the zones and the prices, then save."
             >
-                <div class="grid gap-5 sm:grid-cols-[minmax(0,1fr)_14rem]">
+                <template #actions>
+                    <Button
+                        variant="outline"
+                        as-child
+                        class="h-11 rounded-lg px-5 text-[15px] font-bold"
+                    >
+                        <Link :href="show(rateCard.id)">Cancel</Link>
+                    </Button>
+                    <Button
+                        type="submit"
+                        :disabled="form.processing"
+                        class="h-11 rounded-lg px-5 text-[15px] font-bold"
+                    >
+                        <Spinner v-if="form.processing" />
+                        Save draft
+                    </Button>
+                </template>
+                <FormGroup
+                    title="Version"
+                    description="Staff see the name at the counter and on order details."
+                >
                     <FormField
                         id="rate-card-name"
                         label="Name"
@@ -628,346 +658,410 @@ const extraRowClass = 'bg-[color-mix(in_srgb,var(--color-surface)_60%,white)]';
                             />
                         </template>
                     </FormField>
-                </div>
-                <FormField
-                    id="rate-card-notes"
-                    label="Notes"
-                    optional
-                    hint="For admins only, e.g. why the prices changed."
-                    :error="error('notes')"
-                >
-                    <template #default="{ describedby, invalid }">
-                        <!-- Grows with the note (two lines at least), so no
+                    <FormField
+                        id="rate-card-notes"
+                        label="Notes"
+                        optional
+                        hint="For admins only, e.g. why the prices changed."
+                        :error="error('notes')"
+                    >
+                        <template #default="{ describedby, invalid }">
+                            <!-- Grows with the note (two lines at least), so no
                              line is cut off at the bottom edge. -->
-                        <Textarea
-                            id="rate-card-notes"
-                            v-model="details.notes"
-                            rows="2"
-                            maxlength="2000"
-                            :aria-describedby="describedby"
-                            :aria-invalid="invalid"
-                            class="field-sizing-content max-h-60 min-h-[70px]"
-                        />
-                    </template>
-                </FormField>
-            </FormSection>
+                            <Textarea
+                                id="rate-card-notes"
+                                v-model="details.notes"
+                                rows="2"
+                                maxlength="2000"
+                                :aria-describedby="describedby"
+                                :aria-invalid="invalid"
+                                class="field-sizing-content max-h-60 min-h-[70px]"
+                            />
+                        </template>
+                    </FormField>
+                </FormGroup>
 
-            <FormSection
-                title="Zones"
-                description="Group the states that cost the same. A state can only be in one zone."
-            >
-                <div
-                    v-for="(zone, zoneIndex) in zones"
-                    :key="zone.key"
-                    class="rounded-xl border border-line p-4"
+                <FormGroup
+                    title="Zones"
+                    description="Group the states that cost the same. A state can only be in one zone."
                 >
-                    <!-- The button lines up with the field, under its label.
-                         Below 360px it goes under the field instead, so a
-                         name like "Peninsular Malaysia" is not cut short. -->
-                    <div class="flex items-start gap-3 max-[359px]:flex-col">
-                        <FormField
-                            :id="`${zone.key}-name`"
-                            :label="`Zone ${zoneIndex + 1}`"
-                            :error="error(`zone:${zone.key}:name`)"
-                            class="flex-1 max-[359px]:self-stretch"
+                    <div
+                        v-for="(zone, zoneIndex) in zones"
+                        :key="zone.key"
+                        class="grid min-w-0 gap-x-8 gap-y-4 @2xl:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]"
+                    >
+                        <!-- A row per zone, like the rows above: its name and
+                         Remove on the left, its states on the right. The
+                         button lines up with the field, under its label;
+                         below 360px it goes under the field instead. -->
+                        <div
+                            class="flex items-start gap-3 self-start max-[359px]:flex-col @2xl:flex-col @2xl:items-stretch"
                         >
-                            <template #default="{ describedby, invalid }">
-                                <Input
-                                    :id="`${zone.key}-name`"
-                                    v-model="zone.name"
-                                    required
-                                    maxlength="60"
-                                    autocomplete="off"
-                                    placeholder="e.g. Peninsular Malaysia"
-                                    :aria-describedby="describedby"
-                                    :aria-invalid="invalid"
-                                    class="h-11 rounded-lg bg-white text-base font-bold md:text-[15px]"
-                                />
-                            </template>
-                        </FormField>
-                        <Button
-                            type="button"
-                            variant="outline"
-                            class="mt-[26px] h-11 min-w-11 flex-none rounded-lg px-3.5 font-bold max-[359px]:mt-0"
-                            @click="removeZone(zone)"
-                        >
-                            <Trash2 aria-hidden="true" />
-                            <span class="max-sm:min-[360px]:sr-only">
-                                Remove
-                            </span>
-                            <span class="sr-only">
-                                {{ zone.name || `zone ${zoneIndex + 1}` }}
-                            </span>
-                        </Button>
-                    </div>
+                            <FormField
+                                :id="`${zone.key}-name`"
+                                :label="`Zone ${zoneIndex + 1}`"
+                                :error="error(`zone:${zone.key}:name`)"
+                                stacked
+                                class="flex-1 max-[359px]:self-stretch"
+                            >
+                                <template #default="{ describedby, invalid }">
+                                    <Input
+                                        :id="`${zone.key}-name`"
+                                        v-model="zone.name"
+                                        required
+                                        maxlength="60"
+                                        autocomplete="off"
+                                        placeholder="e.g. Peninsular Malaysia"
+                                        :aria-describedby="describedby"
+                                        :aria-invalid="invalid"
+                                        class="h-11 rounded-lg bg-white text-base font-bold md:text-[15px]"
+                                    />
+                                </template>
+                            </FormField>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                class="mt-[26px] h-11 min-w-11 flex-none rounded-lg px-3.5 font-bold max-[359px]:mt-0 @2xl:mt-0 @2xl:w-fit"
+                                @click="removeZone(zone)"
+                            >
+                                <Trash2 aria-hidden="true" />
+                                <span class="max-sm:min-[360px]:sr-only">
+                                    Remove
+                                </span>
+                                <span class="sr-only">
+                                    {{ zone.name || `zone ${zoneIndex + 1}` }}
+                                </span>
+                            </Button>
+                        </div>
 
-                    <!-- Only the states free to choose are listed: those in
+                        <!-- Only the states free to choose are listed: those in
                          this zone and those in none. States in other zones
                          are named under them, to be moved from there. -->
-                    <fieldset class="mt-4">
-                        <legend class="text-sm leading-5 font-bold text-ink">
-                            States in this zone
-                        </legend>
-                        <!-- Each row is a 44px target on touch screens, with
-                             the same 44px rhythm as with a mouse. -->
-                        <div
-                            v-if="choosable(zone).length > 0"
-                            class="mt-2 grid grid-cols-1 gap-x-4 gap-y-1 min-[400px]:grid-cols-2 md:grid-cols-3 2xl:grid-cols-4 pointer-coarse:gap-y-0"
-                        >
-                            <label
-                                v-for="state in choosable(zone)"
-                                :key="state.value"
-                                class="flex min-h-10 cursor-pointer items-center gap-2.5 text-sm leading-5 text-ink pointer-coarse:min-h-11"
+                        <fieldset class="min-w-0 @2xl:pt-0.5">
+                            <legend
+                                class="text-sm leading-5 font-bold text-ink"
                             >
-                                <Checkbox
-                                    :model-value="
-                                        zone.states.includes(state.value)
-                                    "
-                                    class="size-[18px]"
-                                    @update:model-value="
-                                        toggleState(zone, state.value, $event)
-                                    "
-                                />
-                                {{ state.label }}
-                            </label>
-                        </div>
-                        <p
-                            v-if="elsewhere(zone).length > 0"
-                            class="mt-2 text-[13px] leading-5 text-pretty text-muted-foreground"
+                                States in this zone
+                            </legend>
+                            <!-- Each row is a 44px target on touch screens, with
+                             the same 44px rhythm as with a mouse. -->
+                            <div
+                                v-if="choosable(zone).length > 0"
+                                class="mt-2 grid grid-cols-1 gap-x-4 gap-y-1 min-[400px]:grid-cols-2 xl:grid-cols-3 pointer-coarse:gap-y-0"
+                            >
+                                <label
+                                    v-for="state in choosable(zone)"
+                                    :key="state.value"
+                                    class="flex min-h-10 cursor-pointer items-center gap-2.5 text-sm leading-5 text-ink pointer-coarse:min-h-11"
+                                >
+                                    <Checkbox
+                                        :model-value="
+                                            zone.states.includes(state.value)
+                                        "
+                                        class="size-[18px]"
+                                        @update:model-value="
+                                            toggleState(
+                                                zone,
+                                                state.value,
+                                                $event,
+                                            )
+                                        "
+                                    />
+                                    {{ state.label }}
+                                </label>
+                            </div>
+                            <p
+                                v-if="elsewhere(zone).length > 0"
+                                class="mt-2 text-[13px] leading-5 text-pretty text-muted-foreground"
+                            >
+                                In other zones:
+                                {{ elsewhere(zone).join('; ') }}.
+                            </p>
+                            <InputError
+                                :message="error(`zone:${zone.key}:states`)"
+                                class="mt-2"
+                            />
+                        </fieldset>
+                    </div>
+
+                    <FormRow v-if="unzoned.length > 0 && zones.length > 0">
+                        <Notice tone="warning" :icon="TriangleAlert">
+                            Not in any zone yet:
+                            {{
+                                unzoned.map((state) => state.label).join(', ')
+                            }}. Every state needs a zone before publishing.
+                        </Notice>
+                    </FormRow>
+
+                    <div>
+                        <Button
+                            id="add-zone"
+                            type="button"
+                            variant="outline"
+                            class="h-11 w-fit rounded-lg px-4 font-bold"
+                            @click="addZone"
                         >
-                            In other zones:
-                            {{ elsewhere(zone).join('; ') }}.
+                            <Plus aria-hidden="true" />
+                            Add zone
+                        </Button>
+                    </div>
+                </FormGroup>
+
+                <FormGroup
+                    title="Prices"
+                    description="In ringgit. A row per weight band, a column per route. Leave a box empty where a route has no band at that weight."
+                >
+                    <div class="grid min-w-0 gap-5">
+                        <p
+                            v-if="columns.length === 0"
+                            class="rounded-xl border border-dashed border-line-strong px-5 py-6 text-sm text-muted-foreground"
+                        >
+                            Add a zone to set prices.
                         </p>
-                        <InputError
-                            :message="error(`zone:${zone.key}:states`)"
-                            class="mt-2"
-                        />
-                    </fieldset>
-                </div>
 
-                <!-- Out of the flow while empty, so it adds no second gap. -->
-                <div aria-live="polite" class="empty:absolute">
-                    <Notice
-                        v-if="unzoned.length > 0 && zones.length > 0"
-                        tone="warning"
-                        :icon="TriangleAlert"
-                    >
-                        Not in any zone yet:
-                        {{ unzoned.map((state) => state.label).join(', ') }}.
-                        Every state needs a zone before publishing.
-                    </Notice>
-                </div>
-
-                <Button
-                    id="add-zone"
-                    type="button"
-                    variant="outline"
-                    class="h-11 w-fit rounded-lg px-4 font-bold"
-                    @click="addZone"
-                >
-                    <Plus aria-hidden="true" />
-                    Add zone
-                </Button>
-            </FormSection>
-
-            <FormSection
-                title="Prices"
-                description="In ringgit. A row per weight band, a column per route. Leave a box empty where a route has no band at that weight."
-            >
-                <p
-                    v-if="columns.length === 0"
-                    class="rounded-xl border border-dashed border-line-strong px-5 py-6 text-sm text-muted-foreground"
-                >
-                    Add a zone to set prices.
-                </p>
-
-                <template v-else>
-                    <!-- Scrolls sideways inside the card when the routes do
+                        <template v-else>
+                            <!-- Scrolls sideways inside the card when the routes do
                          not fit. From 640px the weight column stays put while
                          it scrolls, and scroll-padding keeps a focused box
                          clear of it; on phones it scrolls with the prices.
                          The last, empty column takes any spare width, so the
                          route columns keep one width and one gap. -->
-                    <div
-                        class="overflow-x-auto rounded-xl border border-line sm:scroll-pl-56"
-                    >
-                        <table class="w-max min-w-full text-left text-sm">
-                            <caption class="sr-only">
-                                Prices in ringgit by weight band and route
-                            </caption>
-                            <thead
-                                class="border-b border-line bg-surface text-[12.5px] leading-4 font-bold text-ink-2"
-                            >
-                                <tr>
-                                    <th
-                                        scope="col"
-                                        :class="[
-                                            'bg-surface py-2.5 pr-2 pl-5 align-bottom',
-                                            stickyClass,
-                                        ]"
+                            <div class="min-w-0 [contain:inline-size]">
+                                <p
+                                    v-if="pricesHint.overflows.value"
+                                    class="mb-2 text-[13px] leading-5 text-muted-foreground"
+                                >
+                                    Scroll for more routes
+                                    <span aria-hidden="true">→</span>
+                                </p>
+                                <div class="relative">
+                                    <div
+                                        ref="pricesScroller"
+                                        class="overflow-x-auto overscroll-x-contain rounded-xl border border-line sm:scroll-pl-56"
+                                        @scroll.passive="pricesHint.measure"
                                     >
-                                        Weight band
-                                    </th>
-                                    <th
-                                        v-for="column in columns"
-                                        :key="column.key"
-                                        scope="col"
-                                        :class="[
-                                            'py-2.5 align-bottom',
-                                            routeCellClass,
-                                        ]"
-                                    >
-                                        <RouteTitle :title="column.label" />
-                                    </th>
-                                    <td aria-hidden="true" class="pl-3" />
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-line-soft">
-                                <tr v-for="row in rows" :key="row.key">
-                                    <th
-                                        scope="row"
-                                        :class="[
-                                            'bg-white py-2 pr-2 pl-5 font-normal',
-                                            stickyClass,
-                                        ]"
-                                    >
-                                        <div class="flex items-center gap-1.5">
-                                            <span
-                                                class="text-[13px] font-semibold whitespace-nowrap text-muted-foreground"
+                                        <table
+                                            class="w-max min-w-full text-left text-sm"
+                                        >
+                                            <caption class="sr-only">
+                                                Prices in ringgit by weight band
+                                                and route
+                                            </caption>
+                                            <thead
+                                                class="border-b border-line bg-surface text-[12.5px] leading-4 font-bold text-ink-2"
                                             >
-                                                Up to
-                                            </span>
-                                            <UnitInput
-                                                :id="`${row.key}-kg`"
-                                                v-model="row.kg"
-                                                unit="kg"
-                                                inputmode="decimal"
-                                                autocomplete="off"
-                                                placeholder="1"
-                                                :aria-label="`Band ${rowLabel(row)}: weight in kg`"
-                                                v-bind="
-                                                    gridField(`row:${row.key}`)
-                                                "
-                                                class="w-24"
-                                            />
-                                            <Button
-                                                type="button"
-                                                variant="outline"
-                                                size="icon"
-                                                class="size-11 flex-none rounded-lg text-ink-2"
-                                                @click="removeRow(row)"
+                                                <tr>
+                                                    <th
+                                                        scope="col"
+                                                        :class="[
+                                                            'bg-surface py-2.5 pr-2 pl-5 align-bottom',
+                                                            stickyClass,
+                                                        ]"
+                                                    >
+                                                        Weight band
+                                                    </th>
+                                                    <th
+                                                        v-for="column in columns"
+                                                        :key="column.key"
+                                                        scope="col"
+                                                        :class="[
+                                                            'py-2.5 align-bottom',
+                                                            routeCellClass,
+                                                        ]"
+                                                    >
+                                                        <RouteTitle
+                                                            :title="
+                                                                column.label
+                                                            "
+                                                        />
+                                                    </th>
+                                                    <td
+                                                        aria-hidden="true"
+                                                        class="pl-3"
+                                                    />
+                                                </tr>
+                                            </thead>
+                                            <tbody
+                                                class="divide-y divide-line-soft"
                                             >
-                                                <Trash2
-                                                    aria-hidden="true"
-                                                    class="size-[18px]"
-                                                />
-                                                <span class="sr-only">
-                                                    Remove the band up to
-                                                    {{ rowLabel(row) }}
-                                                </span>
-                                            </Button>
-                                        </div>
-                                    </th>
-                                    <td
-                                        v-for="column in columns"
-                                        :key="column.key"
-                                        :class="['py-2', routeCellClass]"
-                                    >
-                                        <Input
-                                            v-model="row.prices[column.key]"
-                                            inputmode="decimal"
-                                            autocomplete="off"
-                                            :aria-label="`${column.label}, up to ${rowLabel(row)}: price in ringgit`"
-                                            v-bind="
-                                                gridField(
-                                                    `cell:${column.key}:${row.key}`,
-                                                )
-                                            "
-                                            class="h-11 w-full rounded-lg bg-white font-mono text-base tabular-nums md:text-[15px]"
-                                        />
-                                    </td>
-                                    <td aria-hidden="true" class="pl-3" />
-                                </tr>
-                                <tr :class="extraRowClass">
-                                    <th
-                                        scope="row"
-                                        :class="[
-                                            'py-2 pr-2 pl-5 text-[13px] font-semibold whitespace-nowrap text-ink-2',
-                                            extraRowClass,
-                                            stickyClass,
-                                        ]"
-                                    >
-                                        Each kg over the top band
-                                    </th>
-                                    <td
-                                        v-for="column in columns"
-                                        :key="column.key"
-                                        :class="['py-2', routeCellClass]"
-                                    >
-                                        <Input
-                                            v-model="extras[column.key]"
-                                            inputmode="decimal"
-                                            autocomplete="off"
-                                            :aria-label="`${column.label}: price for each extra kg, in ringgit`"
-                                            v-bind="
-                                                gridField(`extra:${column.key}`)
-                                            "
-                                            class="h-11 w-full rounded-lg bg-white font-mono text-base tabular-nums md:text-[15px]"
-                                        />
-                                    </td>
-                                    <td aria-hidden="true" class="pl-3" />
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                                                <tr
+                                                    v-for="row in rows"
+                                                    :key="row.key"
+                                                >
+                                                    <th
+                                                        scope="row"
+                                                        :class="[
+                                                            'bg-white py-2 pr-2 pl-5 font-normal',
+                                                            stickyClass,
+                                                        ]"
+                                                    >
+                                                        <div
+                                                            class="flex items-center gap-1.5"
+                                                        >
+                                                            <span
+                                                                class="text-[13px] font-semibold whitespace-nowrap text-muted-foreground"
+                                                            >
+                                                                Up to
+                                                            </span>
+                                                            <UnitInput
+                                                                :id="`${row.key}-kg`"
+                                                                v-model="row.kg"
+                                                                unit="kg"
+                                                                inputmode="decimal"
+                                                                autocomplete="off"
+                                                                placeholder="1"
+                                                                :aria-label="`Band ${rowLabel(row)}: weight in kg`"
+                                                                v-bind="
+                                                                    gridField(
+                                                                        `row:${row.key}`,
+                                                                    )
+                                                                "
+                                                                class="w-24"
+                                                            />
+                                                            <Button
+                                                                type="button"
+                                                                variant="outline"
+                                                                size="icon"
+                                                                class="size-11 flex-none rounded-lg text-ink-2"
+                                                                @click="
+                                                                    removeRow(
+                                                                        row,
+                                                                    )
+                                                                "
+                                                            >
+                                                                <Trash2
+                                                                    aria-hidden="true"
+                                                                    class="size-[18px]"
+                                                                />
+                                                                <span
+                                                                    class="sr-only"
+                                                                >
+                                                                    Remove the
+                                                                    band up to
+                                                                    {{
+                                                                        rowLabel(
+                                                                            row,
+                                                                        )
+                                                                    }}
+                                                                </span>
+                                                            </Button>
+                                                        </div>
+                                                    </th>
+                                                    <td
+                                                        v-for="column in columns"
+                                                        :key="column.key"
+                                                        :class="[
+                                                            'py-2',
+                                                            routeCellClass,
+                                                        ]"
+                                                    >
+                                                        <Input
+                                                            v-model="
+                                                                row.prices[
+                                                                    column.key
+                                                                ]
+                                                            "
+                                                            inputmode="decimal"
+                                                            autocomplete="off"
+                                                            :aria-label="`${column.label}, up to ${rowLabel(row)}: price in ringgit`"
+                                                            v-bind="
+                                                                gridField(
+                                                                    `cell:${column.key}:${row.key}`,
+                                                                )
+                                                            "
+                                                            class="h-11 w-full rounded-lg bg-white font-mono text-base tabular-nums md:text-[15px]"
+                                                        />
+                                                    </td>
+                                                    <td
+                                                        aria-hidden="true"
+                                                        class="pl-3"
+                                                    />
+                                                </tr>
+                                                <tr :class="extraRowClass">
+                                                    <th
+                                                        scope="row"
+                                                        :class="[
+                                                            'py-2 pr-2 pl-5 text-[13px] font-semibold whitespace-nowrap text-ink-2',
+                                                            extraRowClass,
+                                                            stickyClass,
+                                                        ]"
+                                                    >
+                                                        Each kg over the top
+                                                        band
+                                                    </th>
+                                                    <td
+                                                        v-for="column in columns"
+                                                        :key="column.key"
+                                                        :class="[
+                                                            'py-2',
+                                                            routeCellClass,
+                                                        ]"
+                                                    >
+                                                        <Input
+                                                            v-model="
+                                                                extras[
+                                                                    column.key
+                                                                ]
+                                                            "
+                                                            inputmode="decimal"
+                                                            autocomplete="off"
+                                                            :aria-label="`${column.label}: price for each extra kg, in ringgit`"
+                                                            v-bind="
+                                                                gridField(
+                                                                    `extra:${column.key}`,
+                                                                )
+                                                            "
+                                                            class="h-11 w-full rounded-lg bg-white font-mono text-base tabular-nums md:text-[15px]"
+                                                        />
+                                                    </td>
+                                                    <td
+                                                        aria-hidden="true"
+                                                        class="pl-3"
+                                                    />
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div
+                                        v-if="pricesHint.moreRight.value"
+                                        aria-hidden="true"
+                                        class="pointer-events-none absolute inset-y-px right-px w-10 rounded-r-xl bg-linear-to-l from-ink/15 to-transparent"
+                                    />
+                                </div>
+                            </div>
 
-                    <!-- Always there, so screen readers hear problems as they
+                            <!-- Always there, so screen readers hear problems as they
                          appear; each box points at its line. Out of the
                          flow while empty, so it adds no second gap. -->
-                    <div aria-live="polite" class="empty:absolute">
-                        <ul v-if="gridErrors.length > 0" class="grid gap-1">
-                            <li
-                                v-for="item in gridErrors"
-                                :id="gridErrorId(item.key)"
-                                :key="item.key"
+                            <div aria-live="polite" class="empty:absolute">
+                                <ul
+                                    v-if="gridErrors.length > 0"
+                                    class="grid gap-1"
+                                >
+                                    <li
+                                        v-for="item in gridErrors"
+                                        :id="gridErrorId(item.key)"
+                                        :key="item.key"
+                                    >
+                                        <InputError :message="item.message" />
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <Button
+                                id="add-band"
+                                type="button"
+                                variant="outline"
+                                class="h-11 w-fit rounded-lg px-4 font-bold"
+                                @click="addRow"
                             >
-                                <InputError :message="item.message" />
-                            </li>
-                        </ul>
+                                <Plus aria-hidden="true" />
+                                Add weight band
+                            </Button>
+                        </template>
                     </div>
-
-                    <Button
-                        id="add-band"
-                        type="button"
-                        variant="outline"
-                        class="h-11 w-fit rounded-lg px-4 font-bold"
-                        @click="addRow"
-                    >
-                        <Plus aria-hidden="true" />
-                        Add weight band
-                    </Button>
-                </template>
+                </FormGroup>
             </FormSection>
-
-            <div
-                class="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-end"
-            >
-                <Button
-                    variant="outline"
-                    as-child
-                    class="h-12 rounded-lg px-5 text-[15px] font-bold"
-                >
-                    <Link :href="show(rateCard.id)">Cancel</Link>
-                </Button>
-                <Button
-                    type="submit"
-                    :disabled="form.processing"
-                    class="h-12 rounded-lg px-6 text-[15px] font-bold"
-                >
-                    <Spinner v-if="form.processing" />
-                    Save draft
-                </Button>
-            </div>
         </form>
     </div>
 </template>

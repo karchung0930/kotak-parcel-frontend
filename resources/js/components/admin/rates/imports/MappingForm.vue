@@ -12,6 +12,8 @@ import {
 } from 'vue';
 import ChoiceCard from '@/components/ChoiceCard.vue';
 import FormField from '@/components/admin/FormField.vue';
+import FormGroup from '@/components/admin/FormGroup.vue';
+import FormRow from '@/components/admin/FormRow.vue';
 import FormSection from '@/components/admin/FormSection.vue';
 import SheetPreview from '@/components/admin/rates/imports/SheetPreview.vue';
 import InputError from '@/components/InputError.vue';
@@ -272,111 +274,121 @@ function submit(): void {
         novalidate
         @submit.prevent="submit"
     >
+        <!-- One card, as Check every row reads it all: the buttons in
+             its header, layout and columns (or routes) as groups of rows.
+             The sheet itself follows as a reference card. -->
         <FormSection
-            title="Layout"
+            title="How to read the sheet"
             description="Suggested from the headings. Change anything that is not right."
         >
-            <fieldset class="grid gap-2 sm:grid-cols-2">
-                <legend class="sr-only">How the sheet is laid out</legend>
-                <ChoiceCard
-                    v-for="option in LAYOUTS"
-                    :key="option.value"
-                    v-model="form.layout"
-                    :name="`${id}-layout`"
-                    :value="option.value"
-                    :title="option.title"
-                    :hint="option.hint"
-                />
-            </fieldset>
-            <InputError :message="errors.layout" />
-
-            <!-- Three short selects, each column sized to its field, with
-                 a note 8px under them. -->
-            <div class="grid gap-2">
-                <div
-                    class="grid gap-5 sm:grid-cols-[repeat(3,minmax(0,13rem))]"
+            <template #actions>
+                <Button
+                    v-if="cancellable"
+                    type="button"
+                    variant="outline"
+                    class="h-11 rounded-lg px-5 text-[15px] font-bold"
+                    @click="$emit('cancel')"
                 >
-                    <FormField
-                        :id="`${id}-header`"
-                        label="Headings in row"
-                        :error="errors.header_row"
-                    >
-                        <template #default="{ describedby, invalid }">
-                            <NativeSelect
-                                :id="`${id}-header`"
-                                v-model="form.header_row"
-                                :aria-describedby="describedby"
-                                :aria-invalid="invalid"
-                            >
-                                <option
-                                    v-for="row in preview.rows"
-                                    :key="row.number"
-                                    :value="String(row.number)"
-                                >
-                                    Row {{ row.number }}
-                                </option>
-                            </NativeSelect>
-                        </template>
-                    </FormField>
-                    <FormField
-                        :id="`${id}-weight-unit`"
-                        label="Weights in"
-                        :error="errors.weight_unit"
-                    >
-                        <template #default="{ describedby, invalid }">
-                            <NativeSelect
-                                :id="`${id}-weight-unit`"
-                                v-model="form.weight_unit"
-                                :aria-describedby="describedby"
-                                :aria-invalid="invalid"
-                            >
-                                <option value="kg">kg</option>
-                                <option value="g">grams</option>
-                            </NativeSelect>
-                        </template>
-                    </FormField>
-                    <FormField
-                        :id="`${id}-price-unit`"
-                        label="Prices in"
-                        :error="errors.price_unit"
-                    >
-                        <template #default="{ describedby, invalid }">
-                            <NativeSelect
-                                :id="`${id}-price-unit`"
-                                v-model="form.price_unit"
-                                :aria-describedby="describedby"
-                                :aria-invalid="invalid"
-                            >
-                                <option value="rm">ringgit (RM)</option>
-                                <option value="sen">sen</option>
-                            </NativeSelect>
-                        </template>
-                    </FormField>
-                </div>
-                <p class="text-[13px] leading-5 text-muted-foreground">
-                    A unit typed in a cell, such as “500&nbsp;g” or
-                    “RM&nbsp;9.50”, is used for that cell.
-                </p>
-            </div>
-        </FormSection>
+                    Cancel
+                </Button>
+                <Button
+                    type="submit"
+                    :disabled="form.processing"
+                    class="h-11 rounded-lg px-5 text-[15px] font-bold hover:bg-brand-strong"
+                >
+                    <Spinner v-if="form.processing" />
+                    <ListChecks v-else aria-hidden="true" />
+                    Check every row
+                </Button>
+            </template>
+            <FormGroup title="Layout">
+                <FormRow label="Laid out as">
+                    <fieldset class="grid gap-2 sm:grid-cols-2">
+                        <legend class="sr-only">
+                            How the sheet is laid out
+                        </legend>
+                        <ChoiceCard
+                            v-for="option in LAYOUTS"
+                            :key="option.value"
+                            v-model="form.layout"
+                            :name="`${id}-layout`"
+                            :value="option.value"
+                            :title="option.title"
+                            :hint="option.hint"
+                        />
+                    </fieldset>
+                    <InputError :message="errors.layout" class="mt-2" />
+                </FormRow>
 
-        <FormSection title="Preview" :description="previewDescription">
-            <SheetPreview
-                :rows="preview.rows"
-                :columns="preview.columns"
-                :header-row="Number(form.header_row)"
-                :extra-row="
-                    form.layout === 'matrix' ? number(form.extra_row) : null
-                "
-            />
-        </FormSection>
+                <FormField
+                    :id="`${id}-header`"
+                    label="Headings in row"
+                    :error="errors.header_row"
+                >
+                    <template #default="{ describedby, invalid }">
+                        <NativeSelect
+                            :id="`${id}-header`"
+                            v-model="form.header_row"
+                            :aria-describedby="describedby"
+                            :aria-invalid="invalid"
+                        >
+                            <option
+                                v-for="row in preview.rows"
+                                :key="row.number"
+                                :value="String(row.number)"
+                            >
+                                Row {{ row.number }}
+                            </option>
+                        </NativeSelect>
+                    </template>
+                </FormField>
+                <FormField
+                    :id="`${id}-weight-unit`"
+                    label="Weights in"
+                    :error="errors.weight_unit"
+                >
+                    <template #default="{ describedby, invalid }">
+                        <NativeSelect
+                            :id="`${id}-weight-unit`"
+                            v-model="form.weight_unit"
+                            :aria-describedby="describedby"
+                            :aria-invalid="invalid"
+                        >
+                            <option value="kg">kg</option>
+                            <option value="g">grams</option>
+                        </NativeSelect>
+                    </template>
+                </FormField>
+                <FormField
+                    :id="`${id}-price-unit`"
+                    label="Prices in"
+                    :error="errors.price_unit"
+                >
+                    <template #default="{ describedby, invalid }">
+                        <NativeSelect
+                            :id="`${id}-price-unit`"
+                            v-model="form.price_unit"
+                            :aria-describedby="describedby"
+                            :aria-invalid="invalid"
+                        >
+                            <option value="rm">ringgit (RM)</option>
+                            <option value="sen">sen</option>
+                        </NativeSelect>
+                    </template>
+                </FormField>
+                <FormRow attached>
+                    <p class="text-[13px] leading-5 text-muted-foreground">
+                        A unit typed in a cell, such as “500&nbsp;g” or
+                        “RM&nbsp;9.50”, is used for that cell.
+                    </p>
+                </FormRow>
+            </FormGroup>
 
-        <FormSection
-            v-if="form.layout === 'long'"
-            title="Columns"
-            description="Which column holds each value. Rows whose weight says “additional kg” or “per kg” give the price per extra kg."
-        >
-            <div class="grid gap-5 sm:grid-cols-2">
+            <FormGroup
+                v-if="form.layout === 'long'"
+                title="Columns"
+                description="Which column holds each value. Rows whose weight says “additional kg” or “per kg” give the price per extra kg."
+            >
                 <FormField
                     v-for="column in LONG_COLUMNS"
                     :id="`${id}-${column.key}`"
@@ -402,15 +414,13 @@ function submit(): void {
                         </NativeSelect>
                     </template>
                 </FormField>
-            </div>
-        </FormSection>
+            </FormGroup>
 
-        <FormSection
-            v-else
-            title="Routes"
-            description="The column with the weights, the route each other column holds, and the row of prices per extra kg."
-        >
-            <div class="grid gap-5 sm:grid-cols-2">
+            <FormGroup
+                v-else
+                title="Routes"
+                description="The column with the weights, the route each other column holds, and the row of prices per extra kg."
+            >
                 <FormField
                     :id="`${id}-weight-column`"
                     label="Weights in column"
@@ -449,78 +459,68 @@ function submit(): void {
                             autocomplete="off"
                             :aria-describedby="describedby"
                             :aria-invalid="invalid"
-                            class="sm:max-w-40"
                         />
                     </template>
                 </FormField>
-            </div>
 
-            <fieldset class="grid gap-3">
-                <legend class="mb-1 text-[15px] leading-5 font-bold text-ink">
-                    Route of each column
-                </legend>
-                <p class="text-[13px] leading-5 text-muted-foreground">
-                    Each column with a heading, after the weights.
-                </p>
-                <p
-                    v-if="routeColumns.length === 0"
-                    class="rounded-xl border border-dashed border-line-strong px-5 py-6 text-sm text-muted-foreground"
+                <FormRow
+                    label="Route of each column"
+                    hint="Each column with a heading, after the weights."
+                    label-id="route-columns-label"
                 >
-                    The headings row has no other columns. Choose the row with
-                    the route names.
-                </p>
-                <div v-else class="grid gap-5 sm:grid-cols-2">
-                    <FormField
-                        v-for="column in routeColumns"
-                        :id="`${id}-route-${column.index}`"
-                        :key="column.index"
-                        :label="`${columnLetter(column.index)} · ${column.heading}`"
-                        :error="routeError(column.index)"
+                    <fieldset
+                        class="grid gap-3"
+                        aria-labelledby="route-columns-label"
                     >
-                        <template #default="{ describedby, invalid }">
-                            <NativeSelect
+                        <p
+                            v-if="routeColumns.length === 0"
+                            class="rounded-xl border border-dashed border-line-strong px-5 py-6 text-sm text-muted-foreground"
+                        >
+                            The headings row has no other columns. Choose the
+                            row with the route names.
+                        </p>
+                        <div v-else class="grid gap-5 sm:grid-cols-2">
+                            <FormField
+                                v-for="column in routeColumns"
                                 :id="`${id}-route-${column.index}`"
-                                v-model="routeByColumn[column.index]"
-                                :aria-describedby="describedby"
-                                :aria-invalid="invalid"
+                                :key="column.index"
+                                :label="`${columnLetter(column.index)} · ${column.heading}`"
+                                :error="routeError(column.index)"
                             >
-                                <option value="">Not a route</option>
-                                <option
-                                    v-for="choice in routeChoices"
-                                    :key="choice.value"
-                                    :value="choice.value"
-                                >
-                                    {{ choice.label }}
-                                </option>
-                            </NativeSelect>
-                        </template>
-                    </FormField>
-                </div>
-                <InputError :message="errors.routes" />
-            </fieldset>
+                                <template #default="{ describedby, invalid }">
+                                    <NativeSelect
+                                        :id="`${id}-route-${column.index}`"
+                                        v-model="routeByColumn[column.index]"
+                                        :aria-describedby="describedby"
+                                        :aria-invalid="invalid"
+                                    >
+                                        <option value="">Not a route</option>
+                                        <option
+                                            v-for="choice in routeChoices"
+                                            :key="choice.value"
+                                            :value="choice.value"
+                                        >
+                                            {{ choice.label }}
+                                        </option>
+                                    </NativeSelect>
+                                </template>
+                            </FormField>
+                        </div>
+                        <InputError :message="errors.routes" />
+                    </fieldset>
+                </FormRow>
+            </FormGroup>
         </FormSection>
 
-        <div
-            class="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-end"
-        >
-            <Button
-                v-if="cancellable"
-                type="button"
-                variant="outline"
-                class="h-12 rounded-lg px-5 text-[15px] font-bold"
-                @click="$emit('cancel')"
-            >
-                Cancel
-            </Button>
-            <Button
-                type="submit"
-                :disabled="form.processing"
-                class="h-12 rounded-lg px-6 text-[15px] font-bold hover:bg-brand-strong"
-            >
-                <Spinner v-if="form.processing" />
-                <ListChecks v-else aria-hidden="true" />
-                Check every row
-            </Button>
-        </div>
+        <FormSection plain title="Preview" :description="previewDescription">
+            <SheetPreview
+                :rows="preview.rows"
+                :columns="preview.columns"
+                :header-row="Number(form.header_row)"
+                :extra-row="
+                    form.layout === 'matrix' ? number(form.extra_row) : null
+                "
+            />
+        </FormSection>
     </form>
 </template>

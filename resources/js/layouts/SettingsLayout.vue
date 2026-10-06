@@ -96,14 +96,11 @@ const navFits = useFitsViewport(settingsNav, 40);
                 </ul>
             </nav>
 
-            <!-- A @container, so forms inside can lay out by the card's own
-                 width: beside the menu, or in a driver's narrow column, it
-                 is much narrower than the screen -->
-            <section
-                class="@container min-w-0 flex-1 space-y-12 rounded-2xl border border-line bg-white p-5 sm:p-8"
-            >
+            <!-- The pages bring their own cards (FormSection), one per
+                 thing to save, each laying out by its own width. -->
+            <div class="min-w-0 flex-1 space-y-6">
                 <slot />
-            </section>
+            </div>
         </div>
     </div>
 </template>

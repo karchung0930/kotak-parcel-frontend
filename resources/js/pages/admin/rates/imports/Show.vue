@@ -462,6 +462,17 @@ function uploadAgain(): void {
                         : 'Upload the file again, or another one. It uses the same zones.'
                 "
             >
+                <template #actions>
+                    <Button
+                        type="submit"
+                        :disabled="uploadForm.processing"
+                        class="h-11 rounded-lg px-5 text-[15px] font-bold hover:bg-brand-strong"
+                    >
+                        <Spinner v-if="uploadForm.processing" />
+                        <FileUp v-else aria-hidden="true" />
+                        Upload and read
+                    </Button>
+                </template>
                 <FormField
                     id="fixed-file"
                     label="Spreadsheet"
@@ -481,15 +492,6 @@ function uploadAgain(): void {
                         />
                     </template>
                 </FormField>
-                <Button
-                    type="submit"
-                    :disabled="uploadForm.processing"
-                    class="h-11 w-fit rounded-lg px-4 font-bold hover:bg-brand-strong"
-                >
-                    <Spinner v-if="uploadForm.processing" />
-                    <FileUp v-else aria-hidden="true" />
-                    Upload and read
-                </Button>
             </FormSection>
         </form>
 

@@ -901,52 +901,67 @@ const hintClass = 'mt-1.5 text-[12.5px] leading-[18px] text-muted-foreground';
             </FormSection>
 
             <div class="lg:col-start-1 lg:self-start">
-                <p class="text-[12.5px] leading-[18px] text-muted-foreground">
+                <!-- On desktops the note sits in the submit card, with the
+                     estimate it is about. -->
+                <p
+                    class="text-[12.5px] leading-[18px] text-muted-foreground lg:hidden"
+                >
                     You'll get a KT- tracking number straight away. Nothing is
                     charged until you drop the parcel off and staff weigh it.
                 </p>
 
-                <!-- Desktop submit row -->
+                <!-- Desktop submit card -->
                 <div
-                    class="mt-4 hidden items-center gap-5 rounded-2xl border border-line bg-white p-4 pl-6 lg:flex"
+                    class="hidden rounded-2xl border border-line bg-white p-4 pl-6 lg:block"
                 >
-                    <div class="min-w-0 flex-1">
+                    <div class="flex items-center gap-5">
+                        <div class="min-w-0 flex-1">
+                            <p
+                                class="text-xs leading-4 font-semibold text-muted-foreground"
+                            >
+                                Estimate
+                            </p>
+                            <p
+                                class="text-2xl leading-8 font-extrabold tracking-heading text-ink tabular-nums"
+                            >
+                                {{
+                                    estimate
+                                        ? formatMoney(estimate.priceSen)
+                                        : '—'
+                                }}
+                            </p>
+                        </div>
                         <p
-                            class="text-xs leading-4 font-semibold text-muted-foreground"
+                            v-if="errorCount > 0"
+                            role="alert"
+                            class="flex items-center gap-1.5 text-sm font-semibold text-brand-strong"
                         >
-                            Estimate
+                            <CircleAlert aria-hidden="true" class="size-4" />
+                            Check the highlighted
+                            {{ errorCount === 1 ? 'field' : 'fields' }}
                         </p>
-                        <p
-                            class="text-2xl leading-8 font-extrabold tracking-heading text-ink tabular-nums"
+                        <Button
+                            type="submit"
+                            class="h-12 px-6 text-base font-extrabold"
+                            :disabled="form.processing"
                         >
-                            {{
-                                estimate ? formatMoney(estimate.priceSen) : '—'
-                            }}
-                        </p>
+                            <Spinner v-if="form.processing" />
+                            Create order
+                            <ArrowRight
+                                v-if="!form.processing"
+                                aria-hidden="true"
+                                class="size-[18px]"
+                                :stroke-width="2.4"
+                            />
+                        </Button>
                     </div>
                     <p
-                        v-if="errorCount > 0"
-                        role="alert"
-                        class="flex items-center gap-1.5 text-sm font-semibold text-brand-strong"
+                        class="mt-3 border-t border-line-soft pt-3 text-[12.5px] leading-[18px] text-muted-foreground"
                     >
-                        <CircleAlert aria-hidden="true" class="size-4" />
-                        Check the highlighted
-                        {{ errorCount === 1 ? 'field' : 'fields' }}
+                        You'll get a KT- tracking number straight away. Nothing
+                        is charged until you drop the parcel off and staff weigh
+                        it.
                     </p>
-                    <Button
-                        type="submit"
-                        class="h-12 px-6 text-base font-extrabold"
-                        :disabled="form.processing"
-                    >
-                        <Spinner v-if="form.processing" />
-                        Create order
-                        <ArrowRight
-                            v-if="!form.processing"
-                            aria-hidden="true"
-                            class="size-[18px]"
-                            :stroke-width="2.4"
-                        />
-                    </Button>
                 </div>
             </div>
         </div>
