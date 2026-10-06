@@ -19,7 +19,7 @@ import Notice from '@/components/Notice.vue';
 import PriceEstimator from '@/components/public/PriceEstimator.vue';
 import PriceRules from '@/components/public/PriceRules.vue';
 import PublicPageBand from '@/components/public/PublicPageBand.vue';
-import RouteRatesGrid from '@/components/RouteRatesGrid.vue';
+import RouteRatesTable from '@/components/RouteRatesTable.vue';
 import RouteTitle from '@/components/RouteTitle.vue';
 import SectionHeading from '@/components/SectionHeading.vue';
 import { Button } from '@/components/ui/button';
@@ -43,7 +43,6 @@ import {
     lowestPriceSen,
     quote,
     routeBetween,
-    routeLabel,
 } from '@/lib/pricing';
 import type { PriceQuote } from '@/lib/pricing';
 import { home, pricing as pricingPage } from '@/routes';
@@ -251,7 +250,8 @@ const routeCards = computed(() => {
             ? [
                   {
                       key: route.to,
-                      title: routeLabel(from, to),
+                      to: to.name,
+                      within: from.code === to.code,
                       bands: route.bands,
                       extraKgSen: route.extraKgSen,
                   },
@@ -524,9 +524,9 @@ const limits = computed(() => [
             <p v-if="zoned" class="sr-only" aria-live="polite">
                 Showing rates from {{ fromZone?.name }}
             </p>
-            <RouteRatesGrid
+            <RouteRatesTable
+                :caption="`Prices from ${fromZone?.name ?? 'Malaysia'}`"
                 :routes="routeCards"
-                :heading-level="zoned ? 'h4' : 'h3'"
                 class="mt-6"
             />
 

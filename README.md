@@ -141,10 +141,11 @@ tests/js/                small checks that run on plain Node
   customer, counter and driver forms), `ChoiceCard.vue` for radio choices
   shown as cards, `ToneChip.vue` under
   every status chip, `ActionDivider.vue` between two kinds of page actions,
-  `RouteRates.vue` for a route's weight bands (laid out by
-  `RouteRatesGrid.vue`, so cards side by side keep their rows level) on the
-  pricing page and the admin's Rates pages, `RouteGroups.vue` for a card's
-  routes grouped by the zone they leave from (a version's page and an
+  `RouteRatesTable.vue` for the prices from one zone (a row per
+  weight limit, a column per destination, worked-out prices muted and
+  the weight column held while it scrolls) on the pricing page and the
+  admin's Rates pages, `RouteGroups.vue` for a card's routes as one such
+  table per zone they leave from (a version's page and an
   import's preview), `FileName.vue` for an uploaded file's name (it wraps
   after "_", "-" and ".", never inside a word), `ImportFileField.vue` for choosing a spreadsheet to
   import, `SheetPreview.vue` for a few rows of a sheet (an import's columns

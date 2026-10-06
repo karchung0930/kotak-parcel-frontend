@@ -15,7 +15,9 @@ import {
     kgToGrams,
     lowestExtraKgSen,
     lowestPriceSen,
+    priceAtWeight,
     quote,
+    rateTableRows,
     ringgitToSen,
     routeLabel,
     routeName,
@@ -162,6 +164,48 @@ const checks: [string, () => void][] = [
             assert.equal(lowestPriceSen(zoned), 800);
             assert.equal(lowestPriceSen(zoned, 'east-malaysia'), 900);
             assert.equal(lowestExtraKgSen(zoned), 200);
+        },
+    ],
+    [
+        'a route price at another route weight limit (the rates tables)',
+        () => {
+            const bands = [{ maxWeightG: 1000, priceSen: 800 }];
+
+            assert.deepEqual(priceAtWeight(bands, 200, 1000), {
+                priceSen: 800,
+                own: true,
+            });
+            assert.deepEqual(priceAtWeight(bands, 200, 500), {
+                priceSen: 800,
+                own: false,
+            });
+            // Past the highest band: each started kg at the extra-kg price.
+            assert.deepEqual(priceAtWeight(bands, 200, 2500), {
+                priceSen: 1200,
+                own: false,
+            });
+            assert.equal(priceAtWeight(bands, null, 2000), null);
+            assert.equal(priceAtWeight([], 200, 1000), null);
+
+            const rows = rateTableRows([
+                { bands, extraKgSen: 200 },
+                {
+                    bands: [
+                        { maxWeightG: 500, priceSen: 900 },
+                        { maxWeightG: 2000, priceSen: 1500 },
+                    ],
+                    extraKgSen: 450,
+                },
+            ]);
+
+            assert.deepEqual(
+                rows.map((row) => row.weightG),
+                [500, 1000, 2000],
+            );
+            assert.deepEqual(rows[2].prices, [
+                { priceSen: 1000, own: false },
+                { priceSen: 1500, own: true },
+            ]);
         },
     ],
     [

@@ -246,16 +246,18 @@ const headingClass =
             </Notice>
         </template>
 
-        <div
-            class="grid gap-6 @4xl:grid-cols-[minmax(0,1fr)_minmax(0,22rem)] @4xl:items-start"
-        >
-            <section aria-labelledby="zones-title" class="min-w-0 space-y-3">
+        <div class="grid gap-6">
+            <!-- Zones and Details each take the full width, so neither card is
+                 stretched to the other's height or leaves a gap beside it. -->
+            <section
+                aria-labelledby="zones-title"
+                class="flex min-w-0 flex-col gap-3"
+            >
                 <h2 id="zones-title" :class="headingClass">Zones</h2>
                 <ZoneList
                     v-if="zones.length > 0"
                     :zones="zones"
                     :states="states"
-                    :columns="2"
                 />
                 <p
                     v-else
@@ -265,13 +267,15 @@ const headingClass =
                 </p>
             </section>
 
-            <!-- The heading sits above the card, as Zones does, so the cards
-                 start level. The rows' own 12px padding completes the
-                 card's 20px (24px from 640px). -->
-            <section aria-labelledby="details-title" class="space-y-3">
+            <!-- A two-column list from 640px (the rows' own 12px padding
+                 completes the card's 20px, 24px from 640px). -->
+            <section
+                aria-labelledby="details-title"
+                class="flex flex-col gap-3"
+            >
                 <h2 id="details-title" :class="headingClass">Details</h2>
                 <DescriptionList
-                    class="rounded-xl border border-line bg-white px-5 py-2 sm:px-6 sm:py-3"
+                    class="rounded-xl border border-line bg-white px-5 py-2 sm:grid sm:grid-cols-2 sm:gap-x-10 sm:divide-y-0 sm:px-6 sm:py-3 sm:[&>*]:border-b sm:[&>*]:border-line-soft sm:[&>*:nth-last-child(-n+2)]:border-b-0"
                 >
                     <DescriptionItem label="Effective from">
                         <DateTime

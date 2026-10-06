@@ -1,5 +1,6 @@
 import type {
     MalaysianStateValue,
+    PriceBand,
     PriceList,
     PriceRoute,
     PriceZone,
@@ -276,4 +277,62 @@ export function ringgitToSen(ringgit: string): number {
 /** Sen → ringgit as an editable value: 850 → "8.50". */
 export function senToRinggit(sen: number | null | undefined): string {
     return sen === null || sen === undefined ? '' : (sen / 100).toFixed(2);
+}
+
+/**
+ * A route's price at a weight, by the same rule as quote() and the
+ * backend's PriceCalculator: the lightest band whose limit is at least the
+ * weight, or past the highest band its price plus each started kg at the
+ * extra-kg price. `own` says the weight is one of the route's own band
+ * limits (not worked out). Null when the route has no bands, or the weight
+ * is past them and no extra-kg price is set.
+ */
+export function priceAtWeight(
+    bands: PriceBand[],
+    extraKgSen: number | null,
+    weightG: number,
+): { priceSen: number; own: boolean } | null {
+    const covering = bands.find((band) => band.maxWeightG >= weightG);
+
+    if (covering) {
+        return {
+            priceSen: covering.priceSen,
+            own: covering.maxWeightG === weightG,
+        };
+    }
+
+    const highest = bands[bands.length - 1];
+
+    if (!highest || extraKgSen === null) {
+        return null;
+    }
+
+    const extraKg = Math.floor((weightG - highest.maxWeightG + 999) / 1000);
+
+    return { priceSen: highest.priceSen + extraKg * extraKgSen, own: false };
+}
+
+/**
+ * The rows of one origin's rates table: every weight limit used by any of
+ * its routes, lightest first, with each route's price there (priceAtWeight,
+ * null where it cannot be worked out), in the routes' order.
+ */
+export function rateTableRows(
+    routes: { bands: PriceBand[]; extraKgSen: number | null }[],
+): {
+    weightG: number;
+    prices: ({ priceSen: number; own: boolean } | null)[];
+}[] {
+    const weights = [
+        ...new Set(
+            routes.flatMap((route) => route.bands.map((b) => b.maxWeightG)),
+        ),
+    ].sort((a, b) => a - b);
+
+    return weights.map((weightG) => ({
+        weightG,
+        prices: routes.map((route) =>
+            priceAtWeight(route.bands, route.extraKgSen, weightG),
+        ),
+    }));
 }

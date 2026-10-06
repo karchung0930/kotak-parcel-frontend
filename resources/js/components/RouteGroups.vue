@@ -1,13 +1,12 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import RouteRatesGrid from '@/components/RouteRatesGrid.vue';
-import { routeName } from '@/lib/pricing';
+import RouteRatesTable from '@/components/RouteRatesTable.vue';
 import type { PriceBand } from '@/types';
 
 /**
- * Every route of a rate card as price cards, grouped by the zone they
- * leave from ("From Peninsular Malaysia", then its routes to each zone).
- * A route the card lacks shows as a card without bands. Used under an h2
+ * Every route of a rate card as one price table per zone they leave from
+ * ("From Peninsular Malaysia", a column for each zone it goes to). A
+ * route the card lacks shows as a column without prices. Used under an h2
  * on a version's page and on an import's preview, so both read alike.
  */
 const props = defineProps<{
@@ -31,8 +30,9 @@ const groups = computed(() =>
             );
 
             return {
-                key: `${from.key}-${to.key}`,
-                title: routeName(from.name, to.name, from.key === to.key),
+                key: to.key,
+                to: to.name,
+                within: from.key === to.key,
                 bands: route?.bands ?? [],
                 extraKgSen: route?.extraKgSen ?? null,
             };
@@ -42,13 +42,17 @@ const groups = computed(() =>
 </script>
 
 <template>
-    <!-- 24px between the groups, as between sections. -->
-    <div class="space-y-6">
-        <div v-for="group in groups" :key="group.from.key" class="space-y-3">
-            <h3 class="text-[15px] leading-6 font-bold text-muted-foreground">
+    <!-- 40px between the groups and 10px from a heading to its table, so
+         each "From" heading reads as the next table's, not the last one's. -->
+    <div class="space-y-10">
+        <div v-for="group in groups" :key="group.from.key" class="space-y-2.5">
+            <h3 class="text-[15px] leading-6 font-extrabold text-ink">
                 From {{ group.from.name }}
             </h3>
-            <RouteRatesGrid :routes="group.routes" heading-level="h4" />
+            <RouteRatesTable
+                :caption="`Prices from ${group.from.name}`"
+                :routes="group.routes"
+            />
         </div>
     </div>
 </template>
